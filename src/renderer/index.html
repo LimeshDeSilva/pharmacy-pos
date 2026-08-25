@@ -20,6 +20,51 @@
     </ul>
   </nav>
 
+
+  <!-- 1. Add Medicine Panel -->
+    <section id="add-drug-view" class="view-panel active">
+      <div class="card">
+        <h3 style="margin-bottom: 14px;">Register New Medicine</h3>
+        <form id="drug-form">
+          <div class="form-group">
+            <label for="brand_name">Brand Name *</label>
+            <input type="text" id="brand_name" placeholder="e.g. Panadol 500mg" required />
+          </div>
+          <div class="form-group">
+            <label for="generic_name">Generic Name</label>
+            <input type="text" id="generic_name" placeholder="e.g. Paracetamol" />
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" id="category" placeholder="e.g. Painkiller" />
+          </div>
+          <div class="form-group">
+            <label for="min_stock_alert">Low Stock Alert Limit</label>
+            <input type="number" id="min_stock_alert" value="10" />
+          </div>
+          <button type="submit" class="btn">Save Medicine</button>
+        </form>
+        <div id="drug-status-msg" class="status-msg"></div>
+      </div>
+    </section>
+
+    <!-- 2. Inventory Panel Placeholder -->
+    <section id="inventory-view" class="view-panel">
+      <div class="card" style="max-width: 100%;">
+        <h3>Stock Overview</h3>
+        <p style="color: #64748b; margin-top: 6px;">Inventory table will be displayed here.</p>
+      </div>
+    </section>
+
+    <!-- 3. Billing Panel Placeholder -->
+    <section id="pos-view" class="view-panel">
+      <div class="card" style="max-width: 100%;">
+        <h3>Billing Counter</h3>
+        <p style="color: #64748b; margin-top: 6px;">POS billing interface will be displayed here.</p>
+      </div>
+    </section>
+  </main>
+
 </body>
 
 </html>
