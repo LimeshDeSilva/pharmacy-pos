@@ -4,7 +4,7 @@ const viewPanels = document.querySelectorAll('.view-panel');
 const pageTitle = document.getElementById('page-title');
 
 navItems.forEach((item) => {
-  item.addEventListener('click', () => {
+  item.addEventListener('click', async () => {
     
     navItems.forEach((nav) => nav.classList.remove('active'));
     item.classList.add('active');
@@ -18,9 +18,12 @@ navItems.forEach((item) => {
       activePanel.classList.add('active');
     }
 
-    
     if (pageTitle) {
       pageTitle.innerText = item.innerText.replace(/[^\w\s()]/gi, '').trim();
+    }
+
+    if (targetViewId === 'add-batch-view') {
+      await displayDrugDropdown();
     }
   });
 });
@@ -84,4 +87,37 @@ async function displayDrugDropdown() {
 
 if (document.getElementById('batch_drug_select')) {
   displayDrugDropdown();
+}
+
+
+const batchForm = document.getElementById('batch-form');
+const batchStatusMsg = document.getElementById('batch-status-msg');
+
+if (batchForm) {
+  batchForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const batchData = {
+      drug_id: parseInt(document.getElementById('batch_drug_select').value, 10),
+      batch_number: document.getElementById('batch_number').value.trim(),
+      expiry_date: document.getElementById('expiry_date').value,
+      buy_price: parseFloat(document.getElementById('buy_price').value),
+      sell_price: parseFloat(document.getElementById('sell_price').value),
+      quantity: parseInt(document.getElementById('quantity').value, 10)
+    };
+
+    batchStatusMsg.style.color = '#475569';
+    batchStatusMsg.innerText = 'Saving batch...';
+
+    const response = await window.api.addBatch(batchData);
+
+    if (response.success) {
+      batchStatusMsg.style.color = '#16a34a';
+      batchStatusMsg.innerText = '✓ Batch saved successfully!';
+      batchForm.reset();
+    } else {
+      batchStatusMsg.style.color = '#dc2626';
+      batchStatusMsg.innerText = '✗ Error: ' + response.error;
+    }
+  });
 }
