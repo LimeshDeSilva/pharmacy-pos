@@ -60,3 +60,28 @@ if (drugForm) {
     }
   });
 }
+
+
+
+// ====================  ADD BATCH FORM HANDLER ====================
+
+async function displayDrugDropdown() {
+  const select = document.getElementById('batch_drug_select');
+  if (!select) return;
+
+  const allDrugs = await window.api.getAllDrugs();
+
+  if (allDrugs.success) {
+    select.innerHTML = '<option value="">-- Choose Medicine --</option>';
+    allDrugs.data.forEach((drug) => {
+      const option = document.createElement('option');
+      option.value = drug.id;
+      option.textContent = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
+      select.appendChild(option);
+    });
+  }
+}
+
+if (document.getElementById('batch_drug_select')) {
+  displayDrugDropdown();
+}
