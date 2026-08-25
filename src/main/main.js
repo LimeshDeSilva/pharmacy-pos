@@ -46,6 +46,21 @@ ipcMain.handle('drugs:getAll', async () => {
 });
 
 
+ipcMain.handle('batches:add', async (event, batchData) => {
+  try {
+    const result = dbOps.addBatch(
+      batchData.drug_id,
+      batchData.batch_number,
+      batchData.expiry_date,
+      batchData.buy_price,
+      batchData.sell_price,
+      batchData.quantity
+    );
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
 
 app.whenReady().then(createWindow);
 
