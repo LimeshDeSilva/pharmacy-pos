@@ -16,6 +16,18 @@ function initDatabase() {
       category TEXT,
       min_stock_alert INTEGER DEFAULT 10
     );
+
+    CREATE TABLE IF NOT EXISTS batches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      drug_id INTEGER NOT NULL,
+      batch_number TEXT NOT NULL,
+      expiry_date TEXT NOT NULL,
+      buy_price REAL NOT NULL,
+      sell_price REAL NOT NULL,
+      quantity INTEGER NOT NULL,
+      FOREIGN KEY (drug_id) REFERENCES drugs(id) ON DELETE CASCADE,
+      UNIQUE(drug_id, batch_number)
+    );
   `);
 }
 
