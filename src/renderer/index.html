@@ -17,13 +17,14 @@
     <div class="brand">🏥 MediCare POS</div>
     <ul class="nav-links">
       <li class="nav-item active" data-view="add-drug-view">➕ Add Medicine</li>
+      <li class="nav-item" data-view="add-batch-view">🏷️ Add Batch</li>
       <li class="nav-item" data-view="inventory-view">📦 Inventory</li>
       <li class="nav-item" data-view="pos-view">🛒 Billing (POS)</li>
     </ul>
   </nav>
 
 
-  <!-- 1. Add Medicine Panel -->
+  <!-- Add Medicine Panel -->
   <main id="main-content">
 
     <header>
@@ -56,7 +57,44 @@
       </div>
     </section>
 
-    <!-- 2. Inventory Panel Placeholder -->
+    <!-- Add Batch View -->
+    <section id="add-batch-view" class="view-panel">
+      <div class="card">
+        <h3 style="margin-bottom: 14px;">Add Shipment Batch</h3>
+        <form id="batch-form">
+          <div class="form-group">
+            <label for="batch_drug_select">Select Medicine *</label>
+            <select id="batch_drug_select" required>
+              <option value="">-- Choose Medicine --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="batch_number">Batch / Lot Number *</label>
+            <input type="text" id="batch_number" placeholder="e.g. BATCH-2026A" required />
+          </div>
+          <div class="form-group">
+            <label for="expiry_date">Expiry Date *</label>
+            <input type="date" id="expiry_date" required />
+          </div>
+          <div class="form-group">
+            <label for="buy_price">Cost / Buy Price (LKR) *</label>
+            <input type="number" step="0.01" id="buy_price" placeholder="e.g. 5.00" required />
+          </div>
+          <div class="form-group">
+            <label for="sell_price">Selling Price (LKR) *</label>
+            <input type="number" step="0.01" id="sell_price" placeholder="e.g. 8.00" required />
+          </div>
+          <div class="form-group">
+            <label for="quantity">Quantity (Units/Tablets) *</label>
+            <input type="number" id="quantity" placeholder="e.g. 500" required />
+          </div>
+          <button type="submit" class="btn">Save Batch</button>
+        </form>
+        <div id="batch-status-msg" class="status-msg"></div>
+      </div>
+    </section>
+
+    <!-- Inventory Panel Placeholder -->
     <section id="inventory-view" class="view-panel">
       <div class="card" style="max-width: 100%;">
         <h3>Stock Overview</h3>
@@ -64,7 +102,7 @@
       </div>
     </section>
 
-    <!-- 3. Billing Panel Placeholder -->
+    <!-- Billing Panel Placeholder -->
     <section id="pos-view" class="view-panel">
       <div class="card" style="max-width: 100%;">
         <h3>Billing Counter</h3>
