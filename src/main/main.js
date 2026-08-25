@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const dbOps = require('./database');
+const dbOps = require('./database.js');
 
 function createWindow() {
   const win = new BrowserWindow({
