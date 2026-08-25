@@ -34,6 +34,19 @@ ipcMain.handle('drugs:add', async (event, drugData) => {
   }
 });
 
+
+
+ipcMain.handle('drugs:getAll', async () => {
+  try {
+    const drugs = dbOps.getAllDrugs();
+    return { success: true, data: drugs };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
