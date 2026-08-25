@@ -27,8 +27,27 @@ function addDrug(brand_name, generic_name, category, min_stock_alert) {
   return query.run(brand_name, generic_name, category, min_stock_alert);
 }
 
+
+//get all drugs from the database
+function getAllDrugs() {
+  const query = db.prepare(`SELECT id, brand_name, generic_name FROM drugs ORDER BY brand_name ASC`);
+  return query.all();
+}
+
+
+// Insert new batch record
+function addBatch(drug_id, batch_number, expiry_date, buy_price, sell_price, quantity) {
+  const query = db.prepare(`
+    INSERT INTO batches (drug_id, batch_number, expiry_date, buy_price, sell_price, quantity)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  return query.run(drug_id, batch_number, expiry_date, buy_price, sell_price, quantity);
+}
+
 initDatabase();
 
 module.exports = {
-  addDrug
+  addDrug,
+  getAllDrugs,
+  addBatch
 };
