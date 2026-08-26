@@ -83,6 +83,16 @@ ipcMain.handle('pos:getStock', async () => {
 });
 
 
+ipcMain.handle('pos:checkout', async (event, { cart, total }) => {
+  try {
+    const result = dbOps.processSale(cart, total);
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
 
 
 
