@@ -121,3 +121,11 @@ if (batchForm) {
     }
   });
 }
+
+// Load and render inventory data
+async function loadInventory() {
+  const tableBody = document.getElementById('inventory-table-body');
+  if (!tableBody) return;
+
+  const response = await window.api.getInventory();
+}
