@@ -56,10 +56,38 @@ function addBatch(drug_id, batch_number, expiry_date, buy_price, sell_price, qua
   return query.run(drug_id, batch_number, expiry_date, buy_price, sell_price, quantity);
 }
 
+
+// Fetch inventory details
+function getInventoryOverview() {
+  const query = db.prepare(`
+    SELECT 
+      d.id AS drug_id,
+      d.brand_name,
+      d.generic_name,
+      d.category,
+      d.min_stock_alert,
+      COALESCE(SUM(b.quantity), 0) AS total_stock,
+      b.id AS batch_id,
+      b.batch_number,
+      b.expiry_date,
+      b.buy_price,
+      b.sell_price,
+      b.quantity AS batch_quantity
+    FROM drugs d
+    LEFT JOIN batches b ON d.id = b.drug_id
+    GROUP BY d.id, b.id
+    ORDER BY d.brand_name ASC, b.expiry_date ASC
+  `);
+  return query.all();
+}
+
+
+
 initDatabase();
 
 module.exports = {
   addDrug,
   getAllDrugs,
-  addBatch
+  addBatch,
+  getInventoryOverview
 };
