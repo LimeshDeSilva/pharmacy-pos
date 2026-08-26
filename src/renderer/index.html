@@ -129,14 +129,72 @@
       </div>
     </section>
 
-    <!-- Billing Panel Placeholder -->
+    <!-- POS Billing View -->
     <section id="pos-view" class="view-panel">
-      <div class="card" style="max-width: 100%;">
-        <h3>Billing Counter</h3>
-        <p style="color: #64748b; margin-top: 6px;">POS billing interface will be displayed here.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
+        
+        <!-- Left ==> Item Selector Card -->
+        <div class="card" style="max-width: 100%;">
+          <h3 style="margin-bottom: 14px;">Select Item</h3>
+          <div class="form-group">
+            <label for="pos_batch_select">Available Medicines (FEFO Sorted) *</label>
+            <select id="pos_batch_select">
+              <option value="">-- Select Available Item --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pos_qty">Quantity to Sell *</label>
+            <input type="number" id="pos_qty" min="1" value="1" />
+          </div>
+          <button id="add-to-cart-btn" type="button" class="btn">Add to Cart 🛒</button>
+          <div id="pos-input-msg" class="status-msg"></div>
+        </div>
+
+        <!-- Right ==> Current Bill -->
+        <div class="card" style="max-width: 100%;">
+          <h3 style="margin-bottom: 14px;">Current Invoice</h3>
+          <table class="data-table" style="margin-bottom: 14px;">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Total (LKR)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="cart-table-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 12px; margin-bottom: 16px;">
+            <span style="font-size: 16px; font-weight: bold;">Grand Total:</span>
+            <span id="grand-total-display" style="font-size: 18px; font-weight: bold; color: #0284c7;">LKR 0.00</span>
+          </div>
+
+          <button id="checkout-btn" class="btn" style="background: #16a34a;">Complete Checkout & Print (F8)</button>
+          <div id="checkout-status-msg" class="status-msg"></div>
+        </div>
+
       </div>
     </section>
+
+
+
+
   </main>
+
+
+
+  
+
+
+
+
+
 
 
   <script src="renderer.js"></script>
