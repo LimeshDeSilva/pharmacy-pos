@@ -327,3 +327,13 @@ if (checkoutBtn) {
     }
   });
 }
+
+// Hook into tab navigation to reload POS stock when clicking the tab
+navItems.forEach((item) => {
+  item.addEventListener('click', async () => {
+    const targetViewId = item.getAttribute('data-view');
+    if (targetViewId === 'pos-view') {
+      await loadPosStock();
+    }
+  });
+});
