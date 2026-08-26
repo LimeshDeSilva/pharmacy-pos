@@ -207,3 +207,34 @@ async function loadPosStock() {
     });
   }
 }
+
+// Render Cart Table
+function renderCart() {
+  const cartBody = document.getElementById('cart-table-body');
+  const totalDisplay = document.getElementById('grand-total-display');
+  if (!cartBody || !totalDisplay) return;
+
+  if (currentCart.length === 0) {
+    cartBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td></tr>`;
+    totalDisplay.innerText = 'LKR 0.00';
+    return;
+  }
+
+  cartBody.innerHTML = '';
+  let grandTotal = 0;
+
+  currentCart.forEach((item, index) => {
+    grandTotal += item.total_price;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.brand_name} <br><small style="color: #64748b;">${item.batch_number}</small></td>
+      <td>${item.sell_price.toFixed(2)}</td>
+      <td>${item.quantity}</td>
+      <td><strong>${item.total_price.toFixed(2)}</strong></td>
+      <td><button onclick="removeFromCart(${index})" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">✕</button></td>
+    `;
+    cartBody.appendChild(tr);
+  });
+
+  totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
+}
