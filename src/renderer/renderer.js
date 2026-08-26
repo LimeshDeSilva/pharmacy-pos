@@ -245,3 +245,53 @@ window.removeFromCart = (index) => {
   currentCart.splice(index, 1);
   renderCart();
 };
+
+
+// Add to Cart button listener
+const addToCartBtn = document.getElementById('add-to-cart-btn');
+if (addToCartBtn) {
+  addToCartBtn.addEventListener('click', () => {
+    const batchId = parseInt(document.getElementById('pos_batch_select').value, 10);
+    const qty = parseInt(document.getElementById('pos_qty').value, 10);
+    const msg = document.getElementById('pos-input-msg');
+
+    if (!batchId || !qty || qty <= 0) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Please select a valid medicine and quantity.';
+      return;
+    }
+
+    const selectedStock = availablePosStock.find((s) => s.batch_id === batchId);
+    if (!selectedStock) return;
+
+    if (qty > selectedStock.available_qty) {
+      msg.style.color = '#dc2626';
+      msg.innerText = `Only ${selectedStock.available_qty} units available in this batch.`;
+      return;
+    }
+
+    // Check if already in cart
+    const existingIndex = currentCart.findIndex((i) => i.batch_id === batchId);
+    if (existingIndex > -1) {
+      if (currentCart[existingIndex].quantity + qty > selectedStock.available_qty) {
+        msg.style.color = '#dc2626';
+        msg.innerText = `Cannot exceed total stock (${selectedStock.available_qty}).`;
+        return;
+      }
+      currentCart[existingIndex].quantity += qty;
+      currentCart[existingIndex].total_price = currentCart[existingIndex].quantity * selectedStock.sell_price;
+    } else {
+      currentCart.push({
+        batch_id: selectedStock.batch_id,
+        brand_name: selectedStock.brand_name,
+        batch_number: selectedStock.batch_number,
+        sell_price: selectedStock.sell_price,
+        quantity: qty,
+        total_price: qty * selectedStock.sell_price
+      });
+    }
+
+    msg.innerText = '';
+    renderCart();
+  });
+}
