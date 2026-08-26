@@ -167,3 +167,13 @@ async function loadInventory() {
     tableBody.appendChild(tr);
   });
 }
+
+// Attach to sidebar navigation
+navItems.forEach((item) => {
+  item.addEventListener('click', async () => {
+    const targetViewId = item.getAttribute('data-view');
+    if (targetViewId === 'inventory-view') {
+      await loadInventory();
+    }
+  });
+});
