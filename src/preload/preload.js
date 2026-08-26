@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('api', {
   getAllDrugs: () => ipcRenderer.invoke('drugs:getAll'),
   addBatch: (batchData) => ipcRenderer.invoke('batches:add', batchData),
   getInventory: () => ipcRenderer.invoke('inventory:getAll'),
-  getPosStock: () => ipcRenderer.invoke('pos:getStock')
+  getPosStock: () => ipcRenderer.invoke('pos:getStock'),
+  checkout: (saleData) => ipcRenderer.invoke('pos:checkout', saleData)
 });
