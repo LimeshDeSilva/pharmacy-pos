@@ -120,6 +120,43 @@ function getAvailableStock() {
 }
 
 
+// Atomic Checkout Transaction
+function processSale(cartItems, totalAmount) {
+  const executeSale = db.transaction(() => {
+    // 1. Insert Sales Header
+    const saleInsert = db.prepare(`INSERT INTO sales (total_amount) VALUES (?)`);
+    const saleResult = saleInsert.run(totalAmount);
+    const saleId = saleResult.lastInsertRowid;
+
+    // Prepared statements for loop
+    const itemInsert = db.prepare(`
+      INSERT INTO sale_items (sale_id, batch_id, quantity, unit_price, total_price)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const stockDeduct = db.prepare(`
+      UPDATE batches 
+      SET quantity = quantity - ? 
+      WHERE id = ? AND quantity >= ?
+    `);
+
+    // 2. Process each cart item
+    for (const item of cartItems) {
+      // Deduct stock safely
+      const updateResult = stockDeduct.run(item.quantity, item.batch_id, item.quantity);
+      if (updateResult.changes === 0) {
+        throw new Error(`Insufficient stock for ${item.brand_name} (Batch: ${item.batch_number})`);
+      }
+
+      // Record line item
+      itemInsert.run(saleId, item.batch_id, item.quantity, item.sell_price, item.total_price);
+    }
+
+    return { saleId, totalAmount };
+  });
+
+  return executeSale();
+}
+
 
 
 
@@ -130,5 +167,6 @@ module.exports = {
   addDrug,
   getAllDrugs,
   addBatch,
-  getInventoryOverview
+  getInventoryOverview,
+  processSale
 };
