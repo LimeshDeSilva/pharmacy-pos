@@ -238,3 +238,10 @@ function renderCart() {
 
   totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
 }
+
+
+// Global removal helper
+window.removeFromCart = (index) => {
+  currentCart.splice(index, 1);
+  renderCart();
+};
