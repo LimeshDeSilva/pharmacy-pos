@@ -168,5 +168,6 @@ module.exports = {
   getAllDrugs,
   addBatch,
   getInventoryOverview,
+  getAvailableStock,
   processSale
 };
