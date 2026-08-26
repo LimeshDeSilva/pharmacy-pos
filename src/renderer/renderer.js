@@ -122,7 +122,8 @@ if (batchForm) {
   });
 }
 
-// Load and render inventory data
+// ====================  Load and render inventory data ====================
+
 async function loadInventory() {
   const tableBody = document.getElementById('inventory-table-body');
   if (!tableBody) return;
@@ -182,4 +183,27 @@ navItems.forEach((item) => {
 const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
 if (refreshInventoryBtn) {
   refreshInventoryBtn.addEventListener('click', loadInventory);
+}
+
+
+// ==================== POS / BILLING MODULE ====================
+let availablePosStock = [];
+let currentCart = [];
+
+// Display POS dropdown with in-stock items
+async function loadPosStock() {
+  const select = document.getElementById('pos_batch_select');
+  if (!select) return;
+
+  const res = await window.api.getPosStock();
+  if (res.success) {
+    availablePosStock = res.data;
+    select.innerHTML = '<option value="">-- Select Available Item --</option>';
+    availablePosStock.forEach((item) => {
+      const option = document.createElement('option');
+      option.value = item.batch_id;
+      option.textContent = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
+      select.appendChild(option);
+    });
+  }
 }
