@@ -24,6 +24,10 @@ navItems.forEach((item) => {
 
     if (targetViewId === 'add-batch-view') {
       await displayDrugDropdown();
+    } else if (targetViewId === 'inventory-view') {
+      await loadInventory();
+    } else if (targetViewId === 'pos-view') {
+      await loadPosStock();
     }
   });
 });
