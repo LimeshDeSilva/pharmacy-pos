@@ -295,3 +295,35 @@ if (addToCartBtn) {
     renderCart();
   });
 }
+
+
+// Checkout button listener
+const checkoutBtn = document.getElementById('checkout-btn');
+if (checkoutBtn) {
+  checkoutBtn.addEventListener('click', async () => {
+    const msg = document.getElementById('checkout-status-msg');
+    if (currentCart.length === 0) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Cart is empty. Add items first.';
+      return;
+    }
+
+    const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Processing sale...';
+
+    const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
+
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
+      currentCart = [];
+      renderCart();
+      await loadPosStock(); // Refresh dropdown with updated remaining stock
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
