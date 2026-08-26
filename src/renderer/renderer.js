@@ -177,3 +177,9 @@ navItems.forEach((item) => {
     }
   });
 });
+
+// Manual Refresh Button Handler
+const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
+if (refreshInventoryBtn) {
+  refreshInventoryBtn.addEventListener('click', loadInventory);
+}
