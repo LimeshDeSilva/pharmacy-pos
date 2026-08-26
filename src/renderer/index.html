@@ -94,11 +94,38 @@
       </div>
     </section>
 
-    <!-- Inventory Panel Placeholder -->
+    <!-- Inventory View -->
     <section id="inventory-view" class="view-panel">
       <div class="card" style="max-width: 100%;">
-        <h3>Stock Overview</h3>
-        <p style="color: #64748b; margin-top: 6px;">Inventory table will be displayed here.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3>Inventory Stock Overview</h3>
+          <button id="refresh-inventory-btn" class="btn" style="width: auto; padding: 6px 14px; font-size: 13px;">🔄
+            Refresh Stock</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table id="inventory-table" class="data-table">
+            <thead>
+              <tr>
+                <th>Brand Name</th>
+                <th>Generic Name</th>
+                <th>Category</th>
+                <th>Batch No</th>
+                <th>Expiry Date</th>
+                <th>Sell Price (LKR)</th>
+                <th>Batch Stock</th>
+                <th>Total Drug Stock</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body">
+              <tr>
+                <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">Loading inventory data...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
