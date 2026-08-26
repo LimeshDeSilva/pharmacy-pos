@@ -82,6 +82,30 @@ function getInventoryOverview() {
 }
 
 
+// Fetch active batches with available stock sorted by earliest expiry
+function getAvailableStock() {
+  const query = db.prepare(`
+    SELECT 
+      b.id AS batch_id,
+      b.batch_number,
+      b.expiry_date,
+      b.sell_price,
+      b.quantity AS available_qty,
+      d.id AS drug_id,
+      d.brand_name,
+      d.generic_name
+    FROM batches b
+    JOIN drugs d ON b.drug_id = d.id
+    WHERE b.quantity > 0
+    ORDER BY d.brand_name ASC, b.expiry_date ASC
+  `);
+  return query.all();
+}
+
+
+
+
+
 
 initDatabase();
 
