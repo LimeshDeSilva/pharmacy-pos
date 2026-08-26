@@ -73,6 +73,19 @@ ipcMain.handle('inventory:getAll', async () => {
 });
 
 
+ipcMain.handle('pos:getStock', async () => {
+  try {
+    const stock = dbOps.getAvailableStock();
+    return { success: true, data: stock };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
+
+
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
