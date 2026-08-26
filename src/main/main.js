@@ -62,6 +62,17 @@ ipcMain.handle('batches:add', async (event, batchData) => {
   }
 });
 
+
+ipcMain.handle('inventory:getAll', async () => {
+  try {
+    const inventory = dbOps.getInventoryOverview();
+    return { success: true, data: inventory };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
