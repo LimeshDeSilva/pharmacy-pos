@@ -430,13 +430,50 @@
   </main>
 
 
+  <!-- ==================== THERMAL RECEIPT PRINT TEMPLATE ==================== -->
+  <div id="thermal-receipt-area" >
+    <div class="receipt-container">
+      <div class="receipt-header">
+        <h2>MEDICARE PHARMACY</h2>
+        <p>123 Healthcare Ave, Colombo</p>
+        <p>Tel: +94 11 234 5678</p>
+        <div class="receipt-divider"></div>
+        <p><strong>Invoice #:</strong> <span id="rec-invoice-id">-</span></p>
+        <p><strong>Date:</strong> <span id="rec-date">-</span></p>
+        <div class="receipt-divider"></div>
+      </div>
 
+      <table class="receipt-table">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Item</th>
+            <th style="text-align: center;">Qty</th>
+            <th style="text-align: right;">Price</th>
+            <th style="text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody id="rec-items-body">
+          <!-- Rows injected dynamically -->
+        </tbody>
+      </table>
 
+      <div class="receipt-divider"></div>
 
+      <div class="receipt-summary">
+        <div class="receipt-row total-row">
+          <span>Grand Total:</span>
+          <span id="rec-grand-total">LKR 0.00</span>
+        </div>
+      </div>
 
+      <div class="receipt-divider"></div>
 
-
-
+      <div class="receipt-footer">
+        <p>Thank you for choosing MediCare!</p>
+        <p>Get well soon!</p>
+      </div>
+    </div>
+  </div>
 
 
   <script src="renderer.js"></script>
