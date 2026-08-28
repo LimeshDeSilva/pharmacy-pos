@@ -417,7 +417,12 @@ function calculateItemStatus(row) {
 // Render filtered rows to table
 function renderInventoryTable(filterType = 'ALL') {
   const tableBody = document.getElementById('inventory-table-body');
+  const filterSelect = document.getElementById('inventory-filter');
+  const searchInput = document.getElementById('inventory-search');
   if (!tableBody) return;
+
+  const filterType = filterSelect ? filterSelect.value : 'ALL';
+  const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   if (!rawInventoryData || rawInventoryData.length === 0) {
     tableBody.innerHTML = `
@@ -429,18 +434,25 @@ function renderInventoryTable(filterType = 'ALL') {
     return;
   }
 
-  // Filter dataset
+  // Filter dataset 
   const filteredData = rawInventoryData.filter(row => {
     const status = calculateItemStatus(row);
-    if (filterType === 'ALL') return true;
-    return status.type === filterType;
+    const matchesFilter = (filterType === 'ALL') || (status.type === filterType);
+
+    const matchesSearch = !searchTerm ||
+      (row.brand_name && row.brand_name.toLowerCase().includes(searchTerm)) ||
+      (row.generic_name && row.generic_name.toLowerCase().includes(searchTerm)) ||
+      (row.category && row.category.toLowerCase().includes(searchTerm)) ||
+      (row.batch_number && row.batch_number.toLowerCase().includes(searchTerm));
+
+    return matchesFilter && matchesSearch;
   });
 
   if (filteredData.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">
-          No medicines match the selected filter "${filterType}".
+          No medicines match your search / filter criteria.
         </td>
       </tr>`;
     return;
@@ -473,19 +485,27 @@ async function loadInventory() {
   const response = await window.api.getInventory();
   if (response.success) {
     rawInventoryData = response.data;
-    const filterSelect = document.getElementById('inventory-filter');
-    const activeFilter = filterSelect ? filterSelect.value : 'ALL';
-    renderInventoryTable(activeFilter);
+    renderInventoryTable();
   }
 }
+
+// Live Search Input Listener
+const inventorySearchInput = document.getElementById('inventory-search');
+if (inventorySearchInput) {
+  inventorySearchInput.addEventListener('input', () => {
+    renderInventoryTable();
+  });
+}
+
 
 // Filter Dropdown Change Listener
 const inventoryFilterSelect = document.getElementById('inventory-filter');
 if (inventoryFilterSelect) {
-  inventoryFilterSelect.addEventListener('change', (e) => {
-    renderInventoryTable(e.target.value);
+  inventoryFilterSelect.addEventListener('change', () => {
+    renderInventoryTable();
   });
 }
+
 
 // Refresh Button Listener
 const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
