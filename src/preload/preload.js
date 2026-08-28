@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld('api', {
   getInventory: () => ipcRenderer.invoke('inventory:getAll'),
   getPosStock: () => ipcRenderer.invoke('pos:getStock'),
   checkout: (saleData) => ipcRenderer.invoke('pos:checkout', saleData),
-  getAllSales: () => ipcRenderer.invoke('sales:getAll')
+  getAllSales: () => ipcRenderer.invoke('sales:getAll'),
+  getSaleDetails: (saleId) => ipcRenderer.invoke('sales:getDetails', saleId)
 });
