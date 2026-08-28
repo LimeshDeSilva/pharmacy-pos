@@ -424,13 +424,27 @@ function getMonthlyProfitAnalytics() {
 
 
 // Update Medicine Details
-function updateDrug(id, brand_name, generic_name, category, min_stock_alert) {
-  const query = db.prepare(`
-    UPDATE drugs
-    SET brand_name = ?, generic_name = ?, category = ?, min_stock_alert = ?
-    WHERE id = ?
-  `);
-  return query.run(brand_name, generic_name, category, min_stock_alert, id);
+// Update Medicine and Batch details together
+function updateInventoryItem(data) {
+  const tx = db.transaction(() => {
+    // 1. Update Drug details
+    db.prepare(`
+      UPDATE drugs
+      SET brand_name = ?, generic_name = ?, category = ?, min_stock_alert = ?
+      WHERE id = ?
+    `).run(data.brand_name, data.generic_name, data.category, data.min_stock_alert, data.drug_id);
+
+    // 2. Update Batch details if this row has a batch
+    if (data.batch_id) {
+      db.prepare(`
+        UPDATE batches
+        SET batch_number = ?, expiry_date = ?, buy_price = ?, sell_price = ?, quantity = ?
+        WHERE id = ?
+      `).run(data.batch_number, data.expiry_date, data.buy_price, data.sell_price, data.quantity, data.batch_id);
+    }
+  });
+
+  return tx();
 }
 
 
@@ -459,5 +473,5 @@ module.exports = {
   getDailyProfitAnalytics,
   getWeeklyProfitAnalytics,
   getMonthlyProfitAnalytics,
-  updateDrug
+  updateInventoryItem
 };
