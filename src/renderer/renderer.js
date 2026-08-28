@@ -573,3 +573,30 @@ async function refreshAlertBadges() {
     }
   }
 }
+
+
+// CSV Export Handler
+const exportCsvBtn = document.getElementById('export-csv-btn');
+if (exportCsvBtn) {
+  exportCsvBtn.addEventListener('click', async () => {
+    const res = await window.api.exportCSV();
+    if (res.success) {
+      alert('✓ Inventory exported to CSV successfully!');
+    } else if (!res.canceled) {
+      alert('✗ Failed to export CSV: ' + res.error);
+    }
+  });
+}
+
+// Database Backup Handler
+const backupDbBtn = document.getElementById('backup-db-btn');
+if (backupDbBtn) {
+  backupDbBtn.addEventListener('click', async () => {
+    const res = await window.api.backupDatabase();
+    if (res.success) {
+      alert('✓ SQLite database backup saved successfully!');
+    } else if (!res.canceled) {
+      alert('✗ Failed to create backup: ' + res.error);
+    }
+  });
+}
