@@ -107,9 +107,17 @@ if (drugForm) {
         brandInput.focus();
       }
 
+      setTimeout(() => {
+        drugStatusMsg.innerText = '';
+      }, 3000);
+
     } else {
       drugStatusMsg.style.color = '#dc2626';
       drugStatusMsg.innerText = '✗ Error: ' + response.error;
+
+      setTimeout(() => {
+        drugStatusMsg.innerText = '';
+      }, 3000);
     }
   });
 }
@@ -175,7 +183,6 @@ if (minStockInput) {
 }
 
 
-// =======================================================================================
 
 
 // ==================== ADD BATCH MODULE ====================
@@ -222,9 +229,17 @@ if (batchForm) {
       batchStatusMsg.innerText = '✓ Batch saved successfully!';
       batchForm.reset();
       await refreshAlertBadges();
+
+      setTimeout(() => {
+        batchStatusMsg.innerText = '';
+      }, 3000);
     } else {
       batchStatusMsg.style.color = '#dc2626';
       batchStatusMsg.innerText = '✗ Error: ' + response.error;
+
+      setTimeout(() => {
+        batchStatusMsg.innerText = '';
+      }, 3000);
     }
   });
 }
@@ -791,9 +806,17 @@ if (wipeDatabaseBtn) {
       await loadDeleteDrugDropdown();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
       await refreshAlertBadges();
+
+      setTimeout(() => {
+        msg.innerText = '';
+      }, 3000);
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
+
+      setTimeout(() => {
+        msg.innerText = '';
+      }, 3000);
     }
   });
 }
