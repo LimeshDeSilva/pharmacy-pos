@@ -560,36 +560,91 @@ if (editItemForm) {
 
 
 // ==================== POS / BILLING MODULE ====================
-async function loadPosStock() {
-  const datalist = document.getElementById('pos_stock_datalist');
-  const drugInput = document.getElementById('pos_drug_input');
-  const expiryAlert = document.getElementById('pos-expiry-alert');
-  if (!datalist) return;
+let dropIndex = 0;
+let dropMatches = [];
 
+async function loadPosStock() {
+  const expiryAlert = document.getElementById('pos-expiry-alert');
   if (expiryAlert) expiryAlert.style.display = 'none';
 
   const res = await window.api.getPosStock();
   if (res.success) {
     availablePosStock = res.data;
-    datalist.innerHTML = '';
+  }
+  const drugInput = document.getElementById('pos_drug_input');
+  if (drugInput) setTimeout(() => drugInput.focus(), 50);
+}
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    availablePosStock.forEach((item) => {
-      const isExpired = item.expiry_date && new Date(item.expiry_date) < today;
-      const expiredTag = isExpired ? ' [⚠️ EXPIRED]' : '';
+function showList(q = '') {
+  const menu = document.getElementById('pos-dropdown');
+  if (!menu) return;
 
-      const option = document.createElement('option');
-      option.value = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date}${expiredTag} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
-      datalist.appendChild(option);
-    });
+  const term = q.toLowerCase().trim();
+
+  // Hide the dropdown if nothing has been typed yet
+  if (!term) {
+    menu.style.display = 'none';
+    return;
   }
 
-  if (drugInput) {
-    setTimeout(() => drugInput.focus(), 50);
+  dropMatches = availablePosStock.filter((d) =>
+    d.brand_name.toLowerCase().includes(term) ||
+    (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
+    d.batch_number.toLowerCase().includes(term)
+  );
+
+  if (dropMatches.length === 0) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  dropIndex = 0;
+  menu.innerHTML = dropMatches.map((d, i) => `
+    <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
+      ${d.brand_name} | Batch: <code>${d.batch_number}</code> | Stock: ${d.available_qty} | <strong>LKR ${d.sell_price.toFixed(2)}</strong>
+    </div>
+  `).join('');
+
+  menu.querySelectorAll('.pos-option').forEach((el) => {
+    el.addEventListener('click', () => pickItem(dropMatches[el.dataset.idx]));
+  });
+
+  menu.style.display = 'block';
+}
+
+function pickItem(item) {
+  const input = document.getElementById('pos_drug_input');
+  const menu = document.getElementById('pos-dropdown');
+  const qty = document.getElementById('pos_qty');
+
+  input.value = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
+  if (menu) menu.style.display = 'none';
+  checkSelectedBatchExpiry();
+  if (qty) {
+    qty.focus();
+    qty.select();
   }
 }
+
+
+// Jump directly to Cash Paid field on '+' keypress
+window.addEventListener('keydown', (e) => {
+  if (e.key === '+' || e.code === 'NumpadAdd') {
+    const posView = document.getElementById('pos-view');
+    const isPosActive = posView && posView.classList.contains('active');
+
+    // Only trigger if we are currently on the POS Billing screen
+    if (isPosActive) {
+      e.preventDefault(); // Prevent typing '+' into the field
+      const paidInput = document.getElementById('pos-paid-amount');
+      if (paidInput) {
+        paidInput.focus();
+        paidInput.select();
+      }
+    }
+  }
+});
 
 
 // Check and display red highlight under input if selected batch is expired
@@ -778,12 +833,56 @@ function handleAddToCart() {
 }
 
 
-// Listen for selection changes to trigger red alert immediately
-const posDrugInputField = document.getElementById('pos_drug_input');
-if (posDrugInputField) {
-  posDrugInputField.addEventListener('input', checkSelectedBatchExpiry);
-  posDrugInputField.addEventListener('change', checkSelectedBatchExpiry);
+const pInput = document.getElementById('pos_drug_input');
+if (pInput) {
+  // Triggers ONLY when typing characters into the field
+  pInput.addEventListener('input', () => {
+    showList(pInput.value);
+    checkSelectedBatchExpiry();
+  });
+
+  pInput.addEventListener('keydown', (e) => {
+    const menu = document.getElementById('pos-dropdown');
+    const items = menu ? menu.querySelectorAll('.pos-option') : [];
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) {
+        dropIndex = (dropIndex + 1) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === dropIndex));
+        items[dropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) {
+        dropIndex = (dropIndex - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === dropIndex));
+        items[dropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (menu && menu.style.display !== 'none' && dropMatches[dropIndex]) {
+        pickItem(dropMatches[dropIndex]);
+      } else {
+        const qty = document.getElementById('pos_qty');
+        if (qty) {
+          qty.focus();
+          qty.select();
+        }
+      }
+    } else if (e.key === 'Escape') {
+      if (menu) menu.style.display = 'none';
+    }
+  });
 }
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('pos-dropdown');
+  if (menu && !menu.contains(e.target) && e.target !== pInput) {
+    menu.style.display = 'none';
+  }
+});
 
 
 const addToCartBtn = document.getElementById('add-to-cart-btn');
@@ -834,20 +933,7 @@ if (checkoutBtn) {
   });
 }
 
-// Cashier Keyboard Navigation
-const posDrugInput = document.getElementById('pos_drug_input');
-if (posDrugInput) {
-  posDrugInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const qtyInput = document.getElementById('pos_qty');
-      if (qtyInput) {
-        qtyInput.focus();
-        qtyInput.select();
-      }
-    }
-  });
-}
+
 
 const posQtyInput = document.getElementById('pos_qty');
 if (posQtyInput) {
