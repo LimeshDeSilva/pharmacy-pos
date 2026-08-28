@@ -1376,7 +1376,16 @@ if (deleteSelectedDrugBtn) {
 const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
 if (deleteAllDrugsBtn) {
   deleteAllDrugsBtn.addEventListener('click', async () => {
+    const pinInput = document.getElementById('admin-pin-clear-medicines');
     const msg = document.getElementById('delete-all-drugs-msg');
+
+    if (!pinInput || pinInput.value !== '1234') {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN. Enter 1234 to proceed.';
+      if (pinInput) pinInput.focus();
+      return;
+    }
+
     const confirmClear = confirm('Are you sure you want to delete ALL medicines and stock? (Past sales and revenue reports will NOT be deleted).');
     if (!confirmClear) return;
 
@@ -1387,9 +1396,15 @@ if (deleteAllDrugsBtn) {
     if (res.success) {
       msg.style.color = '#16a34a';
       msg.innerText = '✓ All medicines and stocks cleared!';
+      pinInput.value = '';
+
       await loadDeleteDrugDropdown();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
       await refreshAlertBadges();
+
+      setTimeout(() => {
+        msg.innerText = '';
+      }, 2500);
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
@@ -1488,7 +1503,7 @@ if (checkoutBtn) {
       // 1. Capture exact values from UI before state reset
       const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
       const paidInput = document.getElementById('pos-paid-amount');
-      
+
       let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
       if (paidVal === 0) {
         paidVal = grandTotal; // Default to exact amount if left blank
