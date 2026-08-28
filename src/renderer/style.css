@@ -217,6 +217,29 @@ input {
   color: #ffffff;
 }
 
+/* Inventory view */
+#main-content, .main-content {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-panel {
+  display: none;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.view-panel.active {
+  display: block;
+}
+
+/* Specific sticky header background fix */
+.data-table th {
+  background-color: #f8fafc;
+}
+
 
 /* Reprot filter button */
 
