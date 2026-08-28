@@ -5,6 +5,9 @@ let registeredDrugsList = [];
 let rawInventoryData = [];
 let salesChartInstance = null;
 let analyticsCache = null;
+let profitChartInstance = null;
+let profitAnalyticsCache = null;
+
 
 const viewTitles = {
   'add-drug-view': 'Register Medicine',
@@ -13,6 +16,7 @@ const viewTitles = {
   'pos-view': 'Billing (POS)',
   'sales-view': 'Sales History',
   'reports-view': 'Reports & Charts',
+  'profits-view': 'Profits & Charts',
   'clear-inventory-view': 'System Reset & Wipe'
 };
 
@@ -68,6 +72,8 @@ navItems.forEach((item) => {
       await loadSalesHistory();
     } else if (targetViewId === 'reports-view') {
       await loadAnalyticsDashboard();
+    } else if (targetViewId === 'profits-view') {
+      await loadProfitAnalyticsDashboard();
     } else if (targetViewId === 'clear-inventory-view') {
       await loadDeleteDrugDropdown();
     }
@@ -881,7 +887,7 @@ if (refreshSalesBtn) {
   refreshSalesBtn.addEventListener('click', loadSalesHistory);
 }
 
-// ==================== REPORTS & CHARTS MODULE ====================
+// ==================== REVENUES & CHARTS MODULE ====================
 async function loadAnalyticsDashboard() {
   const res = await window.api.getAnalytics();
   if (!res.success) return;
@@ -978,6 +984,126 @@ filterButtons.forEach((btn) => {
     renderSalesChart(period);
   });
 });
+
+
+// ==================== PROFIT ANALYTICS MODULE ====================
+
+
+async function loadProfitAnalyticsDashboard() {
+  const res = await window.api.getProfitAnalytics();
+  console.log('Profit data received:', res);
+
+  if (!res || !res.success) {
+    console.error('Profit fetch error:', res ? res.error : 'No response');
+    return;
+  }
+
+  profitAnalyticsCache = res.data;
+
+  const today = profitAnalyticsCache.kpis.today || { profit: 0, orders: 0 };
+  const month = profitAnalyticsCache.kpis.month || { profit: 0, orders: 0 };
+  const total = profitAnalyticsCache.kpis.total || { profit: 0, orders: 0 };
+
+  const todayEl = document.getElementById('kpi-today-profit');
+  const todayOrdersEl = document.getElementById('kpi-today-profit-orders');
+  const monthEl = document.getElementById('kpi-month-profit');
+  const monthOrdersEl = document.getElementById('kpi-month-profit-orders');
+  const totalEl = document.getElementById('kpi-total-profit');
+  const totalOrdersEl = document.getElementById('kpi-total-profit-orders');
+
+  if (todayEl) todayEl.innerText = `LKR ${Number(today.profit).toFixed(2)}`;
+  if (todayOrdersEl) todayOrdersEl.innerText = `${today.orders} transactions`;
+
+  if (monthEl) monthEl.innerText = `LKR ${Number(month.profit).toFixed(2)}`;
+  if (monthOrdersEl) monthOrdersEl.innerText = `${month.orders} transactions`;
+
+  if (totalEl) totalEl.innerText = `LKR ${Number(total.profit).toFixed(2)}`;
+  if (totalOrdersEl) totalOrdersEl.innerText = `${total.orders} transactions`;
+
+  renderProfitChart('daily');
+}
+
+function renderProfitChart(periodType = 'daily') {
+  const canvas = document.getElementById('profitChart');
+  if (!canvas || !profitAnalyticsCache) return;
+
+  let dataset = [];
+  let labelText = 'Daily Profit (LKR)';
+
+  if (periodType === 'daily') {
+    dataset = profitAnalyticsCache.daily || [];
+    labelText = 'Daily Profit (LKR)';
+  } else if (periodType === 'weekly') {
+    dataset = profitAnalyticsCache.weekly || [];
+    labelText = 'Weekly Profit (LKR)';
+  } else if (periodType === 'monthly') {
+    dataset = profitAnalyticsCache.monthly || [];
+    labelText = 'Monthly Profit (LKR)';
+  }
+
+  const labels = dataset.length > 0 ? dataset.map((d) => d.period) : ['No Sales Recorded'];
+  const data = dataset.length > 0 ? dataset.map((d) => d.total_profit) : [0];
+
+  if (profitChartInstance) {
+    profitChartInstance.destroy();
+  }
+
+  const ctx = canvas.getContext('2d');
+  profitChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: labelText,
+          data: data,
+          backgroundColor: 'rgba(22, 163, 74, 0.85)',
+          borderColor: '#16a34a',
+          borderWidth: 2,
+          borderRadius: 6,
+          maxBarThickness: 45
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (val) => `LKR ${val}`
+          },
+          grid: { color: '#f1f5f9' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}`
+          }
+        }
+      }
+    }
+  });
+}
+
+// Profit timeframe buttons filter listener
+const profitFilterButtons = document.querySelectorAll('.profit-filter-btn');
+profitFilterButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    profitFilterButtons.forEach((b) => b.classList.remove('active-filter'));
+    btn.classList.add('active-filter');
+    const period = btn.getAttribute('data-period');
+    renderProfitChart(period);
+  });
+});
+
+
 
 // ==================== ALERTS BADGE MODULE ====================
 async function refreshAlertBadges() {
