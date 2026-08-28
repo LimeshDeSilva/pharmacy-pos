@@ -114,8 +114,26 @@
     <!-- Inventory View -->
     <section id="inventory-view" class="view-panel">
       <div class="card" style="max-width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3>Inventory Stock Overview</h3>
+
+        <!-- Top Bar: Actions & Filters -->
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+
+          <!-- Filter Selector -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="inventory-filter" style="font-weight: 600; font-size: 13px; color: #475569;">Filter By:</label>
+            <select id="inventory-filter"
+              style="width: auto; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;">
+              <option value="ALL">All Items</option>
+              <option value="IN_STOCK">In Stock</option>
+              <option value="LOW_STOCK">Low Stock</option>
+              <option value="OUT_OF_STOCK">Out of Stock</option>
+              <option value="EXPIRING_SOON">Expiring Soon (Next 30 Days)</option>
+              <option value="EXPIRED">Expired</option>
+            </select>
+          </div>
+
+          <!-- Action Buttons -->
           <div style="display: flex; gap: 8px;">
             <button id="export-csv-btn" class="btn"
               style="width: auto; padding: 6px 12px; font-size: 13px; background: #059669;">📥 Export CSV</button>
@@ -124,10 +142,12 @@
             <button id="refresh-inventory-btn" class="btn" style="width: auto; padding: 6px 12px; font-size: 13px;">🔄
               Refresh Stock</button>
           </div>
+
         </div>
 
+        <!-- Table Container -->
         <div style="overflow-x: auto;">
-          <table id="inventory-table" class="data-table">
+          <table>
             <thead>
               <tr>
                 <th>Brand Name</th>
@@ -137,18 +157,16 @@
                 <th>Expiry Date</th>
                 <th>Sell Price (LKR)</th>
                 <th>Batch Stock</th>
-                <th>Total Drug Stock</th>
+                <th>Total Stock</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody id="inventory-table-body">
-              <tr>
-                <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">Loading inventory data...
-                </td>
-              </tr>
+              <!-- Populated by renderer.js -->
             </tbody>
           </table>
         </div>
+
       </div>
     </section>
 
