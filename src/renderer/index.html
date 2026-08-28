@@ -318,6 +318,29 @@
       </div>
     </section>
 
+    <!-- Clear Inventory / System Reset View -->
+    <section id="clear-inventory-view" class="view-panel">
+      <div class="card" style="max-width: 500px; border-left: 4px solid #ef4444;">
+        <h3 style="color: #dc2626; margin-bottom: 8px;">⚠️ Wipe Database & Clear Inventory</h3>
+        <p style="color: #64748b; font-size: 13px; margin-bottom: 18px;">
+          This action will permanently delete all registered medicines, batch stocks, sales orders, and history. This cannot be undone.
+        </p>
+
+        <div class="form-group">
+          <label for="admin-pin-confirm">Enter Admin PIN to Confirm Action *</label>
+          <input 
+            type="password" 
+            id="admin-pin-confirm" 
+            placeholder="Enter password (1234)" 
+            autocomplete="off" 
+          />
+        </div>
+
+        <button id="wipe-database-btn" class="btn" style="background: #dc2626;">💥 Permanently Clear All Data</button>
+        <div id="wipe-status-msg" class="status-msg" style="margin-top: 10px;"></div>
+      </div>
+    </section>
+
 
   </main>
 
