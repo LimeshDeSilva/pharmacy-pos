@@ -221,6 +221,35 @@ ipcMain.handle('inventory:deleteAllDrugs', async () => {
 });
 
 
+// Native Print Handler
+ipcMain.handle('print:receipt', async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) return { success: false, error: 'Window not found' };
+
+  return new Promise((resolve) => {
+    win.webContents.print(
+      {
+        silent: false, // Set to true for instant direct printing without prompt
+        printBackground: true,
+        pageSize: {
+          width: 80000, // 80mm in microns
+          height: 297000
+        },
+        margins: {
+          marginType: 'none'
+        }
+      },
+      (success, failureReason) => {
+        if (!success) {
+          console.error('Print failed:', failureReason);
+          resolve({ success: false, error: failureReason });
+        } else {
+          resolve({ success: true });
+        }
+      }
+    );
+  });
+});
 
 
 
