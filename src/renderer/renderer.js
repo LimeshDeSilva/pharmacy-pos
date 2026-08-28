@@ -658,6 +658,7 @@ const checkoutBtn = document.getElementById('checkout-btn');
 if (checkoutBtn) {
   checkoutBtn.addEventListener('click', async () => {
     const msg = document.getElementById('checkout-status-msg');
+
     if (currentCart.length === 0) {
       msg.style.color = '#dc2626';
       msg.innerText = 'Cart is empty. Add items first.';
@@ -672,11 +673,23 @@ if (checkoutBtn) {
     if (res.success) {
       msg.style.color = '#16a34a';
       msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
+
+      const printedCart = [...currentCart];
+      const nowStr = new Date().toLocaleString();
+
       currentCart = [];
       renderCart();
       await loadPosStock();
       await refreshAlertBadges();
       document.getElementById('pos_drug_input').focus();
+
+      // Trigger Print receipt automatically
+      printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal);
+
+      setTimeout(() => {
+        msg.innerText = '';
+      }, 3000);
+
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
@@ -1100,4 +1113,36 @@ if (wipeDatabaseBtn) {
       }, 2000);
     }
   });
+}
+
+
+// ==================== RECEIPT PRINTING MODULE ====================
+function printThermalReceipt(saleId, dateStr, items, grandTotal) {
+  const recInvoice = document.getElementById('rec-invoice-id');
+  const recDate = document.getElementById('rec-date');
+  const recItems = document.getElementById('rec-items-body');
+  const recTotal = document.getElementById('rec-grand-total');
+
+  if (recInvoice) recInvoice.innerText = `#${saleId}`;
+  if (recDate) recDate.innerText = dateStr;
+  if (recTotal) recTotal.innerText = `LKR ${Number(grandTotal).toFixed(2)}`;
+
+  if (recItems) {
+    recItems.innerHTML = '';
+    items.forEach((item) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: left;">${item.brand_name || item.brand}</td>
+        <td style="text-align: center;">${item.quantity}</td>
+        <td style="text-align: right;">${Number(item.sell_price || item.unit_price).toFixed(2)}</td>
+        <td style="text-align: right;"><strong>${Number(item.total_price).toFixed(2)}</strong></td>
+      `;
+      recItems.appendChild(tr);
+    });
+  }
+
+  // Trigger print dialog
+  setTimeout(() => {
+    window.print();
+  }, 100);
 }
