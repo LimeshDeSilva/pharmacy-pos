@@ -252,6 +252,25 @@ ipcMain.handle('print:receipt', async (event) => {
 });
 
 
+// Profit Analytics Handler
+ipcMain.handle('get:profit-analytics', async () => {
+  try {
+    return {
+      success: true,
+      data: {
+        kpis: db.getProfitKPIs(),
+        daily: db.getDailyProfitAnalytics(),
+        weekly: db.getWeeklyProfitAnalytics(),
+        monthly: db.getMonthlyProfitAnalytics()
+      }
+    };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+
+
 
 app.whenReady().then(createWindow);
 
