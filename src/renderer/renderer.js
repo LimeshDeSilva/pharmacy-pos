@@ -361,14 +361,65 @@ if (batchQtyInput) {
 
 
 
-// ==================== INVENTORY OVERVIEW MODULE ====================
-async function loadInventory() {
+// ==================== INVENTORY OVERVIEW & FILTER MODULE ====================
+let rawInventoryData = [];
+
+// Helper to determine status and corresponding badge
+function calculateItemStatus(row) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  const expiryDate = row.expiry_date ? new Date(row.expiry_date) : null;
+
+  // Check Expired
+  if (expiryDate && expiryDate < today) {
+    return {
+      type: 'EXPIRED',
+      badge: '<span class="badge badge-expired">Expired</span>'
+    };
+  }
+
+  // Check Expiring Soon (within 30 days)
+  if (expiryDate && expiryDate >= today && expiryDate <= thirtyDaysFromNow) {
+    return {
+      type: 'EXPIRING_SOON',
+      badge: '<span class="badge badge-expiring">Expiring Soon</span>'
+    };
+  }
+
+  // Out of Stock
+  if (row.total_stock === 0) {
+    return {
+      type: 'OUT_OF_STOCK',
+      badge: '<span class="badge badge-out-of-stock">Out of Stock</span>'
+    };
+  }
+
+  // Low Stock
+  if (row.total_stock <= row.min_stock_alert) {
+    return {
+      type: 'LOW_STOCK',
+      badge: '<span class="badge badge-low-stock">Low Stock</span>'
+    };
+  }
+
+  // In Stock
+  return {
+    type: 'IN_STOCK',
+    badge: '<span class="badge badge-in-stock">In Stock</span>'
+  };
+}
+
+// Render filtered rows to table
+function renderInventoryTable(filterType = 'ALL') {
   const tableBody = document.getElementById('inventory-table-body');
   if (!tableBody) return;
 
-  const response = await window.api.getInventory();
-
-  if (!response.success || response.data.length === 0) {
+  if (!rawInventoryData || rawInventoryData.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">
@@ -378,17 +429,28 @@ async function loadInventory() {
     return;
   }
 
+  // Filter dataset
+  const filteredData = rawInventoryData.filter(row => {
+    const status = calculateItemStatus(row);
+    if (filterType === 'ALL') return true;
+    return status.type === filterType;
+  });
+
+  if (filteredData.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">
+          No medicines match the selected filter "${filterType}".
+        </td>
+      </tr>`;
+    return;
+  }
+
   tableBody.innerHTML = '';
 
-  response.data.forEach((row) => {
+  filteredData.forEach((row) => {
+    const status = calculateItemStatus(row);
     const tr = document.createElement('tr');
-
-    let statusBadge = '<span class="badge badge-in-stock">In Stock</span>';
-    if (row.total_stock === 0) {
-      statusBadge = '<span class="badge badge-out-of-stock">Out of Stock</span>';
-    } else if (row.total_stock <= row.min_stock_alert) {
-      statusBadge = '<span class="badge badge-low-stock">Low Stock</span>';
-    }
 
     tr.innerHTML = `
       <td><strong>${row.brand_name}</strong></td>
@@ -399,17 +461,40 @@ async function loadInventory() {
       <td>${row.sell_price ? Number(row.sell_price).toFixed(2) : '-'}</td>
       <td>${row.batch_quantity !== null ? row.batch_quantity : 0}</td>
       <td><strong>${row.total_stock}</strong></td>
-      <td>${statusBadge}</td>
+      <td>${status.badge}</td>
     `;
 
     tableBody.appendChild(tr);
   });
 }
 
+// Fetch all inventory from DB
+async function loadInventory() {
+  const response = await window.api.getInventory();
+  if (response.success) {
+    rawInventoryData = response.data;
+    const filterSelect = document.getElementById('inventory-filter');
+    const activeFilter = filterSelect ? filterSelect.value : 'ALL';
+    renderInventoryTable(activeFilter);
+  }
+}
+
+// Filter Dropdown Change Listener
+const inventoryFilterSelect = document.getElementById('inventory-filter');
+if (inventoryFilterSelect) {
+  inventoryFilterSelect.addEventListener('change', (e) => {
+    renderInventoryTable(e.target.value);
+  });
+}
+
+// Refresh Button Listener
 const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
 if (refreshInventoryBtn) {
   refreshInventoryBtn.addEventListener('click', loadInventory);
 }
+
+
+
 
 // ==================== POS / BILLING MODULE ====================
 async function loadPosStock() {
