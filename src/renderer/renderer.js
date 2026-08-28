@@ -434,7 +434,7 @@ function renderInventoryTable() {
       <td><strong>${row.total_stock}</strong></td>
       <td>${status.badge}</td>
       <td>
-        <button onclick="openEditDrugModal(${row.drug_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">✏️ Edit</button>
+        <button onclick="openEditItemModal(${row.drug_id}, ${row.batch_id || 'null'})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">✏️ Edit</button>
       </td>
     `;
 
@@ -470,61 +470,85 @@ if (refreshInventoryBtn) {
 }
 
 
-// ==================== EDIT MEDICINE MODAL HANDLERS ====================
-window.openEditDrugModal = (drugId) => {
-  const item = rawInventoryData.find((d) => d.drug_id === drugId);
+// ==================== EDIT ITEM MODAL HANDLERS ====================
+window.openEditItemModal = (drugId, batchId) => {
+  const item = rawInventoryData.find((d) => d.drug_id === drugId && (batchId ? d.batch_id === batchId : true));
   if (!item) return;
 
+  // Medicine Fields
   document.getElementById('edit_drug_id').value = item.drug_id;
   document.getElementById('edit_brand_name').value = item.brand_name || '';
   document.getElementById('edit_generic_name').value = item.generic_name || '';
   document.getElementById('edit_category').value = item.category || '';
   document.getElementById('edit_min_stock_alert').value = item.min_stock_alert || 10;
-  document.getElementById('edit-drug-status-msg').innerText = '';
 
+  // Batch Fields
+  const batchSection = document.getElementById('edit-batch-section');
+  if (item.batch_id) {
+    batchSection.style.display = 'block';
+    document.getElementById('edit_batch_id').value = item.batch_id;
+    document.getElementById('edit_batch_number').value = item.batch_number || '';
+    document.getElementById('edit_expiry_date').value = item.expiry_date || '';
+    document.getElementById('edit_buy_price').value = item.buy_price !== null ? item.buy_price : '';
+    document.getElementById('edit_sell_price').value = item.sell_price !== null ? item.sell_price : '';
+    document.getElementById('edit_quantity').value = item.batch_quantity !== null ? item.batch_quantity : 0;
+  } else {
+    batchSection.style.display = 'none';
+    document.getElementById('edit_batch_id').value = '';
+  }
+
+  document.getElementById('edit-drug-status-msg').innerText = '';
   const modal = document.getElementById('edit-drug-modal');
   if (modal) modal.style.display = 'flex';
 };
 
-function closeEditDrugModal() {
+function closeEditItemModal() {
   const modal = document.getElementById('edit-drug-modal');
   if (modal) modal.style.display = 'none';
 }
 
 const closeEditBtn = document.getElementById('close-edit-drug-modal');
-if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditDrugModal);
+if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditItemModal);
 
 const cancelEditBtn = document.getElementById('cancel-edit-drug-btn');
-if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditDrugModal);
+if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditItemModal);
 
-const editDrugForm = document.getElementById('edit-drug-form');
-if (editDrugForm) {
-  editDrugForm.addEventListener('submit', async (e) => {
+const editItemForm = document.getElementById('edit-drug-form');
+if (editItemForm) {
+  editItemForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const statusMsg = document.getElementById('edit-drug-status-msg');
-    const updateData = {
-      id: parseInt(document.getElementById('edit_drug_id').value, 10),
+    const batchIdVal = document.getElementById('edit_batch_id').value;
+
+    const payload = {
+      drug_id: parseInt(document.getElementById('edit_drug_id').value, 10),
       brand_name: document.getElementById('edit_brand_name').value.trim(),
       generic_name: document.getElementById('edit_generic_name').value.trim(),
       category: document.getElementById('edit_category').value.trim(),
-      min_stock_alert: parseInt(document.getElementById('edit_min_stock_alert').value, 10) || 10
+      min_stock_alert: parseInt(document.getElementById('edit_min_stock_alert').value, 10) || 10,
+      batch_id: batchIdVal ? parseInt(batchIdVal, 10) : null,
+      batch_number: document.getElementById('edit_batch_number').value.trim(),
+      expiry_date: document.getElementById('edit_expiry_date').value,
+      buy_price: parseFloat(document.getElementById('edit_buy_price').value) || 0,
+      sell_price: parseFloat(document.getElementById('edit_sell_price').value) || 0,
+      quantity: parseInt(document.getElementById('edit_quantity').value, 10) || 0
     };
 
     statusMsg.style.color = '#475569';
-    statusMsg.innerText = 'Updating medicine...';
+    statusMsg.innerText = 'Updating details...';
 
-    const res = await window.api.updateDrug(updateData);
+    const res = await window.api.updateInventoryItem(payload);
     if (res.success) {
       statusMsg.style.color = '#16a34a';
-      statusMsg.innerText = '✓ Medicine updated successfully!';
+      statusMsg.innerText = '✓ All details updated successfully!';
 
       await loadInventory();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
       await refreshAlertBadges();
 
       setTimeout(() => {
-        closeEditDrugModal();
+        closeEditItemModal();
       }, 700);
     } else {
       statusMsg.style.color = '#dc2626';
