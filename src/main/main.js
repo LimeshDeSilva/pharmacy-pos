@@ -199,6 +199,29 @@ ipcMain.handle('inventory:clearAll', async () => {
   }
 });
 
+// Delete a Single Drug (Keep Sales History)
+ipcMain.handle('inventory:deleteSingleDrug', async (event, drugId) => {
+  try {
+    const success = dbOps.deleteMedicineKeepSales(drugId);
+    return { success };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
+// Delete All Drugs (Keep Sales History)
+ipcMain.handle('inventory:deleteAllDrugs', async () => {
+  try {
+    dbOps.deleteAllMedicinesKeepSales();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
+
 
 
 app.whenReady().then(createWindow);
