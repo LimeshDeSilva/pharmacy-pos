@@ -34,14 +34,6 @@ navItems.forEach((item) => {
   item.addEventListener('click', async () => {
     const targetViewId = item.getAttribute('data-view');
 
-    // Password Gate
-    if (targetViewId === 'clear-inventory-view') {
-      const password = prompt('🔒 Admin Access Required. Enter PIN:');
-      if (password !== '1234') {
-        alert('❌ Incorrect Password! Access Denied.');
-        return;
-      }
-    }
 
     navItems.forEach((nav) => nav.classList.remove('active'));
     item.classList.add('active');
@@ -68,6 +60,12 @@ navItems.forEach((item) => {
       await loadSalesHistory();
     } else if (targetViewId === 'reports-view') {
       await loadAnalyticsDashboard();
+    } else if (targetViewId === 'clear-inventory-view') {
+      const password = prompt('🔒 Admin Access Required. Enter PIN:');
+      if (password !== '1234') {
+        alert('❌ Incorrect Password! Access Denied.');
+        return;
+      }
     }
   });
 });
