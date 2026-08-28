@@ -189,6 +189,15 @@ ipcMain.handle('database:backup', async () => {
   }
 });
 
+// Clear Entire Inventory
+ipcMain.handle('inventory:clearAll', async () => {
+  try {
+    dbOps.clearEntireInventory();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
 
 
 
