@@ -381,3 +381,30 @@ async function loadSalesHistory() {
     revenueBanner.innerText = `Total Revenue: LKR ${cumulativeRevenue.toFixed(2)}`;
   }
 }
+
+// Open Receipt Inspection Modal
+window.viewReceipt = async (saleId) => {
+  const modal = document.getElementById('receipt-modal');
+  const title = document.getElementById('modal-invoice-title');
+  const itemsBody = document.getElementById('receipt-items-body');
+
+  title.innerText = `Invoice Receipt #${saleId}`;
+  itemsBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 10px;">Loading...</td></tr>`;
+  modal.style.display = 'flex';
+
+  const res = await window.api.getSaleDetails(saleId);
+  if (res.success) {
+    itemsBody.innerHTML = '';
+    res.data.forEach((item) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${item.brand_name}</strong></td>
+        <td><code>${item.batch_number}</code></td>
+        <td>${item.quantity}</td>
+        <td>${item.unit_price.toFixed(2)}</td>
+        <td><strong>${item.total_price.toFixed(2)}</strong></td>
+      `;
+      itemsBody.appendChild(tr);
+    });
+  }
+};
