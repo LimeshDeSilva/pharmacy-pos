@@ -258,10 +258,10 @@ ipcMain.handle('get:profit-analytics', async () => {
     return {
       success: true,
       data: {
-        kpis: db.getProfitKPIs(),
-        daily: db.getDailyProfitAnalytics(),
-        weekly: db.getWeeklyProfitAnalytics(),
-        monthly: db.getMonthlyProfitAnalytics()
+        kpis: dbOps.getProfitKPIs(),
+        daily: dbOps.getDailyProfitAnalytics(),
+        weekly: dbOps.getWeeklyProfitAnalytics(),
+        monthly: dbOps.getMonthlyProfitAnalytics()
       }
     };
   } catch (err) {
