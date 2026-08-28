@@ -115,8 +115,14 @@
       <div class="card" style="max-width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <h3>Inventory Stock Overview</h3>
-          <button id="refresh-inventory-btn" class="btn" style="width: auto; padding: 6px 14px; font-size: 13px;">🔄
-            Refresh Stock</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="export-csv-btn" class="btn"
+              style="width: auto; padding: 6px 12px; font-size: 13px; background: #059669;">📥 Export CSV</button>
+            <button id="backup-db-btn" class="btn"
+              style="width: auto; padding: 6px 12px; font-size: 13px; background: #475569;">💾 Backup DB</button>
+            <button id="refresh-inventory-btn" class="btn" style="width: auto; padding: 6px 12px; font-size: 13px;">🔄
+              Refresh Stock</button>
+          </div>
         </div>
 
         <div style="overflow-x: auto;">
