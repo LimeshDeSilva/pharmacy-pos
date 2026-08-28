@@ -10,5 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   getAllSales: () => ipcRenderer.invoke('sales:getAll'),
   getSaleDetails: (saleId) => ipcRenderer.invoke('sales:getDetails', saleId),
   getAnalytics: () => ipcRenderer.invoke('reports:getAnalytics'),
-  getAlertsSummary: () => ipcRenderer.invoke('inventory:getAlerts')
+  getAlertsSummary: () => ipcRenderer.invoke('inventory:getAlerts'),
+  exportCSV: () => ipcRenderer.invoke('inventory:exportCSV'),
+  backupDatabase: () => ipcRenderer.invoke('database:backup')
 });
