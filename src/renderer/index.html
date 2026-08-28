@@ -7,6 +7,7 @@
   <title>Pharmacy Management System</title>
 
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -21,6 +22,7 @@
       <li class="nav-item" data-view="inventory-view">📦 Inventory</li>
       <li class="nav-item" data-view="pos-view">🛒 Billing (POS)</li>
       <li class="nav-item" data-view="sales-view">📊 Sales History</li>
+      <li class="nav-item" data-view="reports-view">📈 Reports & Charts</li>
     </ul>
   </nav>
 
@@ -240,6 +242,52 @@
       </div>
     </div>
 
+    <!-- Visual Analytics & Reports View -->
+    <section id="reports-view" class="view-panel">
+      
+      <!-- Top KPI Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="card" style="max-width: 100%; border-left: 4px solid #0284c7;">
+          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">Today's Revenue</small>
+          <h2 id="kpi-today-rev" style="color: #0f172a; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-today-orders" style="color: #0284c7;">0 orders</small>
+        </div>
+
+        <div class="card" style="max-width: 100%; border-left: 4px solid #16a34a;">
+          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">This Month</small>
+          <h2 id="kpi-month-rev" style="color: #0f172a; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-month-orders" style="color: #16a34a;">0 orders</small>
+        </div>
+
+        <div class="card" style="max-width: 100%; border-left: 4px solid #8b5cf6;">
+          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">All Time Revenue</small>
+          <h2 id="kpi-total-rev" style="color: #0f172a; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-total-orders" style="color: #8b5cf6;">0 orders</small>
+        </div>
+      </div>
+
+      <!-- Main Chart Container -->
+      <div class="card" style="max-width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3>Revenue Analytics</h3>
+            <p style="color: #64748b; font-size: 13px;">Visual breakdown of store sales performance</p>
+          </div>
+
+          <!-- Timeframe Filter Buttons -->
+          <div style="display: flex; gap: 8px;">
+            <button class="filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
+            <button class="filter-btn" data-period="weekly">Weekly</button>
+            <button class="filter-btn" data-period="monthly">Monthly</button>
+          </div>
+        </div>
+
+        <!-- Canvas for Chart.js -->
+        <div style="position: relative; height: 360px; width: 100%;">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+    </section>
 
 
   </main>
