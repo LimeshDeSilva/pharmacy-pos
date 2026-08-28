@@ -247,18 +247,38 @@
     <!-- Sales History View -->
     <section id="sales-view" class="view-panel">
       <div class="card" style="max-width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+
+        <!-- Top Control Bar -->
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+
+          <!-- Left: Title & Live Total Revenue -->
           <div>
-            <h3>Sales & Transaction History</h3>
-            <p id="total-revenue-banner" style="font-size: 14px; color: #0284c7; font-weight: 600; margin-top: 4px;">
-              Total Revenue: LKR 0.00</p>
+            <h3 style="margin-bottom: 4px;">Sales & Transaction History</h3>
+            <p id="total-revenue-banner" style="color: #0284c7; font-weight: 700; font-size: 14px; margin: 0;">Total
+              Revenue: LKR 0.00</p>
           </div>
-          <button id="refresh-sales-btn" class="btn" style="width: auto; padding: 6px 14px; font-size: 13px;">🔄 Refresh
-            Sales</button>
+
+          <!-- Right: Date Filter & Actions -->
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <label for="sales-date-filter" style="font-weight: 600; font-size: 13px; color: #475569;">Filter
+              Date:</label>
+            <input type="date" id="sales-date-filter"
+              style="padding: 5px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+
+            <button id="sales-today-btn" type="button" class="btn"
+              style="width: auto; padding: 6px 12px; font-size: 12px; background: #0284c7;">Today</button>
+            <button id="sales-clear-filter-btn" type="button" class="btn"
+              style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">All Time</button>
+            <button id="refresh-sales-btn" type="button" class="btn"
+              style="width: auto; padding: 6px 12px; font-size: 12px;">🔄 Refresh</button>
+          </div>
+
         </div>
 
+        <!-- Sales Table -->
         <div style="overflow-x: auto;">
-          <table class="data-table">
+          <table>
             <thead>
               <tr>
                 <th>Invoice #</th>
@@ -269,14 +289,12 @@
               </tr>
             </thead>
             <tbody id="sales-table-body">
-              <tr>
-                <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">Loading sales records...</td>
-              </tr>
+              <!-- Populated by renderer.js -->
             </tbody>
           </table>
         </div>
       </div>
-    </section>`
+    </section>
 
     <!-- Receipt Details Modal Popup -->
     <div id="receipt-modal"
