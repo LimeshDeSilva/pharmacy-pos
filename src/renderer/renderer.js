@@ -1,4 +1,19 @@
 
+// ==================== APP STARTUP INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // 1. Fetch initial stock & expiry alerts on launch
+    await refreshAlertBadges();
+
+    // 2. Pre-populate initial view dropdowns if starting on Add Medicine / Add Batch
+    if (typeof displayDrugDropdown === 'function') {
+      await displayDrugDropdown();
+    }
+  } catch (err) {
+    console.error('Failed to initialize app on startup:', err);
+  }
+});
+
 
 // ====================  SIDEBAR TAB NAVIGATION ====================
 const navItems = document.querySelectorAll('.nav-item');
@@ -19,6 +34,8 @@ navItems.forEach((item) => {
     if (activePanel) {
       activePanel.classList.add('active');
     }
+
+    await refreshAlertBadges();
 
     if (pageTitle) {
       pageTitle.innerText = item.innerText.replace(/[^\w\s()]/gi, '').trim();
@@ -535,3 +552,23 @@ filterButtons.forEach((btn) => {
     renderSalesChart(period);
   });
 });
+
+
+// Function to update the sidebar badge
+async function refreshAlertBadges() {
+  const badge = document.getElementById('sidebar-alert-badge');
+  if (!badge) return;
+
+  const res = await window.api.getAlertsSummary();
+  if (res && res.success) {
+    const totalAlerts = res.data.lowStockCount + res.data.expiringCount;
+    if (totalAlerts > 0) {
+      badge.style.display = 'inline-block';
+      badge.innerText = `${totalAlerts}`;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+refreshAlertBadges();
