@@ -239,11 +239,28 @@
             </table>
           </div>
 
-          <!-- Bottom Fixed Total & Checkout -->
+          <!-- Pricing, Cash Received & Balance Calculation -->
           <div
-            style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 12px; margin-bottom: 16px;">
-            <span style="font-size: 16px; font-weight: bold;">Grand Total:</span>
-            <span id="grand-total-display" style="font-size: 20px; font-weight: 800; color: #0284c7;">LKR 0.00</span>
+            style="border-top: 2px solid #e2e8f0; padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 15px; font-weight: 700; color: #1e293b;">Net Total:</span>
+              <span id="grand-total-display" style="font-size: 20px; font-weight: 800; color: #0284c7;">LKR 0.00</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
+              <div>
+                <label for="pos-paid-amount" style="font-size: 12px; font-weight: 700; color: #475569;">Cash Paid (LKR)
+                  *</label>
+                <input type="number" step="0.01" min="0" id="pos-paid-amount" placeholder="0.00"
+                  style="width: 100%; font-size: 16px; font-weight: 700; color: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1.5px solid #cbd5e1;" />
+              </div>
+
+              <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Balance / Change</label>
+                <div id="pos-balance-display"
+                  style="font-size: 17px; font-weight: 800; color: #16a34a; padding: 7px 0;">LKR 0.00</div>
+              </div>
+            </div>
           </div>
 
           <button id="checkout-btn" class="btn" style="background: #16a34a; padding: 12px; font-size: 15px;">Complete
@@ -332,8 +349,6 @@
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
           <button id="modal-reprint-btn" class="btn" style="background: #0284c7; width: auto; padding: 6px 14px;">🖨️
             Print Receipt</button>
-          <button id="close-modal-btn" class="btn"
-            style="background: #64748b; width: auto; padding: 6px 14px;">Close</button>
         </div>
       </div>
     </div>
@@ -532,10 +547,21 @@
 
       <div class="receipt-divider"></div>
 
+      <!-- Receipt Summary -->
       <div class="receipt-summary">
         <div class="receipt-row total-row">
           <span>Grand Total:</span>
           <span id="rec-grand-total">LKR 0.00</span>
+        </div>
+        <div class="receipt-row"
+          style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+          <span>Cash Paid:</span>
+          <span id="rec-paid-amount">LKR 0.00</span>
+        </div>
+        <div class="receipt-row"
+          style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-top: 2px;">
+          <span>Change / Balance:</span>
+          <span id="rec-balance-amount">LKR 0.00</span>
         </div>
       </div>
 
