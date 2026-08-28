@@ -270,16 +270,10 @@ ipcMain.handle('get:profit-analytics', async () => {
 });
 
 // Update Drug Handler
-ipcMain.handle('drugs:update', async (event, drugData) => {
+ipcMain.handle('inventory:updateItem', async (event, itemData) => {
   try {
-    const result = dbOps.updateDrug(
-      drugData.id,
-      drugData.brand_name,
-      drugData.generic_name,
-      drugData.category,
-      drugData.min_stock_alert
-    );
-    return { success: true, data: result };
+    dbOps.updateInventoryItem(itemData);
+    return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
   }
