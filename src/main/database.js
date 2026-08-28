@@ -308,6 +308,48 @@ function clearEntireInventory() {
 }
 
 
+// Delete a specific medicine and its batches, preserving sales records
+function deleteMedicineKeepSales(drugId) {
+  const transaction = db.transaction(() => {
+    // A. Unlink batches from sale_items so past sales records and totals stay intact
+    db.prepare(`
+      UPDATE sale_items 
+      SET batch_id = NULL 
+      WHERE batch_id IN (SELECT id FROM batches WHERE drug_id = ?)
+    `).run(drugId);
+
+    // B. Delete the batches of this drug
+    db.prepare(`DELETE FROM batches WHERE drug_id = ?`).run(drugId);
+
+    // C. Delete the drug record itself
+    const res = db.prepare(`DELETE FROM drugs WHERE id = ?`).run(drugId);
+    return res.changes > 0;
+  });
+
+  return transaction();
+}
+
+// Delete ALL medicines and batches, preserving sales records & revenue reports
+function deleteAllMedicinesKeepSales() {
+  const transaction = db.transaction(() => {
+    // A. Unlink all batches from sale_items
+    db.prepare(`UPDATE sale_items SET batch_id = NULL`).run();
+
+    // B. Delete all batches and drugs
+    db.prepare(`DELETE FROM batches`).run();
+    db.prepare(`DELETE FROM drugs`).run();
+
+    // C. Reset sequence counters for drugs and batches only
+    db.prepare(`DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches')`).run();
+
+    return true;
+  });
+
+  return transaction();
+}
+
+
+
 initDatabase();
 
 module.exports = {
@@ -324,5 +366,7 @@ module.exports = {
   getWeeklySalesAnalytics,
   getMonthlySalesAnalytics,
   getStockAlertsSummary,
-  clearEntireInventory
+  clearEntireInventory,
+  deleteMedicineKeepSales,
+  deleteAllMedicinesKeepSales
 };
