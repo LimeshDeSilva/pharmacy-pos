@@ -1,3 +1,5 @@
+
+
 // ====================  SIDEBAR TAB NAVIGATION ====================
 const navItems = document.querySelectorAll('.nav-item');
 const viewPanels = document.querySelectorAll('.view-panel');
@@ -28,6 +30,8 @@ navItems.forEach((item) => {
       await loadInventory();
     } else if (targetViewId === 'pos-view') {
       await loadPosStock();
+    } else if (targetViewId === 'sales-view') {
+      await loadSalesHistory();
     }
   });
 });
