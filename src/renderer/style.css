@@ -158,11 +158,23 @@ input {
 
 /* Badges */
 .badge {
-  display: inline-block;
-  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
+  text-align: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.data-table th:nth-child(9),
+.data-table td:nth-child(9),
+#inventory-table-body td:nth-child(9) {
+  text-align: center;
+  vertical-align: middle;
 }
 
 .badge-in-stock {
@@ -218,7 +230,8 @@ input {
 }
 
 /* Inventory view */
-#main-content, .main-content {
+#main-content,
+.main-content {
   height: 100vh;
   overflow: hidden;
   display: flex;
@@ -334,9 +347,12 @@ input {
   body * {
     visibility: hidden;
   }
-  #thermal-receipt-area, #thermal-receipt-area * {
+
+  #thermal-receipt-area,
+  #thermal-receipt-area * {
     visibility: visible;
   }
+
   #thermal-receipt-area {
     display: block !important;
     position: absolute;
@@ -346,6 +362,7 @@ input {
     margin: 0;
     padding: 0;
   }
+
   @page {
     size: 80mm auto;
     margin: 0;
@@ -362,7 +379,7 @@ input {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   z-index: 1000;
   margin-top: 4px;
 }
@@ -380,4 +397,43 @@ input {
   background: #e0f2fe !important;
   color: #0284c7 !important;
   font-weight: 600;
+}
+
+
+/* Table internal scroll container */
+.table-scroll-container {
+  max-height: calc(100vh - 270px);
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Make table header stick to the top while scrolling */
+.table-scroll-container table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f8fafc;
+  z-index: 10;
+  box-shadow: 0 1px 0 #cbd5e1;
+}
+
+/* Smooth custom scrollbar styling */
+.table-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
