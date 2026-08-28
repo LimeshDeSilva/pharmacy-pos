@@ -289,6 +289,24 @@ function getStockAlertsSummary() {
 }
 
 
+// Clear entire inventory
+function clearEntireInventory() {
+  const resetAll = db.transaction(() => {
+    // Delete in order to respect foreign key constraints
+    db.prepare('DELETE FROM sale_items').run();
+    db.prepare('DELETE FROM sales').run();
+    db.prepare('DELETE FROM batches').run();
+    db.prepare('DELETE FROM drugs').run();
+
+    // Reset sqlite auto-increment sequences back to 0/1
+    db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches', 'sales', 'sale_items')").run();
+
+    return true;
+  });
+
+  return resetAll();
+}
+
 
 initDatabase();
 
@@ -305,5 +323,6 @@ module.exports = {
   getDailySalesAnalytics,
   getWeeklySalesAnalytics,
   getMonthlySalesAnalytics,
-  getStockAlertsSummary
+  getStockAlertsSummary,
+  clearEntireInventory
 };
