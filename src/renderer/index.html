@@ -80,10 +80,10 @@
         <h3 style="margin-bottom: 14px;">Add Shipment Batch</h3>
         <form id="batch-form">
           <div class="form-group">
-            <label for="batch_drug_select">Select Medicine *</label>
-            <select id="batch_drug_select" required>
-              <option value="">-- Choose Medicine --</option>
-            </select>
+            <label for="batch_drug_input">Select Medicine (Type name to search...) *</label>
+            <input type="text" id="batch_drug_input" list="batch_drug_datalist"
+              placeholder="Type brand or generic name..." autocomplete="off" required />
+            <datalist id="batch_drug_datalist"></datalist>
           </div>
           <div class="form-group">
             <label for="batch_number">Batch / Lot Number *</label>
