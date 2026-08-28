@@ -1,6 +1,8 @@
 // ==================== APP INITIALIZATION & STATE ====================
 let availablePosStock = [];
 let currentCart = [];
+let registeredDrugsList = [];
+let rawInventoryData = [];
 let salesChartInstance = null;
 let analyticsCache = null;
 
@@ -20,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
-    // Auto-focus brand name if initial active view is add-drug-view
     const bInput = document.getElementById('brand_name');
     if (bInput) {
       bInput.focus();
@@ -39,7 +40,6 @@ navItems.forEach((item) => {
   item.addEventListener('click', async () => {
     const targetViewId = item.getAttribute('data-view');
 
-
     navItems.forEach((nav) => nav.classList.remove('active'));
     item.classList.add('active');
 
@@ -57,9 +57,7 @@ navItems.forEach((item) => {
 
     if (targetViewId === 'add-drug-view') {
       const bInput = document.getElementById('brand_name');
-      if (bInput) {
-        setTimeout(() => bInput.focus(), 50);
-      }
+      if (bInput) setTimeout(() => bInput.focus(), 50);
     } else if (targetViewId === 'add-batch-view') {
       await displayDrugDropdown();
     } else if (targetViewId === 'inventory-view') {
@@ -79,6 +77,10 @@ navItems.forEach((item) => {
 // ==================== ADD MEDICINE MODULE ====================
 const drugForm = document.getElementById('drug-form');
 const drugStatusMsg = document.getElementById('drug-status-msg');
+const brandInput = document.getElementById('brand_name');
+const genericInput = document.getElementById('generic_name');
+const categoryInput = document.getElementById('category');
+const minStockInput = document.getElementById('min_stock_alert');
 
 if (drugForm) {
   drugForm.addEventListener('submit', async (e) => {
@@ -103,14 +105,11 @@ if (drugForm) {
       document.getElementById('min_stock_alert').value = '10';
       await refreshAlertBadges();
 
-      if (brandInput) {
-        brandInput.focus();
-      }
+      if (brandInput) brandInput.focus();
 
       setTimeout(() => {
         drugStatusMsg.innerText = '';
       }, 2000);
-
     } else {
       drugStatusMsg.style.color = '#dc2626';
       drugStatusMsg.innerText = '✗ Error: ' + response.error;
@@ -122,15 +121,7 @@ if (drugForm) {
   });
 }
 
-
-
-// ==================== ADD MEDICINE KEYBOARD SHORTCUTS & JUMPS ====================
-const brandInput = document.getElementById('brand_name');
-const genericInput = document.getElementById('generic_name');
-const categoryInput = document.getElementById('category');
-const minStockInput = document.getElementById('min_stock_alert');
-
-// 1. Enter on Brand Name -> Jumps to Generic Name
+// Add Medicine Keyboard Jumps
 if (brandInput) {
   brandInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -143,7 +134,6 @@ if (brandInput) {
   });
 }
 
-// 2. Enter on Generic Name -> Jumps to Category
 if (genericInput) {
   genericInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -156,7 +146,6 @@ if (genericInput) {
   });
 }
 
-// 3. Enter on Category -> Jumps to Min Stock Alert
 if (categoryInput) {
   categoryInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -169,26 +158,16 @@ if (categoryInput) {
   });
 }
 
-// 4. Enter on Min Stock Alert -> Submits and saves the medicine
 if (minStockInput) {
   minStockInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const form = document.getElementById('drug-form');
-      if (form) {
-        form.requestSubmit(); // Triggers the drug-form submit listener
-      }
+      if (drugForm) drugForm.requestSubmit();
     }
   });
 }
 
-
-
-
 // ==================== ADD BATCH MODULE ====================
-let registeredDrugsList = [];
-
-// Populate Datalist with all registered medicines
 async function displayDrugDropdown() {
   const datalist = document.getElementById('batch_drug_datalist');
   const drugInput = document.getElementById('batch_drug_input');
@@ -202,19 +181,16 @@ async function displayDrugDropdown() {
 
     registeredDrugsList.forEach((drug) => {
       const option = document.createElement('option');
-      // Format shown in autocomplete list
       option.value = `${drug.brand_name} (${drug.generic_name || 'N/A'}) - [ID: ${drug.id}]`;
       datalist.appendChild(option);
     });
   }
 
-  // Auto-focus medicine search input
   if (drugInput) {
     setTimeout(() => drugInput.focus(), 50);
   }
 }
 
-// Batch Form Submission Handler
 const batchForm = document.getElementById('batch-form');
 const batchStatusMsg = document.getElementById('batch-status-msg');
 
@@ -225,7 +201,6 @@ if (batchForm) {
     const drugInput = document.getElementById('batch_drug_input');
     const selectedText = drugInput.value.trim();
 
-    // Match selected drug ID from the typed value
     const matchedDrug = registeredDrugsList.find(drug =>
       selectedText.includes(`[ID: ${drug.id}]`) ||
       selectedText.toLowerCase() === drug.brand_name.toLowerCase()
@@ -258,28 +233,23 @@ if (batchForm) {
       batchForm.reset();
       await refreshAlertBadges();
 
-      // Return cursor to medicine search input for the next batch
-      if (drugInput) {
-        drugInput.focus();
-      }
+      if (drugInput) drugInput.focus();
 
-      // Auto-clear message after 3 seconds
       setTimeout(() => {
         batchStatusMsg.innerText = '';
-      }, 3000);
-
+      }, 2000);
     } else {
       batchStatusMsg.style.color = '#dc2626';
       batchStatusMsg.innerText = '✗ Error: ' + response.error;
 
       setTimeout(() => {
         batchStatusMsg.innerText = '';
-      }, 4000);
+      }, 3000);
     }
   });
 }
 
-// Add Batch Enter-Key Jump Sequence
+// Add Batch Keyboard Jumps
 const batchDrugInput = document.getElementById('batch_drug_input');
 const batchNoInput = document.getElementById('batch_number');
 const expiryDateInput = document.getElementById('expiry_date');
@@ -303,9 +273,7 @@ if (batchNoInput) {
   batchNoInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (expiryDateInput) {
-        expiryDateInput.focus();
-      }
+      if (expiryDateInput) expiryDateInput.focus();
     }
   });
 }
@@ -350,21 +318,12 @@ if (batchQtyInput) {
   batchQtyInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (batchForm) {
-        batchForm.requestSubmit();
-      }
+      if (batchForm) batchForm.requestSubmit();
     }
   });
 }
 
-
-
-
-
 // ==================== INVENTORY OVERVIEW & FILTER MODULE ====================
-let rawInventoryData = [];
-
-// Helper to determine status and corresponding badge
 function calculateItemStatus(row) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -375,7 +334,6 @@ function calculateItemStatus(row) {
 
   const expiryDate = row.expiry_date ? new Date(row.expiry_date) : null;
 
-  // Check Expired
   if (expiryDate && expiryDate < today) {
     return {
       type: 'EXPIRED',
@@ -383,7 +341,6 @@ function calculateItemStatus(row) {
     };
   }
 
-  // Check Expiring Soon (within 30 days)
   if (expiryDate && expiryDate >= today && expiryDate <= thirtyDaysFromNow) {
     return {
       type: 'EXPIRING_SOON',
@@ -391,7 +348,6 @@ function calculateItemStatus(row) {
     };
   }
 
-  // Out of Stock
   if (row.total_stock === 0) {
     return {
       type: 'OUT_OF_STOCK',
@@ -399,7 +355,6 @@ function calculateItemStatus(row) {
     };
   }
 
-  // Low Stock
   if (row.total_stock <= row.min_stock_alert) {
     return {
       type: 'LOW_STOCK',
@@ -407,21 +362,19 @@ function calculateItemStatus(row) {
     };
   }
 
-  // In Stock
   return {
     type: 'IN_STOCK',
     badge: '<span class="badge badge-in-stock">In Stock</span>'
   };
 }
 
-// Render filtered rows to table
-function renderInventoryTable(filterType = 'ALL') {
+function renderInventoryTable() {
   const tableBody = document.getElementById('inventory-table-body');
   const filterSelect = document.getElementById('inventory-filter');
   const searchInput = document.getElementById('inventory-search');
   if (!tableBody) return;
 
-  filterType = filterSelect ? filterSelect.value : 'ALL';
+  const activeFilter = filterSelect ? filterSelect.value : 'ALL';
   const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   if (!rawInventoryData || rawInventoryData.length === 0) {
@@ -434,10 +387,9 @@ function renderInventoryTable(filterType = 'ALL') {
     return;
   }
 
-  // Filter dataset 
   const filteredData = rawInventoryData.filter(row => {
     const status = calculateItemStatus(row);
-    const matchesFilter = (filterType === 'ALL') || (status.type === filterType);
+    const matchesFilter = (activeFilter === 'ALL') || (status.type === activeFilter);
 
     const matchesSearch = !searchTerm ||
       (row.brand_name && row.brand_name.toLowerCase().includes(searchTerm)) ||
@@ -480,7 +432,6 @@ function renderInventoryTable(filterType = 'ALL') {
   });
 }
 
-// Fetch all inventory from DB
 async function loadInventory() {
   const response = await window.api.getInventory();
   if (response.success) {
@@ -489,7 +440,6 @@ async function loadInventory() {
   }
 }
 
-// Live Search Input Listener
 const inventorySearchInput = document.getElementById('inventory-search');
 if (inventorySearchInput) {
   inventorySearchInput.addEventListener('input', () => {
@@ -497,8 +447,6 @@ if (inventorySearchInput) {
   });
 }
 
-
-// Filter Dropdown Change Listener
 const inventoryFilterSelect = document.getElementById('inventory-filter');
 if (inventoryFilterSelect) {
   inventoryFilterSelect.addEventListener('change', () => {
@@ -506,15 +454,10 @@ if (inventoryFilterSelect) {
   });
 }
 
-
-// Refresh Button Listener
 const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
 if (refreshInventoryBtn) {
   refreshInventoryBtn.addEventListener('click', loadInventory);
 }
-
-
-
 
 // ==================== POS / BILLING MODULE ====================
 async function loadPosStock() {
@@ -671,7 +614,7 @@ if (checkoutBtn) {
   });
 }
 
-// Cashier Keyboard Shortcuts
+// Cashier Keyboard Navigation
 const posDrugInput = document.getElementById('pos_drug_input');
 if (posDrugInput) {
   posDrugInput.addEventListener('keydown', (e) => {
@@ -894,7 +837,6 @@ async function refreshAlertBadges() {
   }
 }
 
-
 // CSV Export Handler
 const exportCsvBtn = document.getElementById('export-csv-btn');
 if (exportCsvBtn) {
@@ -921,10 +863,7 @@ if (backupDbBtn) {
   });
 }
 
-
 // ==================== RESET SYSTEM & INVENTORY DELETION ====================
-
-// Load medicines into dropdown for deletion
 async function loadDeleteDrugDropdown() {
   const select = document.getElementById('delete_drug_select');
   if (!select) return;
@@ -941,7 +880,6 @@ async function loadDeleteDrugDropdown() {
   }
 }
 
-// Button: Delete Selected Medicine Only
 const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
 if (deleteSelectedDrugBtn) {
   deleteSelectedDrugBtn.addEventListener('click', async () => {
@@ -976,7 +914,6 @@ if (deleteSelectedDrugBtn) {
   });
 }
 
-// Button: Delete All Medicines (Keep Sales)
 const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
 if (deleteAllDrugsBtn) {
   deleteAllDrugsBtn.addEventListener('click', async () => {
@@ -1001,7 +938,6 @@ if (deleteAllDrugsBtn) {
   });
 }
 
-// Button: Factory Reset (Wipe Everything)
 const wipeDatabaseBtn = document.getElementById('wipe-database-btn');
 if (wipeDatabaseBtn) {
   wipeDatabaseBtn.addEventListener('click', async () => {
