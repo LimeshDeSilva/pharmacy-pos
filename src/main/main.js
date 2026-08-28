@@ -130,6 +130,15 @@ ipcMain.handle('reports:getAnalytics', async () => {
 });
 
 
+ipcMain.handle('inventory:getAlerts', async () => {
+  try {
+    const alerts = dbOps.getStockAlertsSummary();
+    return { success: true, data: alerts };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 
 app.whenReady().then(createWindow);
 
