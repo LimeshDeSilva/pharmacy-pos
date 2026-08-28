@@ -195,6 +195,74 @@ function getSaleDetails(saleId) {
 }
 
 
+
+
+// Analytics: Key KPI summary metrics
+function getSalesKPIs() {
+  const today = db.prepare(`
+    SELECT COALESCE(SUM(total_amount), 0) AS today_revenue, COUNT(id) AS today_orders
+    FROM sales 
+    WHERE date(created_at, 'localtime') = date('now', 'localtime')
+  `).get();
+
+  const month = db.prepare(`
+    SELECT COALESCE(SUM(total_amount), 0) AS month_revenue, COUNT(id) AS month_orders
+    FROM sales 
+    WHERE strftime('%Y-%m', created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime')
+  `).get();
+
+  const total = db.prepare(`
+    SELECT COALESCE(SUM(total_amount), 0) AS all_time_revenue, COUNT(id) AS all_time_orders
+    FROM sales
+  `).get();
+
+  return { today, month, total };
+}
+
+// Analytics: Last 7 days breakdown
+function getDailySalesAnalytics() {
+  const query = db.prepare(`
+    SELECT 
+      date(created_at, 'localtime') AS period,
+      COALESCE(SUM(total_amount), 0) AS total_revenue
+    FROM sales
+    WHERE date(created_at, 'localtime') >= date('now', 'localtime', '-6 days')
+    GROUP BY date(created_at, 'localtime')
+    ORDER BY date(created_at, 'localtime') ASC
+  `);
+  return query.all();
+}
+
+// Analytics: Weekly breakdown (last 8 weeks)
+function getWeeklySalesAnalytics() {
+  const query = db.prepare(`
+    SELECT 
+      strftime('%Y-W%W', created_at, 'localtime') AS period,
+      COALESCE(SUM(total_amount), 0) AS total_revenue
+    FROM sales
+    WHERE date(created_at, 'localtime') >= date('now', 'localtime', '-56 days')
+    GROUP BY strftime('%Y-W%W', created_at, 'localtime')
+    ORDER BY period ASC
+  `);
+  return query.all();
+}
+
+// Analytics: Monthly breakdown (last 6 months)
+function getMonthlySalesAnalytics() {
+  const query = db.prepare(`
+    SELECT 
+      strftime('%Y-%m', created_at, 'localtime') AS period,
+      COALESCE(SUM(total_amount), 0) AS total_revenue
+    FROM sales
+    WHERE date(created_at, 'localtime') >= date('now', 'localtime', '-180 days')
+    GROUP BY strftime('%Y-%m', created_at, 'localtime')
+    ORDER BY period ASC
+  `);
+  return query.all();
+}
+
+
+
 initDatabase();
 
 module.exports = {
@@ -205,5 +273,9 @@ module.exports = {
   getAvailableStock,
   processSale,
   getAllSales,
-  getSaleDetails
+  getSaleDetails,
+  getSalesKPIs,
+  getDailySalesAnalytics,
+  getWeeklySalesAnalytics,
+  getMonthlySalesAnalytics
 };
