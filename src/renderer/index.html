@@ -185,6 +185,37 @@
       </div>
     </section>
 
+    <!-- Sales History View -->
+    <section id="sales-view" class="view-panel">
+      <div class="card" style="max-width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h3>Sales & Transaction History</h3>
+            <p id="total-revenue-banner" style="font-size: 14px; color: #0284c7; font-weight: 600; margin-top: 4px;">Total Revenue: LKR 0.00</p>
+          </div>
+          <button id="refresh-sales-btn" class="btn" style="width: auto; padding: 6px 14px; font-size: 13px;">🔄 Refresh Sales</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Date & Time</th>
+                <th>Items Sold</th>
+                <th>Total Paid (LKR)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sales-table-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">Loading sales records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
 
 
