@@ -192,12 +192,13 @@
         <div class="card" style="max-width: 100%; position: sticky; top: 0;">
           <h3 style="margin-bottom: 14px;">Select Item</h3>
 
-          <div class="form-group">
+
+          <div class="form-group" style="position: relative;">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
-            <input type="text" id="pos_drug_input" list="pos_stock_datalist" placeholder="Type brand/generic name..."
-              autocomplete="off" />
-            <datalist id="pos_stock_datalist"></datalist>
+            <input type="text" id="pos_drug_input" placeholder="Type brand/generic name..." autocomplete="off" />
+            <div id="pos-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
+
 
           <!-- Red Expiry Warning Box -->
           <div id="pos-expiry-alert"
@@ -263,7 +264,8 @@
             </div>
           </div>
 
-          <button id="checkout-btn" class="btn" style="background: #16a34a; padding: 12px; font-size: 15px;">Complete
+          <button id="checkout-btn" class="btn"
+            style="background: #16a34a; padding: 12px; font-size: 15px; margin-top: 10px;">Complete
             Checkout & Print (F8)</button>
           <div id="checkout-status-msg" class="status-msg"></div>
         </div>
