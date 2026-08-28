@@ -175,3 +175,27 @@ input {
   background: #fee2e2;
   color: #b91c1c;
 }
+
+/* Reprot filter button */
+
+.filter-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: #e2e8f0;
+}
+
+.filter-btn.active-filter {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
