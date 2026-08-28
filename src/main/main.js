@@ -103,6 +103,16 @@ ipcMain.handle('sales:getAll', async () => {
 });
 
 
+ipcMain.handle('sales:getDetails', async (event, saleId) => {
+  try {
+    const details = dbOps.getSaleDetails(saleId);
+    return { success: true, data: details };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+
 
 
 app.whenReady().then(createWindow);
