@@ -1,11 +1,21 @@
+// ==================== APP INITIALIZATION & STATE ====================
+let availablePosStock = [];
+let currentCart = [];
+let salesChartInstance = null;
+let analyticsCache = null;
 
-// ==================== APP STARTUP INITIALIZATION ====================
+const viewTitles = {
+  'add-drug-view': 'Register Medicine',
+  'add-batch-view': 'Add Batch',
+  'inventory-view': 'Inventory Overview',
+  'pos-view': 'Billing (POS)',
+  'sales-view': 'Sales History',
+  'reports-view': 'Reports & Charts'
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    // 1. Fetch initial stock & expiry alerts on launch
     await refreshAlertBadges();
-
-    // 2. Pre-populate initial view dropdowns if starting on Add Medicine / Add Batch
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
@@ -14,18 +24,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-
-// ====================  SIDEBAR TAB NAVIGATION ====================
+// ==================== SIDEBAR TAB NAVIGATION ====================
 const navItems = document.querySelectorAll('.nav-item');
 const viewPanels = document.querySelectorAll('.view-panel');
 const pageTitle = document.getElementById('page-title');
 
 navItems.forEach((item) => {
   item.addEventListener('click', async () => {
-
     navItems.forEach((nav) => nav.classList.remove('active'));
     item.classList.add('active');
-
 
     const targetViewId = item.getAttribute('data-view');
     viewPanels.forEach((panel) => panel.classList.remove('active'));
@@ -35,11 +42,11 @@ navItems.forEach((item) => {
       activePanel.classList.add('active');
     }
 
-    await refreshAlertBadges();
-
-    if (pageTitle) {
-      pageTitle.innerText = item.innerText.replace(/[^\w\s()]/gi, '').trim();
+    if (pageTitle && viewTitles[targetViewId]) {
+      pageTitle.innerText = viewTitles[targetViewId];
     }
+
+    await refreshAlertBadges();
 
     if (targetViewId === 'add-batch-view') {
       await displayDrugDropdown();
@@ -55,14 +62,13 @@ navItems.forEach((item) => {
   });
 });
 
-// ====================  ADD MEDICINE FORM HANDLER ====================
+// ==================== ADD MEDICINE MODULE ====================
 const drugForm = document.getElementById('drug-form');
 const drugStatusMsg = document.getElementById('drug-status-msg');
 
 if (drugForm) {
   drugForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
 
     const drugData = {
       brand_name: document.getElementById('brand_name').value.trim(),
@@ -71,19 +77,17 @@ if (drugForm) {
       min_stock_alert: parseInt(document.getElementById('min_stock_alert').value, 10) || 10
     };
 
-
     drugStatusMsg.style.color = '#475569';
     drugStatusMsg.innerText = 'Saving medicine...';
 
-
     const response = await window.api.addDrug(drugData);
-
 
     if (response.success) {
       drugStatusMsg.style.color = '#16a34a';
       drugStatusMsg.innerText = '✓ Medicine saved successfully!';
       drugForm.reset();
       document.getElementById('min_stock_alert').value = '10';
+      await refreshAlertBadges();
     } else {
       drugStatusMsg.style.color = '#dc2626';
       drugStatusMsg.innerText = '✗ Error: ' + response.error;
@@ -91,10 +95,7 @@ if (drugForm) {
   });
 }
 
-
-
-// ====================  ADD BATCH FORM HANDLER ====================
-
+// ==================== ADD BATCH MODULE ====================
 async function displayDrugDropdown() {
   const select = document.getElementById('batch_drug_select');
   if (!select) return;
@@ -111,11 +112,6 @@ async function displayDrugDropdown() {
     });
   }
 }
-
-if (document.getElementById('batch_drug_select')) {
-  displayDrugDropdown();
-}
-
 
 const batchForm = document.getElementById('batch-form');
 const batchStatusMsg = document.getElementById('batch-status-msg');
@@ -142,6 +138,7 @@ if (batchForm) {
       batchStatusMsg.style.color = '#16a34a';
       batchStatusMsg.innerText = '✓ Batch saved successfully!';
       batchForm.reset();
+      await refreshAlertBadges();
     } else {
       batchStatusMsg.style.color = '#dc2626';
       batchStatusMsg.innerText = '✗ Error: ' + response.error;
@@ -149,8 +146,7 @@ if (batchForm) {
   });
 }
 
-// ====================  Load and render inventory data ====================
-
+// ==================== INVENTORY OVERVIEW MODULE ====================
 async function loadInventory() {
   const tableBody = document.getElementById('inventory-table-body');
   if (!tableBody) return;
@@ -172,7 +168,6 @@ async function loadInventory() {
   response.data.forEach((row) => {
     const tr = document.createElement('tr');
 
-    // Stock Badge Status
     let statusBadge = '<span class="badge badge-in-stock">In Stock</span>';
     if (row.total_stock === 0) {
       statusBadge = '<span class="badge badge-out-of-stock">Out of Stock</span>';
@@ -186,7 +181,7 @@ async function loadInventory() {
       <td>${row.category || '-'}</td>
       <td>${row.batch_number ? `<code>${row.batch_number}</code>` : '<span style="color: #94a3b8;">No Batches</span>'}</td>
       <td>${row.expiry_date || '-'}</td>
-      <td>${row.sell_price ? row.sell_price.toFixed(2) : '-'}</td>
+      <td>${row.sell_price ? Number(row.sell_price).toFixed(2) : '-'}</td>
       <td>${row.batch_quantity !== null ? row.batch_quantity : 0}</td>
       <td><strong>${row.total_stock}</strong></td>
       <td>${statusBadge}</td>
@@ -196,46 +191,34 @@ async function loadInventory() {
   });
 }
 
-// Attach to sidebar navigation
-navItems.forEach((item) => {
-  item.addEventListener('click', async () => {
-    const targetViewId = item.getAttribute('data-view');
-    if (targetViewId === 'inventory-view') {
-      await loadInventory();
-    }
-  });
-});
-
-// Manual Refresh Button Handler
 const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
 if (refreshInventoryBtn) {
   refreshInventoryBtn.addEventListener('click', loadInventory);
 }
 
-
 // ==================== POS / BILLING MODULE ====================
-let availablePosStock = [];
-let currentCart = [];
-
-// Display POS dropdown with in-stock items
 async function loadPosStock() {
-  const select = document.getElementById('pos_batch_select');
-  if (!select) return;
+  const datalist = document.getElementById('pos_stock_datalist');
+  const drugInput = document.getElementById('pos_drug_input');
+  if (!datalist) return;
 
   const res = await window.api.getPosStock();
   if (res.success) {
     availablePosStock = res.data;
-    select.innerHTML = '<option value="">-- Select Available Item --</option>';
+    datalist.innerHTML = '';
+
     availablePosStock.forEach((item) => {
       const option = document.createElement('option');
-      option.value = item.batch_id;
-      option.textContent = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
-      select.appendChild(option);
+      option.value = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
+      datalist.appendChild(option);
     });
+  }
+
+  if (drugInput) {
+    setTimeout(() => drugInput.focus(), 50);
   }
 }
 
-// Render Cart Table
 function renderCart() {
   const cartBody = document.getElementById('cart-table-body');
   const totalDisplay = document.getElementById('grand-total-display');
@@ -266,65 +249,78 @@ function renderCart() {
   totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
 }
 
-
-// Global removal helper
 window.removeFromCart = (index) => {
   currentCart.splice(index, 1);
   renderCart();
 };
 
+function handleAddToCart() {
+  const drugInput = document.getElementById('pos_drug_input');
+  const qtyInput = document.getElementById('pos_qty');
+  const msg = document.getElementById('pos-input-msg');
 
-// Add to Cart button listener
-const addToCartBtn = document.getElementById('add-to-cart-btn');
-if (addToCartBtn) {
-  addToCartBtn.addEventListener('click', () => {
-    const batchId = parseInt(document.getElementById('pos_batch_select').value, 10);
-    const qty = parseInt(document.getElementById('pos_qty').value, 10);
-    const msg = document.getElementById('pos-input-msg');
+  const selectedText = drugInput.value.trim();
+  const qty = parseInt(qtyInput.value, 10);
 
-    if (!batchId || !qty || qty <= 0) {
+  const selectedStock = availablePosStock.find(
+    (item) =>
+      selectedText.includes(item.batch_number) &&
+      selectedText.includes(item.brand_name)
+  );
+
+  if (!selectedStock) {
+    msg.style.color = '#dc2626';
+    msg.innerText = 'Please select a valid medicine from the list.';
+    drugInput.focus();
+    return;
+  }
+
+  if (!qty || qty <= 0) {
+    msg.style.color = '#dc2626';
+    msg.innerText = 'Please enter a valid quantity.';
+    qtyInput.focus();
+    return;
+  }
+
+  if (qty > selectedStock.available_qty) {
+    msg.style.color = '#dc2626';
+    msg.innerText = `Only ${selectedStock.available_qty} units available.`;
+    qtyInput.focus();
+    return;
+  }
+
+  const existingIndex = currentCart.findIndex((i) => i.batch_id === selectedStock.batch_id);
+  if (existingIndex > -1) {
+    if (currentCart[existingIndex].quantity + qty > selectedStock.available_qty) {
       msg.style.color = '#dc2626';
-      msg.innerText = 'Please select a valid medicine and quantity.';
+      msg.innerText = `Cannot exceed total batch stock (${selectedStock.available_qty}).`;
       return;
     }
+    currentCart[existingIndex].quantity += qty;
+    currentCart[existingIndex].total_price = currentCart[existingIndex].quantity * selectedStock.sell_price;
+  } else {
+    currentCart.push({
+      batch_id: selectedStock.batch_id,
+      brand_name: selectedStock.brand_name,
+      batch_number: selectedStock.batch_number,
+      sell_price: selectedStock.sell_price,
+      quantity: qty,
+      total_price: qty * selectedStock.sell_price
+    });
+  }
 
-    const selectedStock = availablePosStock.find((s) => s.batch_id === batchId);
-    if (!selectedStock) return;
-
-    if (qty > selectedStock.available_qty) {
-      msg.style.color = '#dc2626';
-      msg.innerText = `Only ${selectedStock.available_qty} units available in this batch.`;
-      return;
-    }
-
-    // Check if already in cart
-    const existingIndex = currentCart.findIndex((i) => i.batch_id === batchId);
-    if (existingIndex > -1) {
-      if (currentCart[existingIndex].quantity + qty > selectedStock.available_qty) {
-        msg.style.color = '#dc2626';
-        msg.innerText = `Cannot exceed total stock (${selectedStock.available_qty}).`;
-        return;
-      }
-      currentCart[existingIndex].quantity += qty;
-      currentCart[existingIndex].total_price = currentCart[existingIndex].quantity * selectedStock.sell_price;
-    } else {
-      currentCart.push({
-        batch_id: selectedStock.batch_id,
-        brand_name: selectedStock.brand_name,
-        batch_number: selectedStock.batch_number,
-        sell_price: selectedStock.sell_price,
-        quantity: qty,
-        total_price: qty * selectedStock.sell_price
-      });
-    }
-
-    msg.innerText = '';
-    renderCart();
-  });
+  msg.innerText = '';
+  drugInput.value = '';
+  qtyInput.value = '1';
+  renderCart();
+  drugInput.focus();
 }
 
+const addToCartBtn = document.getElementById('add-to-cart-btn');
+if (addToCartBtn) {
+  addToCartBtn.addEventListener('click', handleAddToCart);
+}
 
-// Checkout button listener
 const checkoutBtn = document.getElementById('checkout-btn');
 if (checkoutBtn) {
   checkoutBtn.addEventListener('click', async () => {
@@ -336,18 +332,18 @@ if (checkoutBtn) {
     }
 
     const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
-
     msg.style.color = '#475569';
     msg.innerText = 'Processing sale...';
 
     const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
-
     if (res.success) {
       msg.style.color = '#16a34a';
       msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
       currentCart = [];
       renderCart();
-      await loadPosStock(); // Refresh dropdown with updated remaining stock
+      await loadPosStock();
+      await refreshAlertBadges();
+      document.getElementById('pos_drug_input').focus();
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
@@ -355,20 +351,40 @@ if (checkoutBtn) {
   });
 }
 
-// Hook into tab navigation to reload POS stock when clicking the tab
-navItems.forEach((item) => {
-  item.addEventListener('click', async () => {
-    const targetViewId = item.getAttribute('data-view');
-    if (targetViewId === 'pos-view') {
-      await loadPosStock();
+// Cashier Keyboard Shortcuts
+const posDrugInput = document.getElementById('pos_drug_input');
+if (posDrugInput) {
+  posDrugInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const qtyInput = document.getElementById('pos_qty');
+      if (qtyInput) {
+        qtyInput.focus();
+        qtyInput.select();
+      }
     }
   });
+}
+
+const posQtyInput = document.getElementById('pos_qty');
+if (posQtyInput) {
+  posQtyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddToCart();
+    }
+  });
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'F8') {
+    e.preventDefault();
+    const btn = document.getElementById('checkout-btn');
+    if (btn) btn.click();
+  }
 });
 
-
 // ==================== SALES HISTORY MODULE ====================
-
-// Fetch & display all sales in table
 async function loadSalesHistory() {
   const tableBody = document.getElementById('sales-table-body');
   const revenueBanner = document.getElementById('total-revenue-banner');
@@ -405,7 +421,6 @@ async function loadSalesHistory() {
   }
 }
 
-// Open Receipt Inspection Modal
 window.viewReceipt = async (saleId) => {
   const modal = document.getElementById('receipt-modal');
   const title = document.getElementById('modal-invoice-title');
@@ -432,7 +447,6 @@ window.viewReceipt = async (saleId) => {
   }
 };
 
-// Close modal button handler
 const closeModalBtn = document.getElementById('close-modal-btn');
 if (closeModalBtn) {
   closeModalBtn.addEventListener('click', () => {
@@ -440,24 +454,18 @@ if (closeModalBtn) {
   });
 }
 
-// Refresh button handler
 const refreshSalesBtn = document.getElementById('refresh-sales-btn');
 if (refreshSalesBtn) {
   refreshSalesBtn.addEventListener('click', loadSalesHistory);
 }
 
-
 // ==================== REPORTS & CHARTS MODULE ====================
-let salesChartInstance = null;
-let analyticsCache = null;
-
 async function loadAnalyticsDashboard() {
   const res = await window.api.getAnalytics();
   if (!res.success) return;
 
   analyticsCache = res.data;
 
-  // Update KPI Cards
   document.getElementById('kpi-today-rev').innerText = `LKR ${analyticsCache.kpis.today.today_revenue.toFixed(2)}`;
   document.getElementById('kpi-today-orders').innerText = `${analyticsCache.kpis.today.today_orders} transactions`;
 
@@ -467,10 +475,8 @@ async function loadAnalyticsDashboard() {
   document.getElementById('kpi-total-rev').innerText = `LKR ${analyticsCache.kpis.total.all_time_revenue.toFixed(2)}`;
   document.getElementById('kpi-total-orders').innerText = `${analyticsCache.kpis.total.all_time_orders} transactions`;
 
-  // Default render: Daily
   renderSalesChart('daily');
 }
-
 
 function renderSalesChart(periodType) {
   const canvas = document.getElementById('salesChart');
@@ -493,7 +499,6 @@ function renderSalesChart(periodType) {
   const labels = dataset.map((d) => d.period);
   const data = dataset.map((d) => d.total_revenue);
 
-  // Destroy previous chart instance before drawing a new one
   if (salesChartInstance) {
     salesChartInstance.destroy();
   }
@@ -542,7 +547,6 @@ function renderSalesChart(periodType) {
   });
 }
 
-// Chart filter buttons toggle
 const filterButtons = document.querySelectorAll('.filter-btn');
 filterButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -553,8 +557,7 @@ filterButtons.forEach((btn) => {
   });
 });
 
-
-// Function to update the sidebar badge
+// ==================== ALERTS BADGE MODULE ====================
 async function refreshAlertBadges() {
   const badge = document.getElementById('sidebar-alert-badge');
   if (!badge) return;
@@ -570,5 +573,3 @@ async function refreshAlertBadges() {
     }
   }
 }
-
-refreshAlertBadges();
