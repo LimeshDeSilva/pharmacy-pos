@@ -341,3 +341,43 @@ navItems.forEach((item) => {
     }
   });
 });
+
+
+// ==================== SALES HISTORY MODULE ====================
+
+// Fetch & display all sales in table
+async function loadSalesHistory() {
+  const tableBody = document.getElementById('sales-table-body');
+  const revenueBanner = document.getElementById('total-revenue-banner');
+  if (!tableBody) return;
+
+  const res = await window.api.getAllSales();
+
+  if (!res.success || res.data.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No sales recorded yet.</td></tr>`;
+    if (revenueBanner) revenueBanner.innerText = 'Total Revenue: LKR 0.00';
+    return;
+  }
+
+  tableBody.innerHTML = '';
+  let cumulativeRevenue = 0;
+
+  res.data.forEach((sale) => {
+    cumulativeRevenue += sale.total_amount;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>#${sale.sale_id}</strong></td>
+      <td>${sale.sale_date}</td>
+      <td>${sale.item_count} items</td>
+      <td><strong>LKR ${sale.total_amount.toFixed(2)}</strong></td>
+      <td>
+        <button onclick="viewReceipt(${sale.sale_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">View Details</button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+
+  if (revenueBanner) {
+    revenueBanner.innerText = `Total Revenue: LKR ${cumulativeRevenue.toFixed(2)}`;
+  }
+}
