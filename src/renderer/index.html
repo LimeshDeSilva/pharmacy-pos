@@ -33,7 +33,8 @@
       </li>
       <li class="nav-item" data-view="pos-view">🛒 Billing (POS)</li>
       <li class="nav-item" data-view="sales-view">📊 Sales History</li>
-      <li class="nav-item" data-view="reports-view">📈 Reports & Charts</li>
+      <li class="nav-item" data-view="reports-view">📈 Revenue & Charts</li>
+      <li class="nav-item" data-view="profits-view">💰 Profits & Charts</li>
       <li class="nav-item" data-view="clear-inventory-view" style="color: #f87171;">⚠️ Reset System</li>
     </ul>
   </nav>
@@ -184,10 +185,10 @@
 
     <!-- POS Billing View -->
     <section id="pos-view" class="view-panel">
-      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
+      <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; align-items: start;">
 
         <!-- Left: Item Selector Card -->
-        <div class="card" style="max-width: 100%;">
+        <div class="card" style="max-width: 100%; position: sticky; top: 0;">
           <h3 style="margin-bottom: 14px;">Select Item</h3>
 
           <div class="form-group">
@@ -212,32 +213,40 @@
         </div>
 
         <!-- Right ==> Current Bill -->
-        <div class="card" style="max-width: 100%;">
+        <div class="card" style="max-width: 100%; display: flex; flex-direction: column;">
           <h3 style="margin-bottom: 14px;">Current Invoice</h3>
-          <table class="data-table" style="margin-bottom: 14px;">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Total (LKR)</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="cart-table-body">
-              <tr>
-                <td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td>
-              </tr>
-            </tbody>
-          </table>
 
+          <!-- Scrollable Cart Table Container -->
+          <div
+            style="max-height: 380px; overflow-y: auto; margin-bottom: 14px; border: 1px solid #f1f5f9; border-radius: 6px;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+              <thead
+                style="position: sticky; top: 0; background: #ffffff; z-index: 2; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <tr>
+                  <th>Item</th>
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th>Total (LKR)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="cart-table-body">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bottom Fixed Total & Checkout -->
           <div
             style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 12px; margin-bottom: 16px;">
             <span style="font-size: 16px; font-weight: bold;">Grand Total:</span>
-            <span id="grand-total-display" style="font-size: 18px; font-weight: bold; color: #0284c7;">LKR 0.00</span>
+            <span id="grand-total-display" style="font-size: 20px; font-weight: 800; color: #0284c7;">LKR 0.00</span>
           </div>
 
-          <button id="checkout-btn" class="btn" style="background: #16a34a;">Complete Checkout & Print (F8)</button>
+          <button id="checkout-btn" class="btn" style="background: #16a34a; padding: 12px; font-size: 15px;">Complete
+            Checkout & Print (F8)</button>
           <div id="checkout-status-msg" class="status-msg"></div>
         </div>
 
@@ -329,7 +338,7 @@
       </div>
     </div>
 
-    <!-- Visual Analytics & Reports View -->
+    <!-- Visual Revenues & Reports View -->
     <section id="reports-view" class="view-panel">
 
       <!-- Top KPI Summary Cards -->
@@ -377,6 +386,63 @@
         </div>
       </div>
     </section>
+
+
+
+    <!-- Visual Profit Analytics & Charts View -->
+    <section id="profits-view" class="view-panel">
+
+      <!-- Top Profit Summary Cards -->
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="card" style="max-width: 100%; border-left: 4px solid #16a34a;">
+          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">Today's Profit</small>
+          <h2 id="kpi-today-profit" style="color: #15803d; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-today-profit-orders" style="color: #16a34a;">0 transactions</small>
+        </div>
+
+        <div class="card" style="max-width: 100%; border-left: 4px solid #059669;">
+          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">This Month Profit</small>
+          <h2 id="kpi-month-profit" style="color: #047857; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-month-profit-orders" style="color: #059669;">0 transactions</small>
+        </div>
+
+        <div class="card" style="max-width: 100%; border-left: 4px solid #0d9488;">
+          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">All Time Net Profit</small>
+          <h2 id="kpi-total-profit" style="color: #0f766e; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-total-profit-orders" style="color: #0d9488;">0 transactions</small>
+        </div>
+      </div>
+
+      <!-- Main Profit Chart Container -->
+      <div class="card" style="max-width: 100%;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3>Profit Analytics</h3>
+            <p style="color: #64748b; font-size: 13px;">Visual breakdown of net gross profit (Selling Price - Cost
+              Price)</p>
+          </div>
+
+          <!-- Timeframe Filter Buttons -->
+          <div style="display: flex; gap: 8px;">
+            <button class="filter-btn profit-filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
+            <button class="filter-btn profit-filter-btn" data-period="weekly">Weekly</button>
+            <button class="filter-btn profit-filter-btn" data-period="monthly">Monthly</button>
+          </div>
+
+          <div style="position: relative; height: 360px; width: 100%;">
+            <canvas id="profitChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Canvas for Profit Chart.js -->
+        <div style="position: relative; height: 360px; width: 100%;">
+          <canvas id="profitChart"></canvas>
+        </div>
+      </div>
+    </section>
+
 
     <!-- Reset System View -->
     <section id="clear-inventory-view" class="view-panel">
