@@ -451,3 +451,74 @@ async function loadAnalyticsDashboard() {
   // Default render: Daily
   renderSalesChart('daily');
 }
+
+
+function renderSalesChart(periodType) {
+  const canvas = document.getElementById('salesChart');
+  if (!canvas || !analyticsCache) return;
+
+  let dataset = [];
+  let labelText = 'Daily Sales (LKR)';
+
+  if (periodType === 'daily') {
+    dataset = analyticsCache.daily;
+    labelText = 'Daily Sales (LKR)';
+  } else if (periodType === 'weekly') {
+    dataset = analyticsCache.weekly;
+    labelText = 'Weekly Sales (LKR)';
+  } else if (periodType === 'monthly') {
+    dataset = analyticsCache.monthly;
+    labelText = 'Monthly Sales (LKR)';
+  }
+
+  const labels = dataset.map((d) => d.period);
+  const data = dataset.map((d) => d.total_revenue);
+
+  // Destroy previous chart instance before drawing a new one
+  if (salesChartInstance) {
+    salesChartInstance.destroy();
+  }
+
+  const ctx = canvas.getContext('2d');
+  salesChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels.length > 0 ? labels : ['No Sales Recorded'],
+      datasets: [
+        {
+          label: labelText,
+          data: data.length > 0 ? data : [0],
+          backgroundColor: 'rgba(2, 132, 199, 0.75)',
+          borderColor: '#0284c7',
+          borderWidth: 2,
+          borderRadius: 6,
+          maxBarThickness: 45
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (val) => `LKR ${val}`
+          },
+          grid: { color: '#f1f5f9' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}`
+          }
+        }
+      }
+    }
+  });
+}
