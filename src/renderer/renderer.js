@@ -61,11 +61,7 @@ navItems.forEach((item) => {
     } else if (targetViewId === 'reports-view') {
       await loadAnalyticsDashboard();
     } else if (targetViewId === 'clear-inventory-view') {
-      const password = prompt('🔒 Admin Access Required. Enter PIN:');
-      if (password !== '1234') {
-        alert('❌ Incorrect Password! Access Denied.');
-        return;
-      }
+      await loadDeleteDrugDropdown();
     }
   });
 });
