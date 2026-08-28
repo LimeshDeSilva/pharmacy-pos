@@ -10,7 +10,8 @@ const viewTitles = {
   'inventory-view': 'Inventory Overview',
   'pos-view': 'Billing (POS)',
   'sales-view': 'Sales History',
-  'reports-view': 'Reports & Charts'
+  'reports-view': 'Reports & Charts',
+  'clear-inventory-view': 'System Reset & Wipe'
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,12 +32,21 @@ const pageTitle = document.getElementById('page-title');
 
 navItems.forEach((item) => {
   item.addEventListener('click', async () => {
+    const targetViewId = item.getAttribute('data-view');
+
+    // Password Gate
+    if (targetViewId === 'clear-inventory-view') {
+      const password = prompt('🔒 Admin Access Required. Enter PIN:');
+      if (password !== '1234') {
+        alert('❌ Incorrect Password! Access Denied.');
+        return;
+      }
+    }
+
     navItems.forEach((nav) => nav.classList.remove('active'));
     item.classList.add('active');
 
-    const targetViewId = item.getAttribute('data-view');
     viewPanels.forEach((panel) => panel.classList.remove('active'));
-
     const activePanel = document.getElementById(targetViewId);
     if (activePanel) {
       activePanel.classList.add('active');
