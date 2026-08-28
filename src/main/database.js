@@ -423,6 +423,18 @@ function getMonthlyProfitAnalytics() {
 }
 
 
+// Update Medicine Details
+function updateDrug(id, brand_name, generic_name, category, min_stock_alert) {
+  const query = db.prepare(`
+    UPDATE drugs
+    SET brand_name = ?, generic_name = ?, category = ?, min_stock_alert = ?
+    WHERE id = ?
+  `);
+  return query.run(brand_name, generic_name, category, min_stock_alert, id);
+}
+
+
+
 
 initDatabase();
 
@@ -446,5 +458,6 @@ module.exports = {
   getProfitKPIs,
   getDailyProfitAnalytics,
   getWeeklyProfitAnalytics,
-  getMonthlyProfitAnalytics
+  getMonthlyProfitAnalytics,
+  updateDrug
 };
