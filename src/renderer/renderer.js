@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
+    // Auto-focus brand name if initial active view is add-drug-view
+    const bInput = document.getElementById('brand_name');
+    if (bInput) {
+      bInput.focus();
+    }
   } catch (err) {
     console.error('Failed to initialize app on startup:', err);
   }
@@ -50,7 +55,12 @@ navItems.forEach((item) => {
 
     await refreshAlertBadges();
 
-    if (targetViewId === 'add-batch-view') {
+    if (targetViewId === 'add-drug-view') {
+      const bInput = document.getElementById('brand_name');
+      if (bInput) {
+        setTimeout(() => bInput.focus(), 50);
+      }
+    } else if (targetViewId === 'add-batch-view') {
       await displayDrugDropdown();
     } else if (targetViewId === 'inventory-view') {
       await loadInventory();
@@ -92,12 +102,81 @@ if (drugForm) {
       drugForm.reset();
       document.getElementById('min_stock_alert').value = '10';
       await refreshAlertBadges();
+
+      if (brandInput) {
+        brandInput.focus();
+      }
+
     } else {
       drugStatusMsg.style.color = '#dc2626';
       drugStatusMsg.innerText = '✗ Error: ' + response.error;
     }
   });
 }
+
+
+
+// ==================== ADD MEDICINE KEYBOARD SHORTCUTS & JUMPS ====================
+const brandInput = document.getElementById('brand_name');
+const genericInput = document.getElementById('generic_name');
+const categoryInput = document.getElementById('category');
+const minStockInput = document.getElementById('min_stock_alert');
+
+// 1. Enter on Brand Name -> Jumps to Generic Name
+if (brandInput) {
+  brandInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (genericInput) {
+        genericInput.focus();
+        genericInput.select();
+      }
+    }
+  });
+}
+
+// 2. Enter on Generic Name -> Jumps to Category
+if (genericInput) {
+  genericInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (categoryInput) {
+        categoryInput.focus();
+        categoryInput.select();
+      }
+    }
+  });
+}
+
+// 3. Enter on Category -> Jumps to Min Stock Alert
+if (categoryInput) {
+  categoryInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (minStockInput) {
+        minStockInput.focus();
+        minStockInput.select();
+      }
+    }
+  });
+}
+
+// 4. Enter on Min Stock Alert -> Submits and saves the medicine
+if (minStockInput) {
+  minStockInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const form = document.getElementById('drug-form');
+      if (form) {
+        form.requestSubmit(); // Triggers the drug-form submit listener
+      }
+    }
+  });
+}
+
+
+// =======================================================================================
+
 
 // ==================== ADD BATCH MODULE ====================
 async function displayDrugDropdown() {
