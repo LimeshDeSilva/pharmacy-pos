@@ -890,51 +890,6 @@ if (addToCartBtn) {
   addToCartBtn.addEventListener('click', handleAddToCart);
 }
 
-const checkoutBtn = document.getElementById('checkout-btn');
-if (checkoutBtn) {
-  checkoutBtn.addEventListener('click', async () => {
-    const msg = document.getElementById('checkout-status-msg');
-
-    if (currentCart.length === 0) {
-      msg.style.color = '#dc2626';
-      msg.innerText = 'Cart is empty. Add items first.';
-      return;
-    }
-
-    const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
-    msg.style.color = '#475569';
-    msg.innerText = 'Processing sale...';
-
-    const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
-    if (res.success) {
-      msg.style.color = '#16a34a';
-      msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
-
-      const printedCart = [...currentCart];
-      const nowStr = new Date().toLocaleString();
-
-      currentCart = [];
-      renderCart();
-      await loadPosStock();
-      await refreshAlertBadges();
-      document.getElementById('pos_drug_input').focus();
-
-      // Trigger Print receipt automatically
-      printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal);
-
-      setTimeout(() => {
-        msg.innerText = '';
-      }, 3000);
-
-    } else {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + res.error;
-    }
-  });
-}
-
-
-
 const posQtyInput = document.getElementById('pos_qty');
 if (posQtyInput) {
   posQtyInput.addEventListener('keydown', (e) => {
@@ -1486,106 +1441,103 @@ if (wipeDatabaseBtn) {
 
 // ==================== RECEIPT PRINTING MODULE ====================
 async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0) {
-  const receiptArea = document.getElementById('thermal-receipt-area');
-  const recInvoice = document.getElementById('rec-invoice-id');
-  const recDate = document.getElementById('rec-date');
-  const recItems = document.getElementById('rec-items-body');
-  const recTotal = document.getElementById('rec-grand-total');
-  const recPaid = document.getElementById('rec-paid-amount');
-  const recBalance = document.getElementById('rec-balance-amount');
-
   if (!items || items.length === 0) return;
 
-  // 1. Set Header & Summary Values
-  if (recInvoice) recInvoice.innerText = `#${saleId}`;
-  if (recDate) recDate.innerText = dateStr;
-  if (recTotal) recTotal.innerText = `LKR ${Number(grandTotal).toFixed(2)}`;
-  if (recPaid) recPaid.innerText = `LKR ${Number(paidAmount).toFixed(2)}`;
-  if (recBalance) recBalance.innerText = `LKR ${Number(balanceAmount).toFixed(2)}`;
+  const payload = {
+    saleId,
+    dateStr,
+    items,
+    grandTotal,
+    paidAmount,
+    balanceAmount
+  };
 
-  // 2. Populate Line Items
-  if (recItems) {
-    recItems.innerHTML = '';
-    items.forEach((item) => {
-      const name = item.brand_name || item.brand || item.generic_name || 'Medicine';
-      const qty = item.quantity || 1;
-      const unitPrice = item.sell_price !== undefined ? item.sell_price : (item.unit_price || 0);
-      const lineTotal = item.total_price !== undefined ? item.total_price : (qty * unitPrice);
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="text-align: left; padding: 2px 0;">${name}</td>
-        <td style="text-align: center; padding: 2px 0;">${qty}</td>
-        <td style="text-align: right; padding: 2px 0;">${Number(unitPrice).toFixed(2)}</td>
-        <td style="text-align: right; padding: 2px 0;"><strong>${Number(lineTotal).toFixed(2)}</strong></td>
-      `;
-      recItems.appendChild(tr);
-    });
-  }
-
-  // 3. Trigger Print
   if (window.api && typeof window.api.printReceipt === 'function') {
-    await window.api.printReceipt();
-  } else {
-    window.print();
+    const res = await window.api.printReceipt(payload);
+    if (!res.success && res.error) {
+      console.warn('Print action notice:', res.error);
+    }
   }
 }
 
-// Checkout button listener with validation & preserved cash figures
+
+
+// ==================== CHECKOUT & PRINT ACTION ====================
+let isCheckingOut = false;
+
+const checkoutBtn = document.getElementById('checkout-btn');
 if (checkoutBtn) {
   checkoutBtn.addEventListener('click', async () => {
     const msg = document.getElementById('checkout-status-msg');
-    const paidInput = document.getElementById('pos-paid-amount');
+
+    // Prevent double execution
+    if (isCheckingOut) return;
 
     if (currentCart.length === 0) {
-      msg.style.color = '#dc2626';
-      msg.innerText = 'Cart is empty. Add items first.';
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = 'Cart is empty. Add items first.';
+      }
       return;
     }
 
-    const { grandTotal, paidVal, balance } = calculatePosBalance();
+    isCheckingOut = true;
+    checkoutBtn.disabled = true;
 
-    if (paidVal < grandTotal) {
-      msg.style.color = '#dc2626';
-      msg.innerText = `Insufficient cash paid! Total is LKR ${grandTotal.toFixed(2)}`;
-      if (paidInput) paidInput.focus();
-      return;
-    }
+    try {
+      // 1. Capture exact values from UI before state reset
+      const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+      const paidInput = document.getElementById('pos-paid-amount');
+      
+      let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
+      if (paidVal === 0) {
+        paidVal = grandTotal; // Default to exact amount if left blank
+      }
 
-    // 1. CAPTURE ALL RECEIPT DATA BEFORE RESETTING
-    const printedCart = JSON.parse(JSON.stringify(currentCart));
-    const nowStr = new Date().toLocaleString();
-    const finalTotal = grandTotal;
-    const finalPaid = paidVal;
-    const finalBalance = balance;
+      const balanceVal = paidVal - grandTotal;
+      const printedCart = [...currentCart];
+      const nowStr = new Date().toLocaleString();
 
-    msg.style.color = '#475569';
-    msg.innerText = 'Processing sale...';
+      if (msg) {
+        msg.style.color = '#475569';
+        msg.innerText = 'Processing sale...';
+      }
 
-    const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
-    if (res.success) {
-      msg.style.color = '#16a34a';
-      msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
+      // 2. Process database transaction
+      const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
 
-      // 2. NOW RESET CART & INPUTS
-      currentCart = [];
-      if (paidInput) paidInput.value = '';
-      renderCart();
-      await loadPosStock();
-      await refreshAlertBadges();
+      if (res.success) {
+        if (msg) {
+          msg.style.color = '#16a34a';
+          msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
+        }
 
-      const posDrugIn = document.getElementById('pos_drug_input');
-      if (posDrugIn) posDrugIn.focus();
+        // 3. Clear cart and reset views
+        currentCart = [];
+        renderCart();
+        await loadPosStock();
+        await refreshAlertBadges();
 
-      // 3. PRINT WITH THE CAPTURED VALUES
-      printThermalReceipt(res.data.saleId, nowStr, printedCart, finalTotal, finalPaid, finalBalance);
+        const pInput = document.getElementById('pos_drug_input');
+        if (pInput) pInput.focus();
 
-      setTimeout(() => {
-        msg.innerText = '';
-      }, 3000);
-    } else {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + res.error;
+        // 4. Send single print command with all amounts included
+        await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal);
+
+        setTimeout(() => {
+          if (msg) msg.innerText = '';
+        }, 3000);
+      } else {
+        if (msg) {
+          msg.style.color = '#dc2626';
+          msg.innerText = '✗ Error: ' + res.error;
+        }
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+    } finally {
+      isCheckingOut = false;
+      checkoutBtn.disabled = false;
     }
   });
 }
