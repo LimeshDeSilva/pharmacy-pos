@@ -15,5 +15,6 @@ contextBridge.exposeInMainWorld('api', {
   backupDatabase: () => ipcRenderer.invoke('database:backup'),
   clearInventory: () => ipcRenderer.invoke('inventory:clearAll'),
   deleteMedicineKeepSales: (drugId) => ipcRenderer.invoke('inventory:deleteSingleDrug', drugId),
-  deleteAllMedicinesKeepSales: () => ipcRenderer.invoke('inventory:deleteAllDrugs')
+  deleteAllMedicinesKeepSales: () => ipcRenderer.invoke('inventory:deleteAllDrugs'),
+  printReceipt: () => ipcRenderer.invoke('print:receipt')
 });
