@@ -610,3 +610,39 @@ if (backupDbBtn) {
     }
   });
 }
+
+
+// ==================== SYSTEM RESET / WIPE HANDLER ====================
+const wipeDatabaseBtn = document.getElementById('wipe-database-btn');
+if (wipeDatabaseBtn) {
+  wipeDatabaseBtn.addEventListener('click', async () => {
+    const pinInput = document.getElementById('admin-pin-confirm');
+    const msg = document.getElementById('wipe-status-msg');
+
+    if (!pinInput || pinInput.value !== '1234') {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN. Enter 1234 to proceed.';
+      return;
+    }
+
+    const confirmFinal = confirm('Are you 100% sure? All medicines, batches, and sales records will be permanently erased.');
+    if (!confirmFinal) return;
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Wiping system database...';
+
+    const res = await window.api.clearInventory();
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ All database tables successfully cleared!';
+      pinInput.value = '';
+
+      // Refresh badge and current datasets
+      await refreshAlertBadges();
+      if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error clearing database: ' + res.error;
+    }
+  });
+}
