@@ -463,16 +463,25 @@ if (refreshInventoryBtn) {
 async function loadPosStock() {
   const datalist = document.getElementById('pos_stock_datalist');
   const drugInput = document.getElementById('pos_drug_input');
+  const expiryAlert = document.getElementById('pos-expiry-alert');
   if (!datalist) return;
+
+  if (expiryAlert) expiryAlert.style.display = 'none';
 
   const res = await window.api.getPosStock();
   if (res.success) {
     availablePosStock = res.data;
     datalist.innerHTML = '';
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     availablePosStock.forEach((item) => {
+      const isExpired = item.expiry_date && new Date(item.expiry_date) < today;
+      const expiredTag = isExpired ? ' [⚠️ EXPIRED]' : '';
+
       const option = document.createElement('option');
-      option.value = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
+      option.value = `${item.brand_name} | Batch: ${item.batch_number} | Exp: ${item.expiry_date}${expiredTag} | Stock: ${item.available_qty} | LKR ${item.sell_price.toFixed(2)}`;
       datalist.appendChild(option);
     });
   }
@@ -481,6 +490,36 @@ async function loadPosStock() {
     setTimeout(() => drugInput.focus(), 50);
   }
 }
+
+
+// Check and display red highlight under input if selected batch is expired
+function checkSelectedBatchExpiry() {
+  const drugInput = document.getElementById('pos_drug_input');
+  const expiryAlert = document.getElementById('pos-expiry-alert');
+  if (!drugInput || !expiryAlert) return;
+
+  const selectedText = drugInput.value.trim();
+  const selectedStock = availablePosStock.find(
+    (item) =>
+      selectedText.includes(item.batch_number) &&
+      selectedText.includes(item.brand_name)
+  );
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedStock && selectedStock.expiry_date && new Date(selectedStock.expiry_date) < today) {
+    drugInput.style.borderColor = '#dc2626';
+    drugInput.style.backgroundColor = '#fef2f2';
+    expiryAlert.style.display = 'block';
+    expiryAlert.innerHTML = `⚠️ <strong>WARNING:</strong> Batch <span style="text-decoration: underline;">${selectedStock.batch_number}</span> has <strong>EXPIRED</strong> on <strong>${selectedStock.expiry_date}</strong>!`;
+  } else {
+    drugInput.style.borderColor = '';
+    drugInput.style.backgroundColor = '';
+    expiryAlert.style.display = 'none';
+  }
+}
+
 
 function renderCart() {
   const cartBody = document.getElementById('cart-table-body');
@@ -495,12 +534,27 @@ function renderCart() {
 
   cartBody.innerHTML = '';
   let grandTotal = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   currentCart.forEach((item, index) => {
     grandTotal += item.total_price;
+    const isExpired = item.expiry_date && new Date(item.expiry_date) < today;
+
+    // Red highlight styles for expired rows
+    const batchStyle = isExpired ? 'color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;' : 'color: #64748b;';
+    const expiredBadge = isExpired ? '<span style="background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">EXPIRED</span>' : '';
+
     const tr = document.createElement('tr');
+    if (isExpired) {
+      tr.style.backgroundColor = '#fff5f5';
+    }
+
     tr.innerHTML = `
-      <td>${item.brand_name} <br><small style="color: #64748b;">${item.batch_number}</small></td>
+      <td>
+        <strong>${item.brand_name}</strong> ${expiredBadge}<br>
+        <small style="${batchStyle}">Batch: ${item.batch_number} | Exp: ${item.expiry_date || 'N/A'}</small>
+      </td>
       <td>${item.sell_price.toFixed(2)}</td>
       <td>${item.quantity}</td>
       <td><strong>${item.total_price.toFixed(2)}</strong></td>
@@ -521,6 +575,7 @@ function handleAddToCart() {
   const drugInput = document.getElementById('pos_drug_input');
   const qtyInput = document.getElementById('pos_qty');
   const msg = document.getElementById('pos-input-msg');
+  const expiryAlert = document.getElementById('pos-expiry-alert');
 
   const selectedText = drugInput.value.trim();
   const qty = parseInt(qtyInput.value, 10);
@@ -566,18 +621,33 @@ function handleAddToCart() {
       batch_id: selectedStock.batch_id,
       brand_name: selectedStock.brand_name,
       batch_number: selectedStock.batch_number,
+      expiry_date: selectedStock.expiry_date,
       sell_price: selectedStock.sell_price,
       quantity: qty,
       total_price: qty * selectedStock.sell_price
     });
   }
 
+  // Reset inputs and styles
   msg.innerText = '';
   drugInput.value = '';
+  drugInput.style.borderColor = '';
+  drugInput.style.backgroundColor = '';
+  if (expiryAlert) expiryAlert.style.display = 'none';
+
   qtyInput.value = '1';
   renderCart();
   drugInput.focus();
 }
+
+
+// Listen for selection changes to trigger red alert immediately
+const posDrugInputField = document.getElementById('pos_drug_input');
+if (posDrugInputField) {
+  posDrugInputField.addEventListener('input', checkSelectedBatchExpiry);
+  posDrugInputField.addEventListener('change', checkSelectedBatchExpiry);
+}
+
 
 const addToCartBtn = document.getElementById('add-to-cart-btn');
 if (addToCartBtn) {
