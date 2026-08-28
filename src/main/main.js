@@ -2,6 +2,9 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const dbOps = require('./database.js');
+const os = require('os');
+const { exec } = require('child_process');
+const ReceiptPrinterEncoder = require('@point-of-sale/receipt-printer-encoder');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -158,7 +161,7 @@ ipcMain.handle('inventory:exportCSV', async () => {
     if (!filePath) return { success: false, canceled: true };
 
     const headers = 'Brand Name,Generic Name,Category,Batch Number,Expiry Date,Sell Price,Batch Stock,Total Stock\n';
-    const rows = inventory.map(item => 
+    const rows = inventory.map(item =>
       `"${item.brand_name || ''}","${item.generic_name || ''}","${item.category || ''}","${item.batch_number || ''}","${item.expiry_date || ''}",${item.sell_price || 0},${item.batch_quantity !== null ? item.batch_quantity : 0},${item.total_stock || 0}`
     ).join('\n');
 
@@ -222,33 +225,113 @@ ipcMain.handle('inventory:deleteAllDrugs', async () => {
 
 
 // Native Print Handler
-ipcMain.handle('print:receipt', async (event) => {
-  const win = BrowserWindow.fromWebContents(event.sender);
-  if (!win) return { success: false, error: 'Window not found' };
+ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
+  try {
+    const encoder = new ReceiptPrinterEncoder({
+      language: 'esc-pos',
+      columns: 48 // 48 columns is the standard full width for 80mm thermal paper
+    });
 
-  return new Promise((resolve) => {
-    win.webContents.print(
-      {
-        silent: false, // Set to true for instant direct printing without prompt
-        printBackground: true,
-        pageSize: {
-          width: 80000, // 80mm in microns
-          height: 297000
-        },
-        margins: {
-          marginType: 'none'
-        }
-      },
-      (success, failureReason) => {
-        if (!success) {
-          console.error('Print failed:', failureReason);
-          resolve({ success: false, error: failureReason });
+    // 1. Header
+    const receiptContent = encoder
+      .initialize()
+      .align('center')
+      .bold(true)
+      .size(2, 2)
+      .line('MEDICARE PHARMACY')
+      .size(1, 1)
+      .bold(false)
+      .line('123 Healthcare Ave, Colombo')
+      .line('Tel: +94 11 234 5678')
+      .rule({ style: 'single' })
+      .align('left')
+      .line(`Invoice #: #${receiptData.saleId}`)
+      .line(`Date     : ${receiptData.dateStr}`)
+      .rule({ style: 'single' })
+      // 2. Table Headers: 22 + 4 + 10 + 12 = 48 columns
+      .bold(true)
+      .table(
+        [
+          { width: 22, align: 'left' },
+          { width: 4, align: 'center' },
+          { width: 10, align: 'right' },
+          { width: 12, align: 'right' }
+        ],
+        [['Item', 'Qty', 'Price', 'Total']]
+      )
+      .bold(false)
+      .rule({ style: 'single' });
+
+    // 3. Line Items
+    receiptData.items.forEach((item) => {
+      const rawName = item.brand_name || item.brand || item.generic_name || 'Item';
+      const name = rawName.length > 21 ? rawName.slice(0, 20) + '.' : rawName;
+      const qty = String(item.quantity || 1);
+      const unitPrice = Number(item.sell_price !== undefined ? item.sell_price : (item.unit_price || 0)).toFixed(2);
+      const total = Number(item.total_price !== undefined ? item.total_price : (item.quantity * unitPrice)).toFixed(2);
+
+      receiptContent.table(
+        [
+          { width: 22, align: 'left' },
+          { width: 4, align: 'center' },
+          { width: 10, align: 'right' },
+          { width: 12, align: 'right' }
+        ],
+        [[name, qty, unitPrice, total]]
+      );
+    });
+
+    // 4. Totals and Balances (Aligned as 2-column key-value rows across 48 cols)
+    receiptContent
+      .rule({ style: 'single' })
+      .bold(true)
+      .table(
+        [
+          { width: 24, align: 'left' },
+          { width: 24, align: 'right' }
+        ],
+        [['GRAND TOTAL:', `LKR ${Number(receiptData.grandTotal).toFixed(2)}`]]
+      )
+      .bold(false)
+      .table(
+        [
+          { width: 24, align: 'left' },
+          { width: 24, align: 'right' }
+        ],
+        [
+          ['Cash Paid:', `LKR ${Number(receiptData.paidAmount).toFixed(2)}`],
+          ['Change / Balance:', `LKR ${Number(receiptData.balanceAmount).toFixed(2)}`]
+        ]
+      )
+      .rule({ style: 'single' })
+      // 5. Footer & Auto-Cut
+      .align('center')
+      .line('Thank you for choosing MediCare!')
+      .line('Get well soon!')
+      .newline(3)
+      .cut();
+
+    const rawBytes = encoder.encode();
+    const tempFilePath = path.join(os.tmpdir(), `receipt_${Date.now()}.bin`);
+    fs.writeFileSync(tempFilePath, Buffer.from(rawBytes));
+
+    const rawPrintCmd = `cmd.exe /c copy /b "${tempFilePath}" "\\\\127.0.0.1\\receipt"`;
+
+    return new Promise((resolve) => {
+      exec(rawPrintCmd, (err) => {
+        try { fs.unlinkSync(tempFilePath); } catch (e) { }
+        if (err) {
+          console.error('Raw print error:', err);
+          resolve({ success: false, error: err.message });
         } else {
           resolve({ success: true });
         }
-      }
-    );
-  });
+      });
+    });
+  } catch (error) {
+    console.error('Receipt Generation Error:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 
@@ -281,7 +364,28 @@ ipcMain.handle('inventory:updateItem', async (event, itemData) => {
 
 
 
-app.whenReady().then(createWindow);
+// Auto-detect and share the thermal printer as 'receipt'
+function setupThermalPrinterSharing() {
+  if (process.platform !== 'win32') return;
+
+  const psScript = `
+    $printer = Get-Printer | Where-Object { $_.Name -match 'XP-80|POS|Thermal|Receipt|80mm' } | Select-Object -First 1
+    if ($printer -and -not $printer.Shared) {
+      Set-Printer -Name $printer.Name -Shared $true -ShareName 'receipt'
+    }
+  `;
+
+  exec(`powershell -ExecutionPolicy Bypass -Command "${psScript.replace(/\n/g, ' ')}"`, (err) => {
+    if (err) {
+      console.warn('Printer auto-share notice:', err.message);
+    }
+  });
+}
+
+app.whenReady().then(() => {
+  setupThermalPrinterSharing();
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
