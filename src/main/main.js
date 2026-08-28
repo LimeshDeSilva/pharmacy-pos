@@ -113,6 +113,22 @@ ipcMain.handle('sales:getDetails', async (event, saleId) => {
 });
 
 
+ipcMain.handle('reports:getAnalytics', async () => {
+  try {
+    const kpis = dbOps.getSalesKPIs();
+    const daily = dbOps.getDailySalesAnalytics();
+    const weekly = dbOps.getWeeklySalesAnalytics();
+    const monthly = dbOps.getMonthlySalesAnalytics();
+
+    return {
+      success: true,
+      data: { kpis, daily, weekly, monthly }
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 
 
 app.whenReady().then(createWindow);
