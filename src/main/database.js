@@ -262,6 +262,33 @@ function getMonthlySalesAnalytics() {
 }
 
 
+//Low stock count / Expired / Expiring within 30 days count
+function getStockAlertsSummary() {
+  // Low stock count (drugs where total stock <= min_stock_alert)
+  const lowStock = db.prepare(`
+    SELECT COUNT(*) as count FROM (
+      SELECT d.id, d.min_stock_alert, COALESCE(SUM(b.quantity), 0) as total_qty
+      FROM drugs d
+      LEFT JOIN batches b ON d.id = b.drug_id
+      GROUP BY d.id
+      HAVING total_qty <= d.min_stock_alert
+    )
+  `).get();
+
+  // Expired / Expiring within 30 days count
+  const expiringSoon = db.prepare(`
+    SELECT COUNT(*) as count 
+    FROM batches 
+    WHERE quantity > 0 AND date(expiry_date) <= date('now', '+30 days')
+  `).get();
+
+  return {
+    lowStockCount: lowStock.count,
+    expiringCount: expiringSoon.count
+  };
+}
+
+
 
 initDatabase();
 
@@ -277,5 +304,6 @@ module.exports = {
   getSalesKPIs,
   getDailySalesAnalytics,
   getWeeklySalesAnalytics,
-  getMonthlySalesAnalytics
+  getMonthlySalesAnalytics,
+  getStockAlertsSummary
 };
