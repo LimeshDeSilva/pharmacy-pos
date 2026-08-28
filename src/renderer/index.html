@@ -320,6 +320,13 @@
           <tbody id="receipt-items-body"></tbody>
         </table>
       </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+        <button id="modal-reprint-btn" class="btn" style="background: #0284c7; width: auto; padding: 6px 14px;">🖨️
+          Print Receipt</button>
+        <button id="close-modal-btn" class="btn"
+          style="background: #64748b; width: auto; padding: 6px 14px;">Close</button>
+      </div>
     </div>
 
     <!-- Visual Analytics & Reports View -->
@@ -431,7 +438,7 @@
 
 
   <!-- ==================== THERMAL RECEIPT PRINT TEMPLATE ==================== -->
-  <div id="thermal-receipt-area" >
+  <div id="thermal-receipt-area" style="display: none;">
     <div class="receipt-container">
       <div class="receipt-header">
         <h2>MEDICARE PHARMACY</h2>
