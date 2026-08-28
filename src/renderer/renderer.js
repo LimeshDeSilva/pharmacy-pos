@@ -522,3 +522,14 @@ function renderSalesChart(periodType) {
     }
   });
 }
+
+// Chart filter buttons toggle
+const filterButtons = document.querySelectorAll('.filter-btn');
+filterButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    filterButtons.forEach((b) => b.classList.remove('active-filter'));
+    btn.classList.add('active-filter');
+    const period = btn.getAttribute('data-period');
+    renderSalesChart(period);
+  });
+});
