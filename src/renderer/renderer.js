@@ -408,3 +408,17 @@ window.viewReceipt = async (saleId) => {
     });
   }
 };
+
+// Close modal button handler
+const closeModalBtn = document.getElementById('close-modal-btn');
+if (closeModalBtn) {
+  closeModalBtn.addEventListener('click', () => {
+    document.getElementById('receipt-modal').style.display = 'none';
+  });
+}
+
+// Refresh button handler
+const refreshSalesBtn = document.getElementById('refresh-sales-btn');
+if (refreshSalesBtn) {
+  refreshSalesBtn.addEventListener('click', loadSalesHistory);
+}
