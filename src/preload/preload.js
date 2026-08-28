@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('api', {
   getAnalytics: () => ipcRenderer.invoke('reports:getAnalytics'),
   getAlertsSummary: () => ipcRenderer.invoke('inventory:getAlerts'),
   exportCSV: () => ipcRenderer.invoke('inventory:exportCSV'),
-  backupDatabase: () => ipcRenderer.invoke('database:backup')
+  backupDatabase: () => ipcRenderer.invoke('database:backup'),
+  clearInventory: () => ipcRenderer.invoke('inventory:clearAll')
 });
