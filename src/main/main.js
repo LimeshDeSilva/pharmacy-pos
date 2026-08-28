@@ -269,6 +269,21 @@ ipcMain.handle('get:profit-analytics', async () => {
   }
 });
 
+// Update Drug Handler
+ipcMain.handle('drugs:update', async (event, drugData) => {
+  try {
+    const result = dbOps.updateDrug(
+      drugData.id,
+      drugData.brand_name,
+      drugData.generic_name,
+      drugData.category,
+      drugData.min_stock_alert
+    );
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
 
 
 
