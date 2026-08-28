@@ -175,6 +175,25 @@ function getAllSales() {
 }
 
 
+// Get line items for a specific receipt modal
+function getSaleDetails(saleId) {
+  const query = db.prepare(`
+    SELECT 
+      si.id,
+      si.quantity,
+      si.unit_price,
+      si.total_price,
+      b.batch_number,
+      d.brand_name,
+      d.generic_name
+    FROM sale_items si
+    JOIN batches b ON si.batch_id = b.id
+    JOIN drugs d ON b.drug_id = d.id
+    WHERE si.sale_id = ?
+  `);
+  return query.all(saleId);
+}
+
 
 initDatabase();
 
@@ -184,5 +203,7 @@ module.exports = {
   addBatch,
   getInventoryOverview,
   getAvailableStock,
-  processSale
+  processSale,
+  getAllSales,
+  getSaleDetails
 };
