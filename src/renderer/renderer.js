@@ -421,7 +421,7 @@ function renderInventoryTable(filterType = 'ALL') {
   const searchInput = document.getElementById('inventory-search');
   if (!tableBody) return;
 
-  const filterType = filterSelect ? filterSelect.value : 'ALL';
+  filterType = filterSelect ? filterSelect.value : 'ALL';
   const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   if (!rawInventoryData || rawInventoryData.length === 0) {
