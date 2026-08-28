@@ -610,7 +610,86 @@ if (backupDbBtn) {
 }
 
 
-// ==================== SYSTEM RESET / WIPE HANDLER ====================
+// ==================== RESET SYSTEM & INVENTORY DELETION ====================
+
+// Load medicines into dropdown for deletion
+async function loadDeleteDrugDropdown() {
+  const select = document.getElementById('delete_drug_select');
+  if (!select) return;
+
+  const allDrugs = await window.api.getAllDrugs();
+  if (allDrugs.success) {
+    select.innerHTML = '<option value="">-- Choose Medicine --</option>';
+    allDrugs.data.forEach((drug) => {
+      const option = document.createElement('option');
+      option.value = drug.id;
+      option.textContent = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
+      select.appendChild(option);
+    });
+  }
+}
+
+// Button: Delete Selected Medicine Only
+const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
+if (deleteSelectedDrugBtn) {
+  deleteSelectedDrugBtn.addEventListener('click', async () => {
+    const select = document.getElementById('delete_drug_select');
+    const msg = document.getElementById('delete-drug-status-msg');
+    const drugId = parseInt(select.value, 10);
+
+    if (!drugId) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Please select a medicine from the list.';
+      return;
+    }
+
+    const selectedName = select.options[select.selectedIndex].text;
+    const confirmDelete = confirm(`Are you sure you want to remove "${selectedName}" from inventory? Sales history will remain intact.`);
+    if (!confirmDelete) return;
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Deleting medicine...';
+
+    const res = await window.api.deleteMedicineKeepSales(drugId);
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ Medicine removed from inventory!';
+      await loadDeleteDrugDropdown();
+      if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+      await refreshAlertBadges();
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+// Button: Delete All Medicines (Keep Sales)
+const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
+if (deleteAllDrugsBtn) {
+  deleteAllDrugsBtn.addEventListener('click', async () => {
+    const msg = document.getElementById('delete-all-drugs-msg');
+    const confirmClear = confirm('Are you sure you want to delete ALL medicines and stock? (Past sales and revenue reports will NOT be deleted).');
+    if (!confirmClear) return;
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Clearing all medicines...';
+
+    const res = await window.api.deleteAllMedicinesKeepSales();
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ All medicines and stocks cleared!';
+      await loadDeleteDrugDropdown();
+      if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+      await refreshAlertBadges();
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+// Button: Factory Reset (Wipe Everything)
 const wipeDatabaseBtn = document.getElementById('wipe-database-btn');
 if (wipeDatabaseBtn) {
   wipeDatabaseBtn.addEventListener('click', async () => {
@@ -623,24 +702,23 @@ if (wipeDatabaseBtn) {
       return;
     }
 
-    const confirmFinal = confirm('Are you 100% sure? All medicines, batches, and sales records will be permanently erased.');
+    const confirmFinal = confirm('Are you 100% sure? ALL medicines, batches, AND sales history will be permanently wiped.');
     if (!confirmFinal) return;
 
     msg.style.color = '#475569';
-    msg.innerText = 'Wiping system database...';
+    msg.innerText = 'Wiping complete database...';
 
     const res = await window.api.clearInventory();
     if (res.success) {
       msg.style.color = '#16a34a';
-      msg.innerText = '✓ All database tables successfully cleared!';
+      msg.innerText = '✓ Complete system wiped successfully!';
       pinInput.value = '';
-
-      // Refresh badge and current datasets
-      await refreshAlertBadges();
+      await loadDeleteDrugDropdown();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+      await refreshAlertBadges();
     } else {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error clearing database: ' + res.error;
+      msg.innerText = '✗ Error: ' + res.error;
     }
   });
 }
