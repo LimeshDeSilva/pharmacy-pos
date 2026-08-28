@@ -109,7 +109,7 @@ if (drugForm) {
 
       setTimeout(() => {
         drugStatusMsg.innerText = '';
-      }, 3000);
+      }, 2000);
 
     } else {
       drugStatusMsg.style.color = '#dc2626';
@@ -117,7 +117,7 @@ if (drugForm) {
 
       setTimeout(() => {
         drugStatusMsg.innerText = '';
-      }, 3000);
+      }, 2000);
     }
   });
 }
@@ -232,14 +232,14 @@ if (batchForm) {
 
       setTimeout(() => {
         batchStatusMsg.innerText = '';
-      }, 3000);
+      }, 2000);
     } else {
       batchStatusMsg.style.color = '#dc2626';
       batchStatusMsg.innerText = '✗ Error: ' + response.error;
 
       setTimeout(() => {
         batchStatusMsg.innerText = '';
-      }, 3000);
+      }, 2000);
     }
   });
 }
@@ -809,14 +809,14 @@ if (wipeDatabaseBtn) {
 
       setTimeout(() => {
         msg.innerText = '';
-      }, 3000);
+      }, 2000);
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
 
       setTimeout(() => {
         msg.innerText = '';
-      }, 3000);
+      }, 2000);
     }
   });
 }
