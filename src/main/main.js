@@ -229,26 +229,27 @@ ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
   try {
     const encoder = new ReceiptPrinterEncoder({
       language: 'esc-pos',
-      columns: 48 // 48 columns is the standard full width for 80mm thermal paper
+      columns: 48
     });
 
-    // 1. Header
+    // 1. Header (Centered with explicit hardware alignment & space padding)
     const receiptContent = encoder
       .initialize()
-      .align('center')
+      .raw([0x1b, 0x61, 0x01]) // ESC a 1 -> Pure ESC/POS Center Alignment
       .bold(true)
       .size(2, 2)
-      .line('MEDICARE PHARMACY')
+      .line('NEW SAHASNA PHARMACY')
       .size(1, 1)
       .bold(false)
-      .line('123 Healthcare Ave, Colombo')
-      .line('Tel: +94 11 234 5678')
+      .raw([0x1b, 0x61, 0x01]) // ESC a 1 -> Center Alignment
+      .line('No.514, Walagedara, Balapitiya')
+      .line('Tel: 077-6723395')
       .rule({ style: 'single' })
-      .align('left')
+      .raw([0x1b, 0x61, 0x00]) // ESC a 0 -> Reset to Left Alignment
       .line(`Invoice #: #${receiptData.saleId}`)
       .line(`Date     : ${receiptData.dateStr}`)
       .rule({ style: 'single' })
-      // 2. Table Headers: 22 + 4 + 10 + 12 = 48 columns
+      // 2. Table Headers (22 + 4 + 10 + 12 = 48 columns)
       .bold(true)
       .table(
         [
@@ -281,7 +282,7 @@ ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
       );
     });
 
-    // 4. Totals and Balances (Aligned as 2-column key-value rows across 48 cols)
+    // 4. Totals and Balances (24 + 24 = 48 columns)
     receiptContent
       .rule({ style: 'single' })
       .bold(true)
@@ -305,10 +306,10 @@ ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
       )
       .rule({ style: 'single' })
       // 5. Footer & Auto-Cut
-      .align('center')
-      .line('Thank you for choosing MediCare!')
+      .raw([0x1b, 0x61, 0x01]) // ESC a 1 -> Center Alignment
+      .line('Thank you for choosing Sahasna Pharmacy!')
       .line('Get well soon!')
-      .newline(3)
+      .newline(6)
       .cut();
 
     const rawBytes = encoder.encode();
@@ -319,7 +320,7 @@ ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
 
     return new Promise((resolve) => {
       exec(rawPrintCmd, (err) => {
-        try { fs.unlinkSync(tempFilePath); } catch (e) { }
+        try { fs.unlinkSync(tempFilePath); } catch (e) {}
         if (err) {
           console.error('Raw print error:', err);
           resolve({ success: false, error: err.message });
