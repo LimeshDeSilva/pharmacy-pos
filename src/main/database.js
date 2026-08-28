@@ -350,6 +350,84 @@ function deleteAllMedicinesKeepSales() {
 
 
 
+// ==================== PROFIT ANALYTICS MODULE ====================
+
+// Key Profit KPIs: Today, This Month, All Time
+function getProfitKPIs() {
+  const getMargin = (whereClause, param) => {
+    const query = `
+      SELECT 
+        COUNT(DISTINCT s.id) AS orders,
+        COALESCE(SUM(si.quantity * (si.unit_price - b.buy_price)), 0) AS profit
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      JOIN batches b ON si.batch_id = b.id
+      ${whereClause}
+    `;
+    const row = param ? db.prepare(query).get(param) : db.prepare(query).get();
+    return {
+      orders: row ? row.orders : 0,
+      profit: row ? row.profit : 0
+    };
+  };
+
+  const today = getMargin(`WHERE date(s.created_at, 'localtime') = date('now', 'localtime')`);
+  const month = getMargin(`WHERE strftime('%Y-%m', s.created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime')`);
+  const total = getMargin('');
+
+  return { today, month, total };
+}
+
+// Daily Gross Profit (Last 7 Days)
+function getDailyProfitAnalytics() {
+  const query = db.prepare(`
+    SELECT 
+      date(s.created_at, 'localtime') AS period,
+      COALESCE(SUM(si.quantity * (si.unit_price - b.buy_price)), 0) AS total_profit
+    FROM sale_items si
+    JOIN sales s ON si.sale_id = s.id
+    JOIN batches b ON si.batch_id = b.id
+    WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-6 days')
+    GROUP BY date(s.created_at, 'localtime')
+    ORDER BY date(s.created_at, 'localtime') ASC
+  `);
+  return query.all();
+}
+
+// Weekly Gross Profit (Last 8 Weeks)
+function getWeeklyProfitAnalytics() {
+  const query = db.prepare(`
+    SELECT 
+      strftime('%Y-W%W', s.created_at, 'localtime') AS period,
+      COALESCE(SUM(si.quantity * (si.unit_price - b.buy_price)), 0) AS total_profit
+    FROM sale_items si
+    JOIN sales s ON si.sale_id = s.id
+    JOIN batches b ON si.batch_id = b.id
+    WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-56 days')
+    GROUP BY strftime('%Y-W%W', s.created_at, 'localtime')
+    ORDER BY period ASC
+  `);
+  return query.all();
+}
+
+// Monthly Gross Profit (Last 6 Months)
+function getMonthlyProfitAnalytics() {
+  const query = db.prepare(`
+    SELECT 
+      strftime('%Y-%m', s.created_at, 'localtime') AS period,
+      COALESCE(SUM(si.quantity * (si.unit_price - b.buy_price)), 0) AS total_profit
+    FROM sale_items si
+    JOIN sales s ON si.sale_id = s.id
+    JOIN batches b ON si.batch_id = b.id
+    WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-180 days')
+    GROUP BY strftime('%Y-%m', s.created_at, 'localtime')
+    ORDER BY period ASC
+  `);
+  return query.all();
+}
+
+
+
 initDatabase();
 
 module.exports = {
@@ -368,5 +446,9 @@ module.exports = {
   getStockAlertsSummary,
   clearEntireInventory,
   deleteMedicineKeepSales,
-  deleteAllMedicinesKeepSales
+  deleteAllMedicinesKeepSales,
+  getProfitKPIs,
+  getDailyProfitAnalytics,
+  getWeeklyProfitAnalytics,
+  getMonthlyProfitAnalytics
 };
