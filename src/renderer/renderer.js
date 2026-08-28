@@ -386,18 +386,19 @@ function renderInventoryTable() {
   if (!rawInventoryData || rawInventoryData.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">
+        <td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">
           No inventory records found. Add medicines and batches to view stock.
         </td>
       </tr>`;
     return;
   }
 
-  const filteredData = rawInventoryData.filter(row => {
+  const filteredData = rawInventoryData.filter((row) => {
     const status = calculateItemStatus(row);
-    const matchesFilter = (activeFilter === 'ALL') || (status.type === activeFilter);
+    const matchesFilter = activeFilter === 'ALL' || status.type === activeFilter;
 
-    const matchesSearch = !searchTerm ||
+    const matchesSearch =
+      !searchTerm ||
       (row.brand_name && row.brand_name.toLowerCase().includes(searchTerm)) ||
       (row.generic_name && row.generic_name.toLowerCase().includes(searchTerm)) ||
       (row.category && row.category.toLowerCase().includes(searchTerm)) ||
@@ -409,7 +410,7 @@ function renderInventoryTable() {
   if (filteredData.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">
+        <td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">
           No medicines match your search / filter criteria.
         </td>
       </tr>`;
@@ -432,6 +433,9 @@ function renderInventoryTable() {
       <td>${row.batch_quantity !== null ? row.batch_quantity : 0}</td>
       <td><strong>${row.total_stock}</strong></td>
       <td>${status.badge}</td>
+      <td>
+        <button onclick="openEditDrugModal(${row.drug_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">✏️ Edit</button>
+      </td>
     `;
 
     tableBody.appendChild(tr);
@@ -464,6 +468,72 @@ const refreshInventoryBtn = document.getElementById('refresh-inventory-btn');
 if (refreshInventoryBtn) {
   refreshInventoryBtn.addEventListener('click', loadInventory);
 }
+
+
+// ==================== EDIT MEDICINE MODAL HANDLERS ====================
+window.openEditDrugModal = (drugId) => {
+  const item = rawInventoryData.find((d) => d.drug_id === drugId);
+  if (!item) return;
+
+  document.getElementById('edit_drug_id').value = item.drug_id;
+  document.getElementById('edit_brand_name').value = item.brand_name || '';
+  document.getElementById('edit_generic_name').value = item.generic_name || '';
+  document.getElementById('edit_category').value = item.category || '';
+  document.getElementById('edit_min_stock_alert').value = item.min_stock_alert || 10;
+  document.getElementById('edit-drug-status-msg').innerText = '';
+
+  const modal = document.getElementById('edit-drug-modal');
+  if (modal) modal.style.display = 'flex';
+};
+
+function closeEditDrugModal() {
+  const modal = document.getElementById('edit-drug-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+const closeEditBtn = document.getElementById('close-edit-drug-modal');
+if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditDrugModal);
+
+const cancelEditBtn = document.getElementById('cancel-edit-drug-btn');
+if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditDrugModal);
+
+const editDrugForm = document.getElementById('edit-drug-form');
+if (editDrugForm) {
+  editDrugForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const statusMsg = document.getElementById('edit-drug-status-msg');
+    const updateData = {
+      id: parseInt(document.getElementById('edit_drug_id').value, 10),
+      brand_name: document.getElementById('edit_brand_name').value.trim(),
+      generic_name: document.getElementById('edit_generic_name').value.trim(),
+      category: document.getElementById('edit_category').value.trim(),
+      min_stock_alert: parseInt(document.getElementById('edit_min_stock_alert').value, 10) || 10
+    };
+
+    statusMsg.style.color = '#475569';
+    statusMsg.innerText = 'Updating medicine...';
+
+    const res = await window.api.updateDrug(updateData);
+    if (res.success) {
+      statusMsg.style.color = '#16a34a';
+      statusMsg.innerText = '✓ Medicine updated successfully!';
+
+      await loadInventory();
+      if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+      await refreshAlertBadges();
+
+      setTimeout(() => {
+        closeEditDrugModal();
+      }, 700);
+    } else {
+      statusMsg.style.color = '#dc2626';
+      statusMsg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+
 
 // ==================== POS / BILLING MODULE ====================
 async function loadPosStock() {
