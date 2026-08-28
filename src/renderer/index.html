@@ -149,20 +149,23 @@
     <section id="pos-view" class="view-panel">
       <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
 
-        <!-- Left ==> Item Selector Card -->
+        <!-- Left: Item Selector Card -->
         <div class="card" style="max-width: 100%;">
           <h3 style="margin-bottom: 14px;">Select Item</h3>
+
           <div class="form-group">
-            <label for="pos_batch_select">Available Medicines (FEFO Sorted) *</label>
-            <select id="pos_batch_select">
-              <option value="">-- Select Available Item --</option>
-            </select>
+            <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
+            <input type="text" id="pos_drug_input" list="pos_stock_datalist" placeholder="Type brand/generic name..."
+              autocomplete="off" />
+            <datalist id="pos_stock_datalist"></datalist>
           </div>
+
           <div class="form-group">
             <label for="pos_qty">Quantity to Sell *</label>
             <input type="number" id="pos_qty" min="1" value="1" />
           </div>
-          <button id="add-to-cart-btn" type="button" class="btn">Add to Cart 🛒</button>
+
+          <button id="add-to-cart-btn" type="button" class="btn">Add to Cart 🛒 (Enter)</button>
           <div id="pos-input-msg" class="status-msg"></div>
         </div>
 
