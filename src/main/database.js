@@ -158,6 +158,21 @@ function processSale(cartItems, totalAmount) {
 }
 
 
+// Get summary list of all sales
+function getAllSales() {
+  const query = db.prepare(`
+    SELECT 
+      s.id AS sale_id,
+      s.total_amount,
+      datetime(s.created_at, 'localtime') AS sale_date,
+      COUNT(si.id) AS item_count
+    FROM sales s
+    LEFT JOIN sale_items si ON s.id = si.sale_id
+    GROUP BY s.id
+    ORDER BY s.id DESC
+  `);
+  return query.all();
+}
 
 
 
