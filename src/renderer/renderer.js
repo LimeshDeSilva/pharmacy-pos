@@ -186,23 +186,35 @@ if (minStockInput) {
 
 
 // ==================== ADD BATCH MODULE ====================
+let registeredDrugsList = [];
+
+// Populate Datalist with all registered medicines
 async function displayDrugDropdown() {
-  const select = document.getElementById('batch_drug_select');
-  if (!select) return;
+  const datalist = document.getElementById('batch_drug_datalist');
+  const drugInput = document.getElementById('batch_drug_input');
+  if (!datalist) return;
 
   const allDrugs = await window.api.getAllDrugs();
 
   if (allDrugs.success) {
-    select.innerHTML = '<option value="">-- Choose Medicine --</option>';
-    allDrugs.data.forEach((drug) => {
+    registeredDrugsList = allDrugs.data;
+    datalist.innerHTML = '';
+
+    registeredDrugsList.forEach((drug) => {
       const option = document.createElement('option');
-      option.value = drug.id;
-      option.textContent = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
-      select.appendChild(option);
+      // Format shown in autocomplete list
+      option.value = `${drug.brand_name} (${drug.generic_name || 'N/A'}) - [ID: ${drug.id}]`;
+      datalist.appendChild(option);
     });
+  }
+
+  // Auto-focus medicine search input
+  if (drugInput) {
+    setTimeout(() => drugInput.focus(), 50);
   }
 }
 
+// Batch Form Submission Handler
 const batchForm = document.getElementById('batch-form');
 const batchStatusMsg = document.getElementById('batch-status-msg');
 
@@ -210,8 +222,24 @@ if (batchForm) {
   batchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const drugInput = document.getElementById('batch_drug_input');
+    const selectedText = drugInput.value.trim();
+
+    // Match selected drug ID from the typed value
+    const matchedDrug = registeredDrugsList.find(drug =>
+      selectedText.includes(`[ID: ${drug.id}]`) ||
+      selectedText.toLowerCase() === drug.brand_name.toLowerCase()
+    );
+
+    if (!matchedDrug) {
+      batchStatusMsg.style.color = '#dc2626';
+      batchStatusMsg.innerText = '✗ Please choose a valid registered medicine from the list.';
+      drugInput.focus();
+      return;
+    }
+
     const batchData = {
-      drug_id: parseInt(document.getElementById('batch_drug_select').value, 10),
+      drug_id: matchedDrug.id,
       batch_number: document.getElementById('batch_number').value.trim(),
       expiry_date: document.getElementById('expiry_date').value,
       buy_price: parseFloat(document.getElementById('buy_price').value),
@@ -230,19 +258,108 @@ if (batchForm) {
       batchForm.reset();
       await refreshAlertBadges();
 
+      // Return cursor to medicine search input for the next batch
+      if (drugInput) {
+        drugInput.focus();
+      }
+
+      // Auto-clear message after 3 seconds
       setTimeout(() => {
         batchStatusMsg.innerText = '';
-      }, 2000);
+      }, 3000);
+
     } else {
       batchStatusMsg.style.color = '#dc2626';
       batchStatusMsg.innerText = '✗ Error: ' + response.error;
 
       setTimeout(() => {
         batchStatusMsg.innerText = '';
-      }, 2000);
+      }, 4000);
     }
   });
 }
+
+// Add Batch Enter-Key Jump Sequence
+const batchDrugInput = document.getElementById('batch_drug_input');
+const batchNoInput = document.getElementById('batch_number');
+const expiryDateInput = document.getElementById('expiry_date');
+const buyPriceInput = document.getElementById('buy_price');
+const sellPriceInput = document.getElementById('sell_price');
+const batchQtyInput = document.getElementById('quantity');
+
+if (batchDrugInput) {
+  batchDrugInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (batchNoInput) {
+        batchNoInput.focus();
+        batchNoInput.select();
+      }
+    }
+  });
+}
+
+if (batchNoInput) {
+  batchNoInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (expiryDateInput) {
+        expiryDateInput.focus();
+      }
+    }
+  });
+}
+
+if (expiryDateInput) {
+  expiryDateInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (buyPriceInput) {
+        buyPriceInput.focus();
+        buyPriceInput.select();
+      }
+    }
+  });
+}
+
+if (buyPriceInput) {
+  buyPriceInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (sellPriceInput) {
+        sellPriceInput.focus();
+        sellPriceInput.select();
+      }
+    }
+  });
+}
+
+if (sellPriceInput) {
+  sellPriceInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (batchQtyInput) {
+        batchQtyInput.focus();
+        batchQtyInput.select();
+      }
+    }
+  });
+}
+
+if (batchQtyInput) {
+  batchQtyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (batchForm) {
+        batchForm.requestSubmit();
+      }
+    }
+  });
+}
+
+
+
+
 
 // ==================== INVENTORY OVERVIEW MODULE ====================
 async function loadInventory() {
