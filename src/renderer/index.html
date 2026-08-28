@@ -119,18 +119,30 @@
         <div
           style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
 
-          <!-- Filter Selector -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <label for="inventory-filter" style="font-weight: 600; font-size: 13px; color: #475569;">Filter By:</label>
-            <select id="inventory-filter"
-              style="width: auto; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;">
-              <option value="ALL">All Items</option>
-              <option value="IN_STOCK">In Stock</option>
-              <option value="LOW_STOCK">Low Stock</option>
-              <option value="OUT_OF_STOCK">Out of Stock</option>
-              <option value="EXPIRING_SOON">Expiring Soon (Next 30 Days)</option>
-              <option value="EXPIRED">Expired</option>
-            </select>
+          <!-- Left Controls: Filter + Search -->
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <!-- Filter Selector -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="inventory-filter" style="font-weight: 600; font-size: 13px; color: #475569;">Filter
+                By:</label>
+              <select id="inventory-filter"
+                style="width: auto; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <option value="ALL">All Items</option>
+                <option value="IN_STOCK">In Stock</option>
+                <option value="LOW_STOCK">Low Stock</option>
+                <option value="OUT_OF_STOCK">Out of Stock</option>
+                <option value="EXPIRING_SOON">Expiring Soon (Next 30 Days)</option>
+                <option value="EXPIRED">Expired</option>
+              </select>
+            </div>
+
+            <!-- Search Input -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="inventory-search" style="font-weight: 600; font-size: 13px; color: #475569;">Search:</label>
+              <input type="text" id="inventory-search" placeholder="Search brand, generic, batch..."
+                style="width: 240px; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;"
+                autocomplete="off" />
+            </div>
           </div>
 
           <!-- Action Buttons -->
@@ -147,7 +159,7 @@
 
         <!-- Table Container -->
         <div style="overflow-x: auto;">
-          <table>
+          <table class="data-table">
             <thead>
               <tr>
                 <th>Brand Name</th>
