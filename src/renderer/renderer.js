@@ -621,6 +621,42 @@ function checkSelectedBatchExpiry() {
 }
 
 
+function calculatePosBalance() {
+  const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+  const paidInput = document.getElementById('pos-paid-amount');
+  const balanceDisplay = document.getElementById('pos-balance-display');
+  if (!paidInput || !balanceDisplay) return 0;
+
+  const paidVal = parseFloat(paidInput.value) || 0;
+  const balance = paidVal - grandTotal;
+
+  if (paidVal === 0 && grandTotal === 0) {
+    balanceDisplay.innerText = 'LKR 0.00';
+    balanceDisplay.style.color = '#16a34a';
+  } else if (balance < 0) {
+    balanceDisplay.innerText = `- LKR ${Math.abs(balance).toFixed(2)}`;
+    balanceDisplay.style.color = '#dc2626';
+  } else {
+    balanceDisplay.innerText = `LKR ${balance.toFixed(2)}`;
+    balanceDisplay.style.color = '#16a34a';
+  }
+
+  return { grandTotal, paidVal, balance };
+}
+
+const posPaidInput = document.getElementById('pos-paid-amount');
+if (posPaidInput) {
+  posPaidInput.addEventListener('input', calculatePosBalance);
+  posPaidInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const checkoutBtn = document.getElementById('checkout-btn');
+      if (checkoutBtn) checkoutBtn.click();
+    }
+  });
+}
+
+
 function renderCart() {
   const cartBody = document.getElementById('cart-table-body');
   const totalDisplay = document.getElementById('grand-total-display');
@@ -629,6 +665,9 @@ function renderCart() {
   if (currentCart.length === 0) {
     cartBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td></tr>`;
     totalDisplay.innerText = 'LKR 0.00';
+    const paidInput = document.getElementById('pos-paid-amount');
+    if (paidInput) paidInput.value = '';
+    calculatePosBalance();
     return;
   }
 
@@ -641,14 +680,11 @@ function renderCart() {
     grandTotal += item.total_price;
     const isExpired = item.expiry_date && new Date(item.expiry_date) < today;
 
-    // Red highlight styles for expired rows
     const batchStyle = isExpired ? 'color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;' : 'color: #64748b;';
     const expiredBadge = isExpired ? '<span style="background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">EXPIRED</span>' : '';
 
     const tr = document.createElement('tr');
-    if (isExpired) {
-      tr.style.backgroundColor = '#fff5f5';
-    }
+    if (isExpired) tr.style.backgroundColor = '#fff5f5';
 
     tr.innerHTML = `
       <td>
@@ -664,6 +700,7 @@ function renderCart() {
   });
 
   totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
+  calculatePosBalance();
 }
 
 window.removeFromCart = (index) => {
@@ -963,7 +1000,9 @@ if (modalReprintBtn) {
         currentModalSale.id,
         new Date().toLocaleString(),
         currentModalSale.items,
-        currentModalSale.total
+        currentModalSale.total,
+        currentModalSale.total,
+        0
       );
     }
   });
@@ -1360,35 +1399,107 @@ if (wipeDatabaseBtn) {
 
 
 // ==================== RECEIPT PRINTING MODULE ====================
-async function printThermalReceipt(saleId, dateStr, items, grandTotal) {
+async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0) {
+  const receiptArea = document.getElementById('thermal-receipt-area');
   const recInvoice = document.getElementById('rec-invoice-id');
   const recDate = document.getElementById('rec-date');
   const recItems = document.getElementById('rec-items-body');
   const recTotal = document.getElementById('rec-grand-total');
+  const recPaid = document.getElementById('rec-paid-amount');
+  const recBalance = document.getElementById('rec-balance-amount');
 
+  if (!items || items.length === 0) return;
+
+  // 1. Set Header & Summary Values
   if (recInvoice) recInvoice.innerText = `#${saleId}`;
   if (recDate) recDate.innerText = dateStr;
   if (recTotal) recTotal.innerText = `LKR ${Number(grandTotal).toFixed(2)}`;
+  if (recPaid) recPaid.innerText = `LKR ${Number(paidAmount).toFixed(2)}`;
+  if (recBalance) recBalance.innerText = `LKR ${Number(balanceAmount).toFixed(2)}`;
 
+  // 2. Populate Line Items
   if (recItems) {
     recItems.innerHTML = '';
     items.forEach((item) => {
+      const name = item.brand_name || item.brand || item.generic_name || 'Medicine';
+      const qty = item.quantity || 1;
+      const unitPrice = item.sell_price !== undefined ? item.sell_price : (item.unit_price || 0);
+      const lineTotal = item.total_price !== undefined ? item.total_price : (qty * unitPrice);
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="text-align: left;">${item.brand_name || item.brand}</td>
-        <td style="text-align: center;">${item.quantity}</td>
-        <td style="text-align: right;">${Number(item.sell_price || item.unit_price).toFixed(2)}</td>
-        <td style="text-align: right;"><strong>${Number(item.total_price).toFixed(2)}</strong></td>
+        <td style="text-align: left; padding: 2px 0;">${name}</td>
+        <td style="text-align: center; padding: 2px 0;">${qty}</td>
+        <td style="text-align: right; padding: 2px 0;">${Number(unitPrice).toFixed(2)}</td>
+        <td style="text-align: right; padding: 2px 0;"><strong>${Number(lineTotal).toFixed(2)}</strong></td>
       `;
       recItems.appendChild(tr);
     });
   }
 
-  // Trigger Electron native print
-  setTimeout(async () => {
-    const res = await window.api.printReceipt();
-    if (!res.success && res.error) {
-      console.warn('Print action status:', res.error);
+  // 3. Trigger Print
+  if (window.api && typeof window.api.printReceipt === 'function') {
+    await window.api.printReceipt();
+  } else {
+    window.print();
+  }
+}
+
+// Checkout button listener with validation & preserved cash figures
+if (checkoutBtn) {
+  checkoutBtn.addEventListener('click', async () => {
+    const msg = document.getElementById('checkout-status-msg');
+    const paidInput = document.getElementById('pos-paid-amount');
+
+    if (currentCart.length === 0) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Cart is empty. Add items first.';
+      return;
     }
-  }, 100);
+
+    const { grandTotal, paidVal, balance } = calculatePosBalance();
+
+    if (paidVal < grandTotal) {
+      msg.style.color = '#dc2626';
+      msg.innerText = `Insufficient cash paid! Total is LKR ${grandTotal.toFixed(2)}`;
+      if (paidInput) paidInput.focus();
+      return;
+    }
+
+    // 1. CAPTURE ALL RECEIPT DATA BEFORE RESETTING
+    const printedCart = JSON.parse(JSON.stringify(currentCart));
+    const nowStr = new Date().toLocaleString();
+    const finalTotal = grandTotal;
+    const finalPaid = paidVal;
+    const finalBalance = balance;
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Processing sale...';
+
+    const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
+
+      // 2. NOW RESET CART & INPUTS
+      currentCart = [];
+      if (paidInput) paidInput.value = '';
+      renderCart();
+      await loadPosStock();
+      await refreshAlertBadges();
+
+      const posDrugIn = document.getElementById('pos_drug_input');
+      if (posDrugIn) posDrugIn.focus();
+
+      // 3. PRINT WITH THE CAPTURED VALUES
+      printThermalReceipt(res.data.saleId, nowStr, printedCart, finalTotal, finalPaid, finalBalance);
+
+      setTimeout(() => {
+        msg.innerText = '';
+      }, 3000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
 }
