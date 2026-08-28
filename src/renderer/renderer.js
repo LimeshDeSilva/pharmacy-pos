@@ -819,6 +819,8 @@ if (salesClearBtn) {
   });
 }
 
+let currentModalSale = null;
+
 // View Receipt Modal
 window.viewReceipt = async (saleId) => {
   const modal = document.getElementById('receipt-modal');
@@ -831,6 +833,12 @@ window.viewReceipt = async (saleId) => {
 
   const res = await window.api.getSaleDetails(saleId);
   if (res.success) {
+    currentModalSale = {
+      id: saleId,
+      items: res.data,
+      total: res.data.reduce((sum, i) => sum + i.total_price, 0)
+    };
+
     itemsBody.innerHTML = '';
     res.data.forEach((item) => {
       const tr = document.createElement('tr');
@@ -845,6 +853,21 @@ window.viewReceipt = async (saleId) => {
     });
   }
 };
+
+// Modal Reprint Button Listener
+const modalReprintBtn = document.getElementById('modal-reprint-btn');
+if (modalReprintBtn) {
+  modalReprintBtn.addEventListener('click', () => {
+    if (currentModalSale) {
+      printThermalReceipt(
+        currentModalSale.id,
+        new Date().toLocaleString(),
+        currentModalSale.items,
+        currentModalSale.total
+      );
+    }
+  });
+}
 
 const closeModalBtn = document.getElementById('close-modal-btn');
 if (closeModalBtn) {
@@ -1117,7 +1140,7 @@ if (wipeDatabaseBtn) {
 
 
 // ==================== RECEIPT PRINTING MODULE ====================
-function printThermalReceipt(saleId, dateStr, items, grandTotal) {
+async function printThermalReceipt(saleId, dateStr, items, grandTotal) {
   const recInvoice = document.getElementById('rec-invoice-id');
   const recDate = document.getElementById('rec-date');
   const recItems = document.getElementById('rec-items-body');
@@ -1141,8 +1164,11 @@ function printThermalReceipt(saleId, dateStr, items, grandTotal) {
     });
   }
 
-  // Trigger print dialog
-  setTimeout(() => {
-    window.print();
+  // Trigger Electron native print
+  setTimeout(async () => {
+    const res = await window.api.printReceipt();
+    if (!res.success && res.error) {
+      console.warn('Print action status:', res.error);
+    }
   }, 100);
 }
