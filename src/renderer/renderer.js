@@ -426,3 +426,28 @@ const refreshSalesBtn = document.getElementById('refresh-sales-btn');
 if (refreshSalesBtn) {
   refreshSalesBtn.addEventListener('click', loadSalesHistory);
 }
+
+
+// ==================== REPORTS & CHARTS MODULE ====================
+let salesChartInstance = null;
+let analyticsCache = null;
+
+async function loadAnalyticsDashboard() {
+  const res = await window.api.getAnalytics();
+  if (!res.success) return;
+
+  analyticsCache = res.data;
+
+  // Update KPI Cards
+  document.getElementById('kpi-today-rev').innerText = `LKR ${analyticsCache.kpis.today.today_revenue.toFixed(2)}`;
+  document.getElementById('kpi-today-orders').innerText = `${analyticsCache.kpis.today.today_orders} transactions`;
+
+  document.getElementById('kpi-month-rev').innerText = `LKR ${analyticsCache.kpis.month.month_revenue.toFixed(2)}`;
+  document.getElementById('kpi-month-orders').innerText = `${analyticsCache.kpis.month.month_orders} transactions`;
+
+  document.getElementById('kpi-total-rev').innerText = `LKR ${analyticsCache.kpis.total.all_time_revenue.toFixed(2)}`;
+  document.getElementById('kpi-total-orders').innerText = `${analyticsCache.kpis.total.all_time_orders} transactions`;
+
+  // Default render: Daily
+  renderSalesChart('daily');
+}
