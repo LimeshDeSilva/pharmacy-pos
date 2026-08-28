@@ -32,6 +32,8 @@ navItems.forEach((item) => {
       await loadPosStock();
     } else if (targetViewId === 'sales-view') {
       await loadSalesHistory();
+    } else if (targetViewId === 'reports-view') {
+      await loadAnalyticsDashboard();
     }
   });
 });
