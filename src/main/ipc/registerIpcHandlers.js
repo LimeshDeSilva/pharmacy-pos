@@ -3,7 +3,7 @@ const PrinterService = require('../services/printerService');
 const SystemService = require('../services/systemService');
 const ExportService = require('../services/exportService');
 
-function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo) {
+function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo) {
   // Drugs
   ipcMain.handle('drugs:add', async (event, drugData) => {
     try {
@@ -13,7 +13,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo) {
       return { success: false, error: error.message };
     }
   });
-  
+
   ipcMain.handle('drugs:getAll', async () => {
     try {
       return { success: true, data: drugRepo.getAllDrugs() };
@@ -159,7 +159,25 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo) {
     }
   });
 
-  // System
+  // Settings Handlers
+  ipcMain.handle('settings:get', async () => {
+    try {
+      return { success: true, data: settingsRepo.getSettings() };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('settings:update', async (event, settings) => {
+    try {
+      settingsRepo.updateSettings(settings);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  // System Backup
   ipcMain.handle('database:backup', async () => {
     return await SystemService.backupDatabase();
   });

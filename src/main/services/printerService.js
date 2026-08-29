@@ -12,17 +12,24 @@ class PrinterService {
         columns: 48
       });
 
+      const storeName = receiptData.pharmacyName || 'PHARMACY POS';
+      const storeAddress = receiptData.pharmacyAddress || '';
+      const storePhone = receiptData.pharmacyPhone ? `Tel: ${receiptData.pharmacyPhone}` : '';
+
       const receiptContent = encoder
         .initialize()
         .raw([0x1b, 0x61, 0x01])
         .bold(true)
         .size(2, 2)
-        .line('NEW SAHASNA PHARMACY')
+        .line(storeName)
         .size(1, 1)
         .bold(false)
-        .raw([0x1b, 0x61, 0x01])
-        .line('No.514, Walagedara, Balapitiya')
-        .line('Tel: 077-6723395')
+        .raw([0x1b, 0x61, 0x01]);
+
+      if (storeAddress) receiptContent.line(storeAddress);
+      if (storePhone) receiptContent.line(storePhone);
+
+      receiptContent
         .rule({ style: 'single' })
         .raw([0x1b, 0x61, 0x00])
         .line(`Invoice #: #${receiptData.saleId}`)
@@ -85,7 +92,7 @@ class PrinterService {
         )
         .rule({ style: 'single' })
         .raw([0x1b, 0x61, 0x01])
-        .line('Thank you for choosing Sahasna Pharmacy!')
+        .line(`Thank you for choosing ${storeName}!`)
         .line('Get well soon!')
         .newline(6)
         .cut();
