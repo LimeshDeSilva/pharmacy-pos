@@ -13,7 +13,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo) {
       return { success: false, error: error.message };
     }
   });
-
+  
   ipcMain.handle('drugs:getAll', async () => {
     try {
       return { success: true, data: drugRepo.getAllDrugs() };
