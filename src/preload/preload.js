@@ -33,5 +33,6 @@ contextBridge.exposeInMainWorld('api', {
 
   // Sales Deletion
   deleteSingleSale: (saleId) => ipcRenderer.invoke('sales:deleteSingle', saleId),
-  deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll')
+  deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll'),
+  updateSale: (data) => ipcRenderer.invoke('sales:update', data)
 });

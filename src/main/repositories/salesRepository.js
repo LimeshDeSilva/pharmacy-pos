@@ -64,9 +64,11 @@ class SalesRepository {
   }
 
   getSaleDetails(saleId) {
-    const query = this.db.prepare(`
+    const query = `
       SELECT 
         si.id,
+        si.batch_id,
+        si.buy_price,
         si.quantity,
         si.unit_price,
         si.total_price,
@@ -77,8 +79,8 @@ class SalesRepository {
       LEFT JOIN batches b ON si.batch_id = b.id
       LEFT JOIN drugs d ON b.drug_id = d.id
       WHERE si.sale_id = ?
-    `);
-    return query.all(saleId);
+    `;
+    return this.db.prepare(query).all(saleId);
   }
 
   clearEntireInventory() {
@@ -116,6 +118,75 @@ class SalesRepository {
     });
 
     return transaction();
+  }
+
+  updateSale(saleId, newItems, totalAmount) {
+    const updateTx = this.db.transaction(() => {
+      // 1. Fetch old sale items to restore stock to active batches
+      const oldItems = this.db.prepare(`SELECT batch_id, quantity FROM sale_items WHERE sale_id = ?`).all(saleId);
+      const restoreStock = this.db.prepare(`UPDATE batches SET quantity = quantity + ? WHERE id = ?`);
+
+      for (const old of oldItems) {
+        if (old.batch_id) {
+          restoreStock.run(old.quantity, old.batch_id);
+        }
+      }
+
+      // 2. Clear old sale items
+      this.db.prepare(`DELETE FROM sale_items WHERE sale_id = ?`).run(saleId);
+
+      // 3. Update parent sales table total
+      this.db.prepare(`UPDATE sales SET total_amount = ? WHERE id = ?`).run(totalAmount, saleId);
+
+      // 4. Insert updated sale items & deduct new stock
+      const insertItem = this.db.prepare(`
+        INSERT INTO sale_items (sale_id, batch_id, drug_name, batch_number, buy_price, quantity, unit_price, total_price)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const deductStock = this.db.prepare(`
+        UPDATE batches 
+        SET quantity = quantity - ? 
+        WHERE id = ? AND quantity >= ?
+      `);
+
+      for (const item of newItems) {
+        const buyPrice = parseFloat(item.buy_price) || 0;
+        const sellPrice = parseFloat(item.sell_price) || 0;
+        const qty = parseInt(item.quantity, 10) || 1;
+
+        // If batch_id was missing, try looking it up by batch_number
+        let finalBatchId = item.batch_id;
+        if (!finalBatchId && item.batch_number) {
+          const found = this.db.prepare(`SELECT id, buy_price FROM batches WHERE batch_number = ?`).get(item.batch_number);
+          if (found) {
+            finalBatchId = found.id;
+          }
+        }
+
+        if (finalBatchId) {
+          const deductRes = deductStock.run(qty, finalBatchId, qty);
+          if (deductRes.changes === 0) {
+            throw new Error(`Insufficient stock for ${item.brand_name} (Batch: ${item.batch_number})`);
+          }
+        }
+
+        insertItem.run(
+          saleId,
+          finalBatchId || 0,
+          item.brand_name,
+          item.batch_number || 'N/A',
+          buyPrice,
+          qty,
+          sellPrice,
+          item.total_price || (qty * sellPrice)
+        );
+      }
+
+      return { saleId, totalAmount };
+    });
+
+    return updateTx();
   }
 }
 

@@ -370,8 +370,10 @@
             <p id="total-revenue-banner" class="revenue-banner-text">Total Revenue: LKR 0.00</p>
           </div>
 
-          <!-- Right: Date Filter & Actions -->
+          <!-- Right: Search Invoice ID, Date Filter & Actions -->
           <div class="sales-filter-group">
+            <input type="number" id="sales-invoice-search" placeholder="Search Invoice # (e.g. 2)..."
+              class="date-input-field" style="width: 190px;" />
             <label for="sales-date-filter" class="control-label">Filter Date:</label>
             <input type="date" id="sales-date-filter" class="date-input-field" />
 
@@ -425,6 +427,67 @@
         <div class="modal-action-row">
           <button id="modal-reprint-btn" class="btn btn-auto btn-reprint">🖨️ Print Receipt</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Edit & Exchange Invoice Modal -->
+    <div id="edit-sale-modal" class="modal-backdrop" style="display: none;">
+      <div class="card modal-dialog-edit" style="width: 750px; max-width: 95%;">
+        <div class="modal-header">
+          <h3 id="edit-sale-modal-title" class="no-margin">Edit / Exchange Invoice #</h3>
+          <button id="close-edit-sale-modal" class="close-icon-btn">✕</button>
+        </div>
+
+        <div
+          style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+          <h4 style="font-size: 13px; color: #0284c7; margin-bottom: 8px;">Add / Exchange Medicine to this Invoice</h4>
+          <div
+            style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; position: relative;">
+            <div class="form-group pos-relative" style="margin-bottom: 0;">
+              <label for="edit_sale_drug_input">Search Medicine to Add *</label>
+              <input type="text" id="edit_sale_drug_input" placeholder="Type brand/batch..." autocomplete="off" />
+              <div id="edit-sale-dropdown" class="pos-dropdown" style="display: none;"></div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="edit_sale_qty">Quantity *</label>
+              <input type="number" id="edit_sale_qty" min="1" value="1" />
+            </div>
+            <button type="button" id="edit-sale-add-item-btn" class="btn btn-auto"
+              style="height: 38px; padding: 0 16px;">+ Add Item</button>
+          </div>
+        </div>
+
+        <h4 style="font-size: 13px; color: #475569; margin-bottom: 8px;">Current Invoice Items</h4>
+        <div
+          style="max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Medicine</th>
+                <th>Batch</th>
+                <th>Price (LKR)</th>
+                <th>Qty</th>
+                <th>Total (LKR)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="edit-sale-items-body"></tbody>
+          </table>
+        </div>
+
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 10px;">
+          <div>
+            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #0284c7;">LKR
+                0.00</span></strong>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="cancel-edit-sale-btn" class="btn btn-auto btn-cancel">Cancel</button>
+            <button type="button" id="save-edit-sale-btn" class="btn btn-auto btn-checkout"
+              style="margin-top: 0 !important;">💾 Save & Reprint Receipt</button>
+          </div>
+        </div>
+        <div id="edit-sale-status-msg" class="status-msg"></div>
       </div>
     </div>
 

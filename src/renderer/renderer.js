@@ -1590,3 +1590,300 @@ if (checkoutBtn) {
     }
   });
 }
+
+// ==================== SALES SEARCH & INVOICE EXCHANGE MODULE ====================
+let editingSaleId = null;
+let editingSaleItems = [];
+let editDropIndex = 0;
+let editDropMatches = [];
+
+// 1. Live Search by Invoice ID or Date
+function renderSalesTable() {
+  const tableBody = document.getElementById('sales-table-body');
+  const revenueBanner = document.getElementById('total-revenue-banner');
+  const dateInput = document.getElementById('sales-date-filter');
+  const searchInput = document.getElementById('sales-invoice-search');
+  if (!tableBody) return;
+
+  const selectedDate = dateInput ? dateInput.value : '';
+  const searchInvoiceId = searchInput ? searchInput.value.trim() : '';
+
+  if (!rawSalesData || rawSalesData.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No sales recorded yet.</td></tr>`;
+    if (revenueBanner) revenueBanner.innerText = 'Total Revenue: LKR 0.00';
+    return;
+  }
+
+  const filteredSales = rawSalesData.filter((sale) => {
+    const saleIdStr = String(sale.sale_id || sale.id);
+    const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || saleIdStr.includes(searchInvoiceId);
+    const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.startsWith(selectedDate));
+    return matchesSearch && matchesDate;
+  });
+
+  if (filteredSales.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No matching sales found.</td></tr>`;
+    if (revenueBanner) revenueBanner.innerText = `Total Revenue: LKR 0.00`;
+    return;
+  }
+
+  tableBody.innerHTML = '';
+  let cumulativeRevenue = 0;
+
+  filteredSales.forEach((sale) => {
+    cumulativeRevenue += sale.total_amount;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>#${sale.sale_id}</strong></td>
+      <td>${sale.sale_date}</td>
+      <td>${sale.item_count} items</td>
+      <td><strong>LKR ${Number(sale.total_amount).toFixed(2)}</strong></td>
+      <td>
+        <button onclick="viewReceipt(${sale.sale_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-right: 4px;">View Details</button>
+        <button onclick="openEditSaleModal(${sale.sale_id})" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">🔄 Change/Exchange</button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+
+  if (revenueBanner) {
+    revenueBanner.innerText = `Total Revenue: LKR ${cumulativeRevenue.toFixed(2)}`;
+  }
+}
+
+const salesInvoiceSearchInput = document.getElementById('sales-invoice-search');
+if (salesInvoiceSearchInput) {
+  salesInvoiceSearchInput.addEventListener('input', renderSalesTable);
+}
+
+// 2. Open Edit & Exchange Invoice Modal
+window.openEditSaleModal = async (saleId) => {
+  editingSaleId = saleId;
+  const modal = document.getElementById('edit-sale-modal');
+  const title = document.getElementById('edit-sale-modal-title');
+  const msg = document.getElementById('edit-sale-status-msg');
+  if (msg) msg.innerText = '';
+
+  title.innerText = `Edit / Exchange Invoice #${saleId}`;
+  modal.style.display = 'flex';
+
+  await loadPosStock(); // Refresh current available batches
+
+  const res = await window.api.getSaleDetails(saleId);
+  if (res.success) {
+    editingSaleItems = res.data.map(i => ({
+      batch_id: i.batch_id,
+      brand_name: i.brand_name,
+      batch_number: i.batch_number,
+      buy_price: parseFloat(i.buy_price) || 0,
+      sell_price: parseFloat(i.unit_price) || 0,
+      quantity: parseInt(i.quantity, 10),
+      total_price: parseFloat(i.total_price)
+    }));
+    renderEditSaleItems();
+  }
+};
+
+function renderEditSaleItems() {
+  const tbody = document.getElementById('edit-sale-items-body');
+  const totalDisplay = document.getElementById('edit-sale-total-display');
+  if (!tbody) return;
+
+  if (editingSaleItems.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626; padding: 12px;">No items in invoice. Please add at least one item.</td></tr>`;
+    totalDisplay.innerText = 'LKR 0.00';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  let grandTotal = 0;
+
+  editingSaleItems.forEach((item, index) => {
+    grandTotal += item.total_price;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${item.brand_name}</strong></td>
+      <td><code>${item.batch_number || 'N/A'}</code></td>
+      <td>${item.sell_price.toFixed(2)}</td>
+      <td>
+        <input type="number" min="1" value="${item.quantity}" onchange="updateEditItemQty(${index}, this.value)" style="width: 65px; padding: 3px 6px; font-weight: bold;" />
+      </td>
+      <td><strong>${item.total_price.toFixed(2)}</strong></td>
+      <td>
+        <button onclick="removeEditItem(${index})" style="background: #fee2e2; color: #b91c1c; border: none; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
+}
+
+window.updateEditItemQty = (index, val) => {
+  const qty = parseInt(val, 10);
+  if (!qty || qty <= 0) return;
+  editingSaleItems[index].quantity = qty;
+  editingSaleItems[index].total_price = qty * editingSaleItems[index].sell_price;
+  renderEditSaleItems();
+};
+
+window.removeEditItem = (index) => {
+  editingSaleItems.splice(index, 1);
+  renderEditSaleItems();
+};
+
+// Search Dropdown inside Edit Modal
+const editSaleDrugInput = document.getElementById('edit_sale_drug_input');
+if (editSaleDrugInput) {
+  editSaleDrugInput.addEventListener('input', () => {
+    const menu = document.getElementById('edit-sale-dropdown');
+    const term = editSaleDrugInput.value.toLowerCase().trim();
+    if (!term) { menu.style.display = 'none'; return; }
+
+    editDropMatches = availablePosStock.filter(d =>
+      d.brand_name.toLowerCase().includes(term) ||
+      (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
+      d.batch_number.toLowerCase().includes(term)
+    );
+
+    if (editDropMatches.length === 0) { menu.style.display = 'none'; return; }
+
+    editDropIndex = 0;
+    menu.innerHTML = editDropMatches.map((d, i) => `
+      <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
+        ${d.brand_name} | Batch: <code>${d.batch_number}</code> | Stock: ${d.available_qty} | <strong>LKR ${d.sell_price.toFixed(2)}</strong>
+      </div>
+    `).join('');
+
+    menu.querySelectorAll('.pos-option').forEach(el => {
+      el.addEventListener('click', () => {
+        const item = editDropMatches[el.dataset.idx];
+        editSaleDrugInput.value = `${item.brand_name} | Batch: ${item.batch_number} | LKR ${item.sell_price.toFixed(2)}`;
+        menu.style.display = 'none';
+        document.getElementById('edit_sale_qty').focus();
+      });
+    });
+
+    menu.style.display = 'block';
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('edit-sale-dropdown');
+  if (menu && !menu.contains(e.target) && e.target !== editSaleDrugInput) {
+    menu.style.display = 'none';
+  }
+});
+
+// Add Item Button inside Edit Modal
+const editSaleAddItemBtn = document.getElementById('edit-sale-add-item-btn');
+if (editSaleAddItemBtn) {
+  editSaleAddItemBtn.addEventListener('click', () => {
+    const text = editSaleDrugInput.value.trim();
+    const qtyInput = document.getElementById('edit_sale_qty');
+    const qty = parseInt(qtyInput.value, 10);
+
+    const selectedStock = availablePosStock.find(i => text.includes(i.batch_number) && text.includes(i.brand_name));
+    if (!selectedStock) {
+      alert('Please choose a valid medicine from the dropdown list.');
+      return;
+    }
+    if (!qty || qty <= 0) {
+      alert('Please enter a valid quantity.');
+      return;
+    }
+
+    const existingIndex = editingSaleItems.findIndex(i => i.batch_id === selectedStock.batch_id);
+    if (existingIndex > -1) {
+      editingSaleItems[existingIndex].quantity += qty;
+      editingSaleItems[existingIndex].total_price = editingSaleItems[existingIndex].quantity * selectedStock.sell_price;
+    } else {
+      editingSaleItems.push({
+        batch_id: selectedStock.batch_id,
+        brand_name: selectedStock.brand_name,
+        batch_number: selectedStock.batch_number,
+        buy_price: parseFloat(selectedStock.buy_price) || 0,
+        sell_price: parseFloat(selectedStock.sell_price) || 0,
+        quantity: qty,
+        total_price: qty * selectedStock.sell_price
+      });
+    }
+
+    editSaleDrugInput.value = '';
+    qtyInput.value = '1';
+    renderEditSaleItems();
+  });
+}
+
+// Close/Cancel Modal
+const closeEditSaleBtn = document.getElementById('close-edit-sale-modal');
+if (closeEditSaleBtn) {
+  closeEditSaleBtn.addEventListener('click', () => {
+    document.getElementById('edit-sale-modal').style.display = 'none';
+  });
+}
+const cancelEditSaleBtn = document.getElementById('cancel-edit-sale-btn');
+if (cancelEditSaleBtn) {
+  cancelEditSaleBtn.addEventListener('click', () => {
+    document.getElementById('edit-sale-modal').style.display = 'none';
+  });
+}
+
+// Save & Reprint Updated Invoice
+const saveEditSaleBtn = document.getElementById('save-edit-sale-btn');
+if (saveEditSaleBtn) {
+  saveEditSaleBtn.addEventListener('click', async () => {
+    const msg = document.getElementById('edit-sale-status-msg');
+
+    if (!editingSaleItems || editingSaleItems.length === 0) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Invoice cannot be empty. Add at least one medicine.';
+      return;
+    }
+
+    const grandTotal = editingSaleItems.reduce((sum, i) => sum + i.total_price, 0);
+
+    saveEditSaleBtn.disabled = true;
+    msg.style.color = '#475569';
+    msg.innerText = 'Updating invoice and syncing stock...';
+
+    try {
+      const res = await window.api.updateSale({
+        saleId: editingSaleId,
+        items: editingSaleItems,
+        total: grandTotal
+      });
+
+      if (res.success) {
+        msg.style.color = '#16a34a';
+        msg.innerText = '✓ Invoice updated & stock synced successfully!';
+
+        await loadSalesHistory();
+        await loadPosStock();
+        await refreshAlertBadges();
+
+        // Automatically reprint the revised receipt
+        await printThermalReceipt(
+          editingSaleId,
+          new Date().toLocaleString() + ' (MODIFIED)',
+          editingSaleItems,
+          grandTotal,
+          grandTotal,
+          0
+        );
+
+        setTimeout(() => {
+          document.getElementById('edit-sale-modal').style.display = 'none';
+        }, 1000);
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + res.error;
+      }
+    } catch (err) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    } finally {
+      saveEditSaleBtn.disabled = false;
+    }
+  });
+}
