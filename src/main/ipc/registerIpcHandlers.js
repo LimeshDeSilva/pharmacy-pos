@@ -181,6 +181,25 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
   ipcMain.handle('database:backup', async () => {
     return await SystemService.backupDatabase();
   });
+  
+  // Sales Deletion Handlers
+  ipcMain.handle('sales:deleteSingle', async (event, saleId) => {
+    try {
+      const success = salesRepo.deleteSaleById(saleId);
+      return { success };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('sales:deleteAll', async () => {
+    try {
+      const success = salesRepo.deleteAllSales();
+      return { success };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 module.exports = registerIpcHandlers;
