@@ -586,84 +586,101 @@
 
     <!-- Reset System View -->
     <section id="clear-inventory-view" class="view-panel">
-      <div class="reset-cards-grid">
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 20px;">
 
-        <!-- Delete Selected Medicine Only -->
-        <div class="card reset-card reset-card-amber">
-          <div>
-            <h3 class="reset-card-title reset-title-amber">
-              🗑️ Delete Selected Medicine
-            </h3>
-            <p class="reset-card-desc">
-              Remove a discontinued medicine and its inventory stock. <em>Sales history & reports will NOT be
-                deleted.</em>
-            </p>
-
-            <div class="form-group reset-field-spacing">
-              <label for="delete_drug_select" class="reset-input-label">Select Medicine *</label>
-              <select id="delete_drug_select" class="reset-select">
-                <option value="">-- Choose Medicine --</option>
-              </select>
-            </div>
+        <!-- 1. Delete Selected Medicine -->
+        <div class="card"
+          style="border-top: 4px solid #d97706; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <h3 style="color: #b45309; margin-top: 0;">🗑️ Delete Selected Medicine</h3>
+          <p style="font-size: 13px; color: #64748b;">Remove a discontinued medicine and its inventory stock. Past sales
+            history will NOT be deleted.</p>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="delete_drug_select">Select Medicine *</label>
+            <select id="delete_drug_select" class="form-control"
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+              <option value="">-- Choose Medicine --</option>
+            </select>
           </div>
-
-          <div>
-            <button id="delete-selected-drug-btn" class="btn reset-btn-amber">
-              Delete Selected Medicine
-            </button>
-            <div id="delete-drug-status-msg" class="status-msg reset-status-msg"></div>
-          </div>
+          <button id="delete-selected-drug-btn"
+            style="width: 100%; margin-top: 15px; padding: 10px; background: #d97706; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete
+            Selected Medicine</button>
+          <div id="delete-drug-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
         </div>
 
-        <!-- Delete All Medicines & Stock (Keep Sales) -->
-        <div class="card reset-card reset-card-rose">
-          <div>
-            <h3 class="reset-card-title reset-title-rose">
-              📦 Clear All Medicines Only
-            </h3>
-            <p class="reset-card-desc">
-              Wipe all registered drugs and batch stocks. <em>Past sales orders and revenue charts are preserved. PIN
-                required.</em>
-            </p>
-
-            <div class="form-group reset-field-spacing">
-              <label for="admin-pin-clear-medicines" class="reset-input-label">Enter PIN *</label>
-              <input type="password" id="admin-pin-clear-medicines" class="reset-pin-input" placeholder="Enter PIN...."
-                maxlength="10" />
-            </div>
+        <!-- 2. Delete Selected Sale -->
+        <div class="card"
+          style="border-top: 4px solid #0284c7; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <h3 style="color: #0284c7; margin-top: 0;">🧾 Delete Selected Sale</h3>
+          <p style="font-size: 13px; color: #64748b;">Remove a specific invoice from sales history & reports. PIN
+            required.</p>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="delete_sale_select">Select Invoice / Sale *</label>
+            <select id="delete_sale_select" class="form-control"
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+              <option value="">-- Choose Invoice --</option>
+            </select>
           </div>
-
-          <div>
-            <button id="delete-all-drugs-btn" class="btn reset-btn-rose">
-              Clear All Active Medicines
-            </button>
-            <div id="delete-all-drugs-msg" class="status-msg reset-status-msg"></div>
+          <div class="form-group" style="margin-top: 10px;">
+            <label for="admin-pin-delete-sale">Enter PIN *</label>
+            <input type="password" id="admin-pin-delete-sale" placeholder="Enter PIN..."
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
           </div>
+          <button id="delete-selected-sale-btn"
+            style="width: 100%; margin-top: 15px; padding: 10px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete
+            Selected Sale</button>
+          <div id="delete-sale-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
         </div>
 
-        <!-- Factory Reset (Wipe Everything) -->
-        <div class="card reset-card reset-card-red">
-          <div>
-            <h3 class="reset-card-title reset-title-red">
-              💥 Full Factory Reset
-            </h3>
-            <p class="reset-card-desc">
-              Wipe <strong>all medicines, batches, sales orders, and report data.</strong> <em>PIN required.</em>
-            </p>
-
-            <div class="form-group reset-field-spacing">
-              <label for="admin-pin-confirm" class="reset-input-label">Enter PIN *</label>
-              <input type="password" id="admin-pin-confirm" class="reset-pin-input" placeholder="Enter PIN...."
-                maxlength="10" />
-            </div>
+        <!-- 3. Clear All Medicines Only -->
+        <div class="card"
+          style="border-top: 4px solid #be123c; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <h3 style="color: #be123c; margin-top: 0;">📦 Clear All Medicines Only</h3>
+          <p style="font-size: 13px; color: #64748b;">Wipe all registered drugs and batch stocks. Past sales orders and
+            charts are preserved. PIN required.</p>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="admin-pin-clear-medicines">Enter PIN *</label>
+            <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN..."
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
           </div>
+          <button id="delete-all-drugs-btn"
+            style="width: 100%; margin-top: 15px; padding: 10px; background: #be123c; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Clear
+            All Active Medicines</button>
+          <div id="delete-all-drugs-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+        </div>
 
-          <div>
-            <button id="wipe-database-btn" class="btn reset-btn-red">
-              Wipe Entire System
-            </button>
-            <div id="wipe-status-msg" class="status-msg reset-status-msg"></div>
+        <!-- 4. Clear All Sales Only -->
+        <div class="card"
+          style="border-top: 4px solid #9333ea; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <h3 style="color: #9333ea; margin-top: 0;">📊 Clear All Sales & Reports</h3>
+          <p style="font-size: 13px; color: #64748b;">Wipe all sales invoices, revenue history, and profit charts.
+            Medicines and active stocks will remain intact. PIN required.</p>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="admin-pin-clear-sales">Enter PIN *</label>
+            <input type="password" id="admin-pin-clear-sales" placeholder="Enter PIN..."
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
           </div>
+          <button id="clear-all-sales-btn"
+            style="width: 100%; margin-top: 15px; padding: 10px; background: #9333ea; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Clear
+            All Sales History</button>
+          <div id="clear-all-sales-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+        </div>
+
+        <!-- 5. Full Factory Reset -->
+        <div class="card"
+          style="border-top: 4px solid #dc2626; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <h3 style="color: #dc2626; margin-top: 0;">💥 Full Factory Reset</h3>
+          <p style="font-size: 13px; color: #64748b;">Wipe all medicines, batches, sales orders, and report data
+            permanently. PIN required.</p>
+          <div class="form-group" style="margin-top: 15px;">
+            <label for="admin-pin-confirm">Enter PIN *</label>
+            <input type="password" id="admin-pin-confirm" placeholder="Enter PIN..."
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+          </div>
+          <button id="wipe-database-btn"
+            style="width: 100%; margin-top: 15px; padding: 10px; background: #dc2626; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Wipe
+            Entire System</button>
+          <div id="wipe-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
         </div>
 
       </div>
