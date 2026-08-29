@@ -124,11 +124,12 @@
         <div class="card">
           <h3 class="card-title-spaced">Add Shipment Batch</h3>
           <form id="batch-form">
-            <div class="form-group">
+            <div class="form-group" style="position: relative;">
               <label for="batch_drug_input">Select Medicine (Type name to search...) *</label>
-              <input type="text" id="batch_drug_input" list="batch_drug_datalist"
-                placeholder="Type brand or generic name..." autocomplete="off" required />
-              <datalist id="batch_drug_datalist"></datalist>
+              <input type="text" id="batch_drug_input" placeholder="Type brand or generic name..." autocomplete="off"
+                required />
+              <input type="hidden" id="selected_batch_drug_id" />
+              <div id="batch-dropdown" class="pos-dropdown" style="display: none;"></div>
             </div>
             <div class="form-group">
               <label for="batch_number">Batch / Lot Number *</label>
