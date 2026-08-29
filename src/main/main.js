@@ -271,7 +271,9 @@ ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
       const unitPrice = Number(item.sell_price !== undefined ? item.sell_price : (item.unit_price || 0)).toFixed(2);
       const total = Number(item.total_price !== undefined ? item.total_price : (item.quantity * unitPrice)).toFixed(2);
 
-      receiptContent.table(
+      receiptContent
+      .newline(1)
+      .table(
         [
           { width: 22, align: 'left' },
           { width: 4, align: 'center' },
@@ -293,6 +295,7 @@ ipcMain.handle('pos:printReceipt', async (event, receiptData) => {
         ],
         [['GRAND TOTAL:', `LKR ${Number(receiptData.grandTotal).toFixed(2)}`]]
       )
+      .newline(1)
       .bold(false)
       .table(
         [
