@@ -1272,16 +1272,118 @@ async function loadDeleteDrugDropdown() {
 }
 
 // 1. Delete Selected Medicine
+let deleteDropIndex = 0;
+let deleteDropMatches = [];
+
+async function loadDeleteDrugDropdown() {
+  const res = await window.api.getAllDrugs();
+  if (res && res.success) {
+    registeredDrugsList = res.data;
+  }
+}
+
+function showDeleteDrugList(q = '') {
+  const menu = document.getElementById('delete-drug-dropdown');
+  if (!menu) return;
+
+  const term = q.toLowerCase().trim();
+  if (!term) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  deleteDropMatches = registeredDrugsList.filter((d) =>
+    d.brand_name.toLowerCase().includes(term) ||
+    (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
+    (d.category && d.category.toLowerCase().includes(term))
+  );
+
+  if (deleteDropMatches.length === 0) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  deleteDropIndex = 0;
+  menu.innerHTML = deleteDropMatches.map((d, i) => `
+    <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
+      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
+    </div>
+  `).join('');
+
+  menu.querySelectorAll('.pos-option').forEach((el) => {
+    el.addEventListener('click', () => pickDeleteDrug(deleteDropMatches[el.dataset.idx]));
+  });
+
+  menu.style.display = 'block';
+}
+
+function pickDeleteDrug(drug) {
+  const input = document.getElementById('delete_drug_input');
+  const hiddenId = document.getElementById('selected_delete_drug_id');
+  const menu = document.getElementById('delete-drug-dropdown');
+
+  if (input) input.value = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
+  if (hiddenId) hiddenId.value = drug.id;
+  if (menu) menu.style.display = 'none';
+}
+
+const deleteDrugInputEl = document.getElementById('delete_drug_input');
+if (deleteDrugInputEl) {
+  deleteDrugInputEl.addEventListener('input', () => {
+    const hiddenId = document.getElementById('selected_delete_drug_id');
+    if (hiddenId) hiddenId.value = '';
+    showDeleteDrugList(deleteDrugInputEl.value);
+  });
+
+  deleteDrugInputEl.addEventListener('keydown', (e) => {
+    const menu = document.getElementById('delete-drug-dropdown');
+    const items = menu ? menu.querySelectorAll('.pos-option') : [];
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) {
+        deleteDropIndex = (deleteDropIndex + 1) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === deleteDropIndex));
+        items[deleteDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) {
+        deleteDropIndex = (deleteDropIndex - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === deleteDropIndex));
+        items[deleteDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (menu && menu.style.display !== 'none' && deleteDropMatches[deleteDropIndex]) {
+        pickDeleteDrug(deleteDropMatches[deleteDropIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      if (menu) menu.style.display = 'none';
+    }
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('delete-drug-dropdown');
+  if (menu && !menu.contains(e.target) && e.target !== deleteDrugInputEl) {
+    menu.style.display = 'none';
+  }
+});
+
+// Delete Selected Medicine Action
 const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
 if (deleteSelectedDrugBtn) {
   deleteSelectedDrugBtn.addEventListener('click', async () => {
-    const select = document.getElementById('delete_drug_select');
+    const hiddenId = document.getElementById('selected_delete_drug_id');
+    const input = document.getElementById('delete_drug_input');
     const msg = document.getElementById('delete-drug-status-msg');
-    const drugId = parseInt(select ? select.value : '', 10);
+    const drugId = parseInt(hiddenId ? hiddenId.value : '', 10);
 
     if (!drugId || isNaN(drugId)) {
       msg.style.color = '#dc2626';
-      msg.innerText = 'Please select a medicine from the list.';
+      msg.innerText = 'Please search and select a medicine from the list.';
+      if (input) input.focus();
       return;
     }
 
@@ -1293,7 +1395,9 @@ if (deleteSelectedDrugBtn) {
       const res = await window.api.deleteMedicineKeepSales(drugId);
       if (res && res.success) {
         msg.style.color = '#16a34a';
-        msg.innerText = '✓ Medicine removed from inventory!';
+        msg.innerText = '✓ Medicine removed from database!';
+        if (input) input.value = '';
+        if (hiddenId) hiddenId.value = '';
         await loadDeleteDrugDropdown();
         if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
         await refreshAlertBadges();
