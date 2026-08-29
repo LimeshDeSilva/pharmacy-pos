@@ -17,18 +17,31 @@
   <nav id="sidebar">
     <div class="brand">🏥 MediCare POS</div>
     <ul class="nav-links">
-      <li class="nav-item active" data-view="add-drug-view">➕ Add Medicine</li>
-      <li class="nav-item" data-view="add-batch-view">🏷️ Add Batch</li>
-      <li class="nav-item" data-view="inventory-view">
-        📦 Inventory
-        <span id="sidebar-alert-badge" class="sidebar-badge">
-          0
-        </span>
+      <li class="nav-item active" data-view="add-drug-view">
+        <span>➕ Add Medicine</span> <small style="opacity: 0.6; font-size: 11px;">(F1)</small>
       </li>
-      <li class="nav-item" data-view="pos-view">🛒 Billing (POS)</li>
-      <li class="nav-item" data-view="sales-view">💰 Sales History</li>
-      <li class="nav-item" data-view="reports-view">📈 Revenue & Charts</li>
-      <li class="nav-item" data-view="profits-view">📊 Profits & Charts</li>
+      <li class="nav-item" data-view="add-batch-view">
+        <span>🏷️ Add Batch</span> <small style="opacity: 0.6; font-size: 11px;">(F2)</small>
+      </li>
+      <li class="nav-item" data-view="inventory-view">
+        <span>📦 Inventory</span>
+        <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+          <!-- <small style="opacity: 0.6; font-size: 11px;">(F3)</small> -->
+          <span id="sidebar-alert-badge" class="sidebar-badge">0</span>
+        </div>
+      </li>
+      <li class="nav-item" data-view="pos-view">
+        <span>🛒 Billing (POS)</span> <small style="opacity: 0.6; font-size: 11px;">(F4)</small>
+      </li>
+      <li class="nav-item" data-view="sales-view">
+        <span>💰 Sales History</span> <small style="opacity: 0.6; font-size: 11px;">(F5)</small>
+      </li>
+      <li class="nav-item" data-view="reports-view">
+        <span>📈 Revenue & Charts</span> <small style="opacity: 0.6; font-size: 11px;">(F6)</small>
+      </li>
+      <li class="nav-item" data-view="profits-view">
+        <span>📊 Profits & Charts</span> <small style="opacity: 0.6; font-size: 11px;">(F7)</small>
+      </li>
       <li class="nav-item" data-view="settings-view">⚙️ Store Settings</li>
       <li class="nav-item nav-item-reset" data-view="clear-inventory-view">⚠️ Reset System</li>
     </ul>
