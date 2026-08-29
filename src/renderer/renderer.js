@@ -71,6 +71,13 @@ navItems.forEach((item) => {
       if (bInput) setTimeout(() => bInput.focus(), 50);
     } else if (targetViewId === 'add-batch-view') {
       await displayDrugDropdown();
+      const bDrugInput = document.getElementById('batch_drug_input');
+      if (bDrugInput) {
+        setTimeout(() => {
+          bDrugInput.focus();
+          bDrugInput.select();
+        }, 50);
+      }
     } else if (targetViewId === 'inventory-view') {
       await loadInventory();
     } else if (targetViewId === 'pos-view') {
@@ -232,28 +239,119 @@ if (minStockInput) {
 }
 
 // ==================== ADD BATCH MODULE ====================
+let batchDropIndex = 0;
+let batchDropMatches = [];
+
 async function displayDrugDropdown() {
-  const datalist = document.getElementById('batch_drug_datalist');
-  const drugInput = document.getElementById('batch_drug_input');
-  if (!datalist) return;
-
-  const allDrugs = await window.api.getAllDrugs();
-
-  if (allDrugs.success) {
-    registeredDrugsList = allDrugs.data;
-    datalist.innerHTML = '';
-
-    registeredDrugsList.forEach((drug) => {
-      const option = document.createElement('option');
-      option.value = `${drug.brand_name} (${drug.generic_name || 'N/A'}) - [ID: ${drug.id}]`;
-      datalist.appendChild(option);
-    });
+  const res = await window.api.getAllDrugs();
+  if (res && res.success) {
+    registeredDrugsList = res.data;
   }
-
+  const drugInput = document.getElementById('batch_drug_input');
   if (drugInput) {
-    setTimeout(() => drugInput.focus(), 50);
+    setTimeout(() => {
+      drugInput.focus();
+      drugInput.select();
+    }, 50);
   }
 }
+
+function showBatchDrugList(q = '') {
+  const menu = document.getElementById('batch-dropdown');
+  if (!menu) return;
+
+  const term = q.toLowerCase().trim();
+  if (!term) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  batchDropMatches = registeredDrugsList.filter((d) =>
+    d.brand_name.toLowerCase().includes(term) ||
+    (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
+    (d.category && d.category.toLowerCase().includes(term))
+  );
+
+  if (batchDropMatches.length === 0) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  batchDropIndex = 0;
+  menu.innerHTML = batchDropMatches.map((d, i) => `
+    <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
+      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
+    </div>
+  `).join('');
+
+  menu.querySelectorAll('.pos-option').forEach((el) => {
+    el.addEventListener('click', () => pickBatchDrug(batchDropMatches[el.dataset.idx]));
+  });
+
+  menu.style.display = 'block';
+}
+
+function pickBatchDrug(drug) {
+  const input = document.getElementById('batch_drug_input');
+  const hiddenId = document.getElementById('selected_batch_drug_id');
+  const menu = document.getElementById('batch-dropdown');
+  const nextInput = document.getElementById('batch_number');
+
+  if (input) input.value = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
+  if (hiddenId) hiddenId.value = drug.id;
+  if (menu) menu.style.display = 'none';
+
+  if (nextInput) {
+    nextInput.focus();
+    nextInput.select();
+  }
+}
+
+const batchDrugInputEl = document.getElementById('batch_drug_input');
+if (batchDrugInputEl) {
+  batchDrugInputEl.addEventListener('input', () => {
+    document.getElementById('selected_batch_drug_id').value = '';
+    showBatchDrugList(batchDrugInputEl.value);
+  });
+
+  batchDrugInputEl.addEventListener('keydown', (e) => {
+    const menu = document.getElementById('batch-dropdown');
+    const items = menu ? menu.querySelectorAll('.pos-option') : [];
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) {
+        batchDropIndex = (batchDropIndex + 1) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === batchDropIndex));
+        items[batchDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) {
+        batchDropIndex = (batchDropIndex - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === batchDropIndex));
+        items[batchDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (menu && menu.style.display !== 'none' && batchDropMatches[batchDropIndex]) {
+        pickBatchDrug(batchDropMatches[batchDropIndex]);
+      } else {
+        const next = document.getElementById('batch_number');
+        if (next) next.focus();
+      }
+    } else if (e.key === 'Escape') {
+      if (menu) menu.style.display = 'none';
+    }
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('batch-dropdown');
+  if (menu && !menu.contains(e.target) && e.target !== batchDrugInputEl) {
+    menu.style.display = 'none';
+  }
+});
 
 const batchForm = document.getElementById('batch-form');
 const batchStatusMsg = document.getElementById('batch-status-msg');
@@ -262,23 +360,18 @@ if (batchForm) {
   batchForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const selectedDrugId = parseInt(document.getElementById('selected_batch_drug_id').value, 10);
     const drugInput = document.getElementById('batch_drug_input');
-    const selectedText = drugInput.value.trim();
 
-    const matchedDrug = registeredDrugsList.find(drug =>
-      selectedText.includes(`[ID: ${drug.id}]`) ||
-      selectedText.toLowerCase() === drug.brand_name.toLowerCase()
-    );
-
-    if (!matchedDrug) {
+    if (!selectedDrugId) {
       batchStatusMsg.style.color = '#dc2626';
-      batchStatusMsg.innerText = '✗ Please choose a valid registered medicine from the list.';
+      batchStatusMsg.innerText = '✗ Please select a registered medicine from the dropdown list.';
       drugInput.focus();
       return;
     }
 
     const batchData = {
-      drug_id: matchedDrug.id,
+      drug_id: selectedDrugId,
       batch_number: document.getElementById('batch_number').value.trim(),
       expiry_date: document.getElementById('expiry_date').value,
       buy_price: parseFloat(document.getElementById('buy_price').value),
@@ -295,6 +388,7 @@ if (batchForm) {
       batchStatusMsg.style.color = '#16a34a';
       batchStatusMsg.innerText = '✓ Batch saved successfully!';
       batchForm.reset();
+      document.getElementById('selected_batch_drug_id').value = '';
       await refreshAlertBadges();
 
       if (drugInput) drugInput.focus();
@@ -313,25 +407,12 @@ if (batchForm) {
   });
 }
 
-// Add Batch Keyboard Navigation
-const batchDrugInput = document.getElementById('batch_drug_input');
+// Add Batch Remaining Inputs Keyboard Flow
 const batchNoInput = document.getElementById('batch_number');
 const expiryDateInput = document.getElementById('expiry_date');
 const buyPriceInput = document.getElementById('buy_price');
 const sellPriceInput = document.getElementById('sell_price');
 const batchQtyInput = document.getElementById('quantity');
-
-if (batchDrugInput) {
-  batchDrugInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (batchNoInput) {
-        batchNoInput.focus();
-        batchNoInput.select();
-      }
-    }
-  });
-}
 
 if (batchNoInput) {
   batchNoInput.addEventListener('keydown', (e) => {
@@ -457,10 +538,11 @@ function renderInventoryTable() {
 
     const matchesSearch =
       !searchTerm ||
-      (row.brand_name && row.brand_name.toLowerCase().includes(searchTerm)) ||
-      (row.generic_name && row.generic_name.toLowerCase().includes(searchTerm)) ||
-      (row.category && row.category.toLowerCase().includes(searchTerm)) ||
-      (row.batch_number && row.batch_number.toLowerCase().includes(searchTerm));
+      (row.brand_name && String(row.brand_name).toLowerCase().includes(searchTerm)) ||
+      (row.generic_name && String(row.generic_name).toLowerCase().includes(searchTerm)) ||
+      (row.category && String(row.category).toLowerCase().includes(searchTerm)) ||
+      (row.batch_number && String(row.batch_number).toLowerCase().includes(searchTerm)) ||
+      (row.batch_no && String(row.batch_no).toLowerCase().includes(searchTerm));
 
     return matchesFilter && matchesSearch;
   });
