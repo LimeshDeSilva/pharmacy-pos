@@ -8,14 +8,16 @@ const BatchRepository = require('./repositories/batchRepository');
 const SalesRepository = require('./repositories/salesRepository');
 const AnalyticsRepository = require('./repositories/analyticsRepository');
 const SystemService = require('./services/systemService');
+const SettingsRepository = require('./repositories/settingsRepository');
 const registerIpcHandlers = require('./ipc/registerIpcHandlers');
 
 const drugRepo = new DrugRepository(db);
 const batchRepo = new BatchRepository(db);
 const salesRepo = new SalesRepository(db);
 const analyticsRepo = new AnalyticsRepository(db);
+const settingsRepo = new SettingsRepository(db);
 
-registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo);
+registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo);
 
 function createWindow() {
   const win = new BrowserWindow({
