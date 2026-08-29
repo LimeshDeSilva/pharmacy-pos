@@ -1959,3 +1959,28 @@ if (saveEditSaleBtn) {
     }
   });
 }
+
+// ==================== GLOBAL FUNCTION KEY TAB SHORTCUTS (F1 - F7) ====================
+const functionKeyTabMap = {
+  F1: 'add-drug-view',
+  F2: 'add-batch-view',
+  F3: 'inventory-view',
+  F4: 'pos-view',
+  F5: 'sales-view',
+  F6: 'reports-view',
+  F7: 'profits-view'
+};
+
+window.addEventListener('keydown', (e) => {
+  if (functionKeyTabMap[e.key]) {
+    // Prevent default browser/system behavior (e.g. F1 Help, F3 Search, F5 Page Reload)
+    e.preventDefault();
+
+    const targetViewId = functionKeyTabMap[e.key];
+    const targetNavItem = document.querySelector(`.nav-item[data-view="${targetViewId}"]`);
+
+    if (targetNavItem) {
+      targetNavItem.click();
+    }
+  }
+});
