@@ -27,7 +27,7 @@ class BatchRepository {
         b.sell_price,
         b.quantity AS batch_quantity
       FROM drugs d
-      LEFT JOIN batches b ON d.id = b.drug_id
+      JOIN batches b ON d.id = b.drug_id
       GROUP BY d.id, b.id
       ORDER BY d.brand_name ASC, b.expiry_date ASC
     `);
