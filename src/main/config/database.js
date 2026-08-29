@@ -38,12 +38,14 @@ function initDatabase() {
     CREATE TABLE IF NOT EXISTS sale_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       sale_id INTEGER NOT NULL,
-      batch_id INTEGER NOT NULL,
+      batch_id INTEGER,
+      drug_name TEXT,
+      batch_number TEXT,
+      buy_price REAL DEFAULT 0,
       quantity INTEGER NOT NULL,
       unit_price REAL NOT NULL,
       total_price REAL NOT NULL,
-      FOREIGN KEY (sale_id) REFERENCES sales(id),
-      FOREIGN KEY (batch_id) REFERENCES batches(id)
+      FOREIGN KEY (sale_id) REFERENCES sales(id)
     );
 
     CREATE TABLE IF NOT EXISTS settings (
@@ -56,6 +58,20 @@ function initDatabase() {
       ('pharmacy_address', 'No.514, Walagedara, Balapitiya'),
       ('pharmacy_phone', '077-6723395');
   `);
+
+  // Migrations for existing databases
+  try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) {}
+  try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) {}
+  try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) {}
+
+  // Backfill existing sales records with correct buy prices from active batches
+  try {
+    db.exec(`
+      UPDATE sale_items 
+      SET buy_price = (SELECT buy_price FROM batches WHERE batches.id = sale_items.batch_id)
+      WHERE (buy_price IS NULL OR buy_price = 0) AND batch_id IS NOT NULL;
+    `);
+  } catch (e) {}
 }
 
 initDatabase();

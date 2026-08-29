@@ -88,7 +88,7 @@ class AnalyticsRepository {
       const query = `
         SELECT 
           COUNT(DISTINCT s.id) AS orders,
-          COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(b.buy_price, 0))), 0) AS profit
+          COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(si.buy_price, b.buy_price, 0))), 0) AS profit
         FROM sales s
         LEFT JOIN sale_items si ON s.id = si.sale_id
         LEFT JOIN batches b ON si.batch_id = b.id
@@ -112,7 +112,7 @@ class AnalyticsRepository {
     return this.db.prepare(`
       SELECT 
         date(s.created_at, 'localtime') AS period,
-        COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(b.buy_price, 0))), 0) AS total_profit
+        COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(si.buy_price, b.buy_price, 0))), 0) AS total_profit
       FROM sales s
       LEFT JOIN sale_items si ON s.id = si.sale_id
       LEFT JOIN batches b ON si.batch_id = b.id
@@ -126,7 +126,7 @@ class AnalyticsRepository {
     return this.db.prepare(`
       SELECT 
         strftime('%Y-W%W', s.created_at, 'localtime') AS period,
-        COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(b.buy_price, 0))), 0) AS total_profit
+        COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(si.buy_price, b.buy_price, 0))), 0) AS total_profit
       FROM sales s
       LEFT JOIN sale_items si ON s.id = si.sale_id
       LEFT JOIN batches b ON si.batch_id = b.id
@@ -140,7 +140,7 @@ class AnalyticsRepository {
     return this.db.prepare(`
       SELECT 
         strftime('%Y-%m', s.created_at, 'localtime') AS period,
-        COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(b.buy_price, 0))), 0) AS total_profit
+        COALESCE(SUM(si.quantity * (si.unit_price - COALESCE(si.buy_price, b.buy_price, 0))), 0) AS total_profit
       FROM sales s
       LEFT JOIN sale_items si ON s.id = si.sale_id
       LEFT JOIN batches b ON si.batch_id = b.id

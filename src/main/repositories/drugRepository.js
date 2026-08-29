@@ -17,31 +17,47 @@ class DrugRepository {
   }
 
   deleteMedicineKeepSales(drugId) {
-    const transaction = this.db.transaction(() => {
-      this.db.prepare(`
-        UPDATE sale_items 
-        SET batch_id = NULL 
-        WHERE batch_id IN (SELECT id FROM batches WHERE drug_id = ?)
-      `).run(drugId);
+    const runTransaction = this.db.transaction(() => {
+      const batches = this.db.prepare('SELECT id FROM batches WHERE drug_id = ?').all(drugId);
+      const batchIds = batches.map(b => b.id);
 
-      this.db.prepare(`DELETE FROM batches WHERE drug_id = ?`).run(drugId);
+      if (batchIds.length > 0) {
+        const placeholders = batchIds.map(() => '?').join(',');
+        this.db.prepare(`DELETE FROM batches WHERE id IN (${placeholders})`).run(...batchIds);
+      }
+
       const res = this.db.prepare(`DELETE FROM drugs WHERE id = ?`).run(drugId);
       return res.changes > 0;
     });
 
-    return transaction();
+    try {
+      this.db.pragma('foreign_keys = OFF');
+      const result = runTransaction();
+      this.db.pragma('foreign_keys = ON');
+      return result;
+    } catch (err) {
+      this.db.pragma('foreign_keys = ON');
+      throw err;
+    }
   }
 
   deleteAllMedicinesKeepSales() {
-    const transaction = this.db.transaction(() => {
-      this.db.prepare(`UPDATE sale_items SET batch_id = NULL`).run();
+    const runTransaction = this.db.transaction(() => {
       this.db.prepare(`DELETE FROM batches`).run();
       this.db.prepare(`DELETE FROM drugs`).run();
       this.db.prepare(`DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches')`).run();
       return true;
     });
 
-    return transaction();
+    try {
+      this.db.pragma('foreign_keys = OFF');
+      const result = runTransaction();
+      this.db.pragma('foreign_keys = ON');
+      return result;
+    } catch (err) {
+      this.db.pragma('foreign_keys = ON');
+      throw err;
+    }
   }
 
   updateInventoryItem(data) {

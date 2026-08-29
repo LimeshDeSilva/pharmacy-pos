@@ -40,6 +40,7 @@ class BatchRepository {
         b.id AS batch_id,
         b.batch_number,
         b.expiry_date,
+        b.buy_price,
         b.sell_price,
         b.quantity AS available_qty,
         d.id AS drug_id,

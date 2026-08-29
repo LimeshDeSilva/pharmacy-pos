@@ -10,9 +10,10 @@ class SalesRepository {
       const saleId = saleResult.lastInsertRowid;
 
       const itemInsert = this.db.prepare(`
-        INSERT INTO sale_items (sale_id, batch_id, quantity, unit_price, total_price)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO sale_items (sale_id, batch_id, drug_name, batch_number, buy_price, quantity, unit_price, total_price)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
+
       const stockDeduct = this.db.prepare(`
         UPDATE batches 
         SET quantity = quantity - ? 
@@ -25,7 +26,20 @@ class SalesRepository {
           throw new Error(`Insufficient stock for ${item.brand_name} (Batch: ${item.batch_number})`);
         }
 
-        itemInsert.run(saleId, item.batch_id, item.quantity, item.sell_price, item.total_price);
+        const buyPrice = parseFloat(item.buy_price) || 0;
+        const sellPrice = parseFloat(item.sell_price) || 0;
+        const qty = parseInt(item.quantity, 10) || 1;
+
+        itemInsert.run(
+          saleId,
+          item.batch_id,
+          item.brand_name,
+          item.batch_number,
+          buyPrice,
+          qty,
+          sellPrice,
+          item.total_price || (qty * sellPrice)
+        );
       }
 
       return { saleId, totalAmount };
@@ -56,12 +70,12 @@ class SalesRepository {
         si.quantity,
         si.unit_price,
         si.total_price,
-        b.batch_number,
-        d.brand_name,
-        d.generic_name
+        COALESCE(si.batch_number, b.batch_number, 'N/A') AS batch_number,
+        COALESCE(si.drug_name, d.brand_name, 'Deleted Medicine') AS brand_name,
+        COALESCE(d.generic_name, '') AS generic_name
       FROM sale_items si
-      JOIN batches b ON si.batch_id = b.id
-      JOIN drugs d ON b.drug_id = d.id
+      LEFT JOIN batches b ON si.batch_id = b.id
+      LEFT JOIN drugs d ON b.drug_id = d.id
       WHERE si.sale_id = ?
     `);
     return query.all(saleId);
