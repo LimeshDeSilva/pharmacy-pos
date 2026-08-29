@@ -83,7 +83,7 @@ header {
 /* Form Card Styles */
 .card {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   max-width: 600px;
@@ -276,6 +276,30 @@ input {
   background: #0284c7;
   color: #ffffff;
   border-color: #0284c7;
+}
+
+
+
+.profit-filter-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profit-filter-btn:hover {
+  background: #e2e8f0;
+}
+
+.profit-filter-btn.active-filter {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
 }
 
 
