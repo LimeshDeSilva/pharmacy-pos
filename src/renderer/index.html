@@ -361,21 +361,21 @@
       <!-- Top KPI Summary Cards -->
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="max-width: 100%; border-left: 4px solid #0284c7;">
+        <div class="card" style="max-width: 100%; border-left: 8px solid #0284c7;">
           <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">Today's Revenue</small>
-          <h2 id="kpi-today-rev" style="color: #0f172a; margin-top: 6px;">LKR 0.00</h2>
+          <h2 id="kpi-today-rev" style="color: #0284c7; margin-top: 6px;">LKR 0.00</h2>
           <small id="kpi-today-orders" style="color: #0284c7;">0 orders</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 4px solid #16a34a;">
+        <div class="card" style="max-width: 100%; border-left: 8px solid #16a34a;">
           <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">This Month</small>
-          <h2 id="kpi-month-rev" style="color: #0f172a; margin-top: 6px;">LKR 0.00</h2>
+          <h2 id="kpi-month-rev" style="color: #16a34a; margin-top: 6px;">LKR 0.00</h2>
           <small id="kpi-month-orders" style="color: #16a34a;">0 orders</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 4px solid #8b5cf6;">
+        <div class="card" style="max-width: 100%; border-left: 8px solid #8b5cf6;">
           <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">All Time Revenue</small>
-          <h2 id="kpi-total-rev" style="color: #0f172a; margin-top: 6px;">LKR 0.00</h2>
+          <h2 id="kpi-total-rev" style="color: #8b5cf6; margin-top: 6px;">LKR 0.00</h2>
           <small id="kpi-total-orders" style="color: #8b5cf6;">0 orders</small>
         </div>
       </div>
@@ -412,22 +412,22 @@
       <!-- Top Profit Summary Cards -->
       <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="max-width: 100%; border-left: 4px solid #16a34a;">
+        <div class="card" style="max-width: 100%; border-left: 8px solid #0284c7;">
           <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">Today's Profit</small>
-          <h2 id="kpi-today-profit" style="color: #15803d; margin-top: 6px;">LKR 0.00</h2>
+          <h2 id="kpi-today-profit" style="color: #0284c7; margin-top: 6px;">LKR 0.00</h2>
           <small id="kpi-today-profit-orders" style="color: #16a34a;">0 transactions</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 4px solid #059669;">
+        <div class="card" style="max-width: 100%; border-left: 8px solid #16a34a;">
           <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">This Month Profit</small>
-          <h2 id="kpi-month-profit" style="color: #047857; margin-top: 6px;">LKR 0.00</h2>
+          <h2 id="kpi-month-profit" style="color: #16a34a; margin-top: 6px;">LKR 0.00</h2>
           <small id="kpi-month-profit-orders" style="color: #059669;">0 transactions</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 4px solid #0d9488;">
+        <div class="card" style="max-width: 100%; border-left: 8px solid #8b5cf6;">
           <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">All Time Net Profit</small>
-          <h2 id="kpi-total-profit" style="color: #0f766e; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-total-profit-orders" style="color: #0d9488;">0 transactions</small>
+          <h2 id="kpi-total-profit" style="color: #8b5cf6; margin-top: 6px;">LKR 0.00</h2>
+          <small id="kpi-total-profit-orders" style="color: #7c3aed;">0 transactions</small>
         </div>
       </div>
 
@@ -443,9 +443,9 @@
 
           <!-- Timeframe Filter Buttons -->
           <div style="display: flex; gap: 8px;">
-            <button class="filter-btn profit-filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
-            <button class="filter-btn profit-filter-btn" data-period="weekly">Weekly</button>
-            <button class="filter-btn profit-filter-btn" data-period="monthly">Monthly</button>
+            <button class="profit-filter-btn profit-filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
+            <button class="profit-filter-btn profit-filter-btn" data-period="weekly">Weekly</button>
+            <button class="profit-filter-btn profit-filter-btn" data-period="monthly">Monthly</button>
           </div>
 
           <div style="position: relative; height: 360px; width: 100%;">
