@@ -92,6 +92,7 @@ navItems.forEach((item) => {
       await loadStoreSettings();
     } else if (targetViewId === 'clear-inventory-view') {
       await loadDeleteDrugDropdown();
+      await loadDeleteSaleDropdown();
     }
   });
 });
@@ -1452,6 +1453,27 @@ async function loadDeleteDrugDropdown() {
   }
 }
 
+async function loadDeleteSaleDropdown() {
+  const select = document.getElementById('delete_sale_select');
+  if (!select) return;
+
+  const allSales = await window.api.getAllSales();
+  if (allSales && allSales.success) {
+    select.innerHTML = '<option value="">-- Choose Invoice --</option>';
+    allSales.data.forEach((sale) => {
+      const saleId = sale.sale_id || sale.id;
+      const total = Number(sale.total_amount || 0).toFixed(2);
+      const date = sale.sale_date || sale.created_at || '';
+
+      const option = document.createElement('option');
+      option.value = saleId;
+      option.textContent = `Invoice #${saleId} - LKR ${total} (${date})`;
+      select.appendChild(option);
+    });
+  }
+}
+
+
 const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
 if (deleteSelectedDrugBtn) {
   deleteSelectedDrugBtn.addEventListener('click', async () => {
@@ -1479,6 +1501,46 @@ if (deleteSelectedDrugBtn) {
       await loadDeleteDrugDropdown();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
       await refreshAlertBadges();
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
+if (deleteSelectedSaleBtn) {
+  deleteSelectedSaleBtn.addEventListener('click', async () => {
+    const select = document.getElementById('delete_sale_select');
+    const pinInput = document.getElementById('admin-pin-delete-sale');
+    const msg = document.getElementById('delete-sale-status-msg');
+    const saleId = parseInt(select.value, 10);
+
+    if (!saleId) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Please select an invoice from the list.';
+      return;
+    }
+
+    if (!pinInput || pinInput.value !== '1234') {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN. Enter 1234 to proceed.';
+      if (pinInput) pinInput.focus();
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete Invoice #${saleId}? Revenue and profit charts will be updated.`)) return;
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Deleting sale record...';
+
+    const res = await window.api.deleteSingleSale(saleId);
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = `✓ Invoice #${saleId} deleted successfully!`;
+      pinInput.value = '';
+      await loadDeleteSaleDropdown();
+      setTimeout(() => { msg.innerText = ''; }, 2500);
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
@@ -1518,6 +1580,38 @@ if (deleteAllDrugsBtn) {
       setTimeout(() => {
         msg.innerText = '';
       }, 2500);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+const clearAllSalesBtn = document.getElementById('clear-all-sales-btn');
+if (clearAllSalesBtn) {
+  clearAllSalesBtn.addEventListener('click', async () => {
+    const pinInput = document.getElementById('admin-pin-clear-sales');
+    const msg = document.getElementById('clear-all-sales-msg');
+
+    if (!pinInput || pinInput.value !== '1234') {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN. Enter 1234 to proceed.';
+      if (pinInput) pinInput.focus();
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete ALL sales invoices and reset all revenue/profit charts? Active stock will remain intact.')) return;
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Clearing sales history...';
+
+    const res = await window.api.deleteAllSales();
+    if (res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ All sales history & charts cleared successfully!';
+      pinInput.value = '';
+      await loadDeleteSaleDropdown();
+      setTimeout(() => { msg.innerText = ''; }, 2500);
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + res.error;
@@ -1664,3 +1758,4 @@ if (checkoutBtn) {
     }
   });
 }
+
