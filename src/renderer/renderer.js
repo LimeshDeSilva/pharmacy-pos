@@ -8,6 +8,12 @@ let analyticsCache = null;
 let profitChartInstance = null;
 let profitAnalyticsCache = null;
 
+let currentSettings = {
+  pharmacy_name: 'NEW SAHASNA PHARMACY',
+  pharmacy_address: 'No.514, Walagedara, Balapitiya',
+  pharmacy_phone: '077-6723395'
+};
+
 const viewTitles = {
   'add-drug-view': 'Register Medicine',
   'add-batch-view': 'Add Batch',
@@ -16,11 +22,13 @@ const viewTitles = {
   'sales-view': 'Sales History',
   'reports-view': 'Reports & Charts',
   'profits-view': 'Profits & Charts',
+  'settings-view': 'Pharmacy Details',
   'clear-inventory-view': 'System Reset & Wipe'
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    await loadStoreSettings();
     await refreshAlertBadges();
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
@@ -73,11 +81,62 @@ navItems.forEach((item) => {
       await loadAnalyticsDashboard();
     } else if (targetViewId === 'profits-view') {
       await loadProfitAnalyticsDashboard();
+    } else if (targetViewId === 'settings-view') {
+      await loadStoreSettings();
     } else if (targetViewId === 'clear-inventory-view') {
       await loadDeleteDrugDropdown();
     }
   });
 });
+
+// ==================== STORE SETTINGS MODULE ====================
+async function loadStoreSettings() {
+  if (!window.api || typeof window.api.getSettings !== 'function') return;
+
+  const res = await window.api.getSettings();
+  if (res && res.success) {
+    currentSettings = res.data;
+
+    const nameInp = document.getElementById('setting_pharmacy_name');
+    const addrInp = document.getElementById('setting_pharmacy_address');
+    const phoneInp = document.getElementById('setting_pharmacy_phone');
+
+    if (nameInp) nameInp.value = currentSettings.pharmacy_name || '';
+    if (addrInp) addrInp.value = currentSettings.pharmacy_address || '';
+    if (phoneInp) phoneInp.value = currentSettings.pharmacy_phone || '';
+  }
+}
+
+const settingsForm = document.getElementById('settings-form');
+if (settingsForm) {
+  settingsForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const msg = document.getElementById('settings-status-msg');
+    const payload = {
+      pharmacy_name: document.getElementById('setting_pharmacy_name').value.trim(),
+      pharmacy_address: document.getElementById('setting_pharmacy_address').value.trim(),
+      pharmacy_phone: document.getElementById('setting_pharmacy_phone').value.trim()
+    };
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Saving pharmacy details...';
+
+    const res = await window.api.updateSettings(payload);
+    if (res.success) {
+      currentSettings = payload;
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ Pharmacy details updated successfully!';
+
+      setTimeout(() => {
+        msg.innerText = '';
+      }, 2500);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
 
 // ==================== ADD MEDICINE MODULE ====================
 const drugForm = document.getElementById('drug-form');
@@ -1435,7 +1494,10 @@ async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmoun
     items,
     grandTotal,
     paidAmount,
-    balanceAmount
+    balanceAmount,
+    pharmacyName: currentSettings.pharmacy_name,
+    pharmacyAddress: currentSettings.pharmacy_address,
+    pharmacyPhone: currentSettings.pharmacy_phone
   };
 
   if (window.api && typeof window.api.printReceipt === 'function') {
