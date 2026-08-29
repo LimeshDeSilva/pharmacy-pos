@@ -1733,38 +1733,110 @@ window.removeEditItem = (index) => {
 };
 
 // Search Dropdown inside Edit Modal
+// Search Dropdown inside Edit Modal with Full Keyboard Navigation
+function pickEditSaleItem(item) {
+  const input = document.getElementById('edit_sale_drug_input');
+  const menu = document.getElementById('edit-sale-dropdown');
+  const qty = document.getElementById('edit_sale_qty');
+
+  if (input) {
+    input.value = `${item.brand_name} | Batch: ${item.batch_number} | LKR ${item.sell_price.toFixed(2)}`;
+  }
+  if (menu) menu.style.display = 'none';
+  if (qty) {
+    qty.focus();
+    qty.select();
+  }
+}
+
 const editSaleDrugInput = document.getElementById('edit_sale_drug_input');
 if (editSaleDrugInput) {
+  // Input search filter
   editSaleDrugInput.addEventListener('input', () => {
     const menu = document.getElementById('edit-sale-dropdown');
     const term = editSaleDrugInput.value.toLowerCase().trim();
-    if (!term) { menu.style.display = 'none'; return; }
+    if (!term) {
+      menu.style.display = 'none';
+      return;
+    }
 
-    editDropMatches = availablePosStock.filter(d =>
-      d.brand_name.toLowerCase().includes(term) ||
-      (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
-      d.batch_number.toLowerCase().includes(term)
+    editDropMatches = availablePosStock.filter(
+      (d) =>
+        d.brand_name.toLowerCase().includes(term) ||
+        (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
+        d.batch_number.toLowerCase().includes(term)
     );
 
-    if (editDropMatches.length === 0) { menu.style.display = 'none'; return; }
+    if (editDropMatches.length === 0) {
+      menu.style.display = 'none';
+      return;
+    }
 
     editDropIndex = 0;
-    menu.innerHTML = editDropMatches.map((d, i) => `
+    menu.innerHTML = editDropMatches
+      .map(
+        (d, i) => `
       <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
         ${d.brand_name} | Batch: <code>${d.batch_number}</code> | Stock: ${d.available_qty} | <strong>LKR ${d.sell_price.toFixed(2)}</strong>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
 
-    menu.querySelectorAll('.pos-option').forEach(el => {
+    menu.querySelectorAll('.pos-option').forEach((el) => {
       el.addEventListener('click', () => {
-        const item = editDropMatches[el.dataset.idx];
-        editSaleDrugInput.value = `${item.brand_name} | Batch: ${item.batch_number} | LKR ${item.sell_price.toFixed(2)}`;
-        menu.style.display = 'none';
-        document.getElementById('edit_sale_qty').focus();
+        pickEditSaleItem(editDropMatches[el.dataset.idx]);
       });
     });
 
     menu.style.display = 'block';
+  });
+
+  // Arrow Keys, Enter & Escape Navigation
+  editSaleDrugInput.addEventListener('keydown', (e) => {
+    const menu = document.getElementById('edit-sale-dropdown');
+    const items = menu ? menu.querySelectorAll('.pos-option') : [];
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) {
+        editDropIndex = (editDropIndex + 1) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === editDropIndex));
+        items[editDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) {
+        editDropIndex = (editDropIndex - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === editDropIndex));
+        items[editDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (menu && menu.style.display !== 'none' && editDropMatches[editDropIndex]) {
+        pickEditSaleItem(editDropMatches[editDropIndex]);
+      } else {
+        const qty = document.getElementById('edit_sale_qty');
+        if (qty) {
+          qty.focus();
+          qty.select();
+        }
+      }
+    } else if (e.key === 'Escape') {
+      if (menu) menu.style.display = 'none';
+    }
+  });
+}
+
+// Add Item on Enter Key press in Quantity Input
+const editSaleQtyInput = document.getElementById('edit_sale_qty');
+if (editSaleQtyInput) {
+  editSaleQtyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const addBtn = document.getElementById('edit-sale-add-item-btn');
+      if (addBtn) addBtn.click();
+    }
   });
 }
 
