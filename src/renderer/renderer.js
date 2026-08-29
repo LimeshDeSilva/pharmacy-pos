@@ -1402,7 +1402,7 @@ async function refreshAlertBadges() {
     const totalAlerts = res.data.lowStockCount + res.data.expiringCount;
     if (totalAlerts > 0) {
       badge.style.display = 'inline-block';
-      badge.innerText = `${totalAlerts}`;
+      badge.innerText = String(totalAlerts);
     } else {
       badge.style.display = 'none';
     }
