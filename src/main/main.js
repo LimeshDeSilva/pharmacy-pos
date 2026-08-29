@@ -372,7 +372,7 @@ ipcMain.handle('inventory:updateItem', async (event, itemData) => {
 function setupThermalPrinterSharing() {
   if (process.platform !== 'win32') return;
 
-  const psScript = "$printer = Get-Printer | Where-Object { $_.Name -match 'XP-80|POS|Thermal|Receipt|80mm' } | Select-Object -First 1; if ($printer -and -not $printer.Shared) { Set-Printer -Name $printer.Name -Shared $true -ShareName 'receipt' }";
+  const psScript = "$printer = Get-Printer | Where-Object { $_.Name -match 'XP-80|POS|Thermal|Receipt|80mm' } | Select-Object -First 1; if ($printer -and -not $printer.Shared) { Set-Printer -Name $printer.Name -Shared $true -ShareName `\"receipt`\" }";
 
   exec(`powershell -ExecutionPolicy Bypass -Command "${psScript}"`, (err) => {
     if (err) {
@@ -380,6 +380,7 @@ function setupThermalPrinterSharing() {
     }
   });
 }
+
 
 app.whenReady().then(() => {
   setupThermalPrinterSharing();
