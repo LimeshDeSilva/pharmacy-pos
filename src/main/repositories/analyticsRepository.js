@@ -63,9 +63,9 @@ class AnalyticsRepository {
   getStockAlertsSummary() {
     const lowStock = this.db.prepare(`
       SELECT COUNT(*) as count FROM (
-        SELECT d.id, d.min_stock_alert, COALESCE(SUM(b.quantity), 0) as total_qty
+        SELECT d.id, d.min_stock_alert, SUM(b.quantity) as total_qty
         FROM drugs d
-        LEFT JOIN batches b ON d.id = b.drug_id
+        JOIN batches b ON d.id = b.drug_id
         GROUP BY d.id
         HAVING total_qty <= d.min_stock_alert
       )
