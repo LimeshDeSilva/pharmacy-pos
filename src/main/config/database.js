@@ -46,13 +46,11 @@ function initDatabase() {
       FOREIGN KEY (batch_id) REFERENCES batches(id)
     );
 
-    -- Settings table for dynamic pharmacy receipt info
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
 
-    -- Insert default pharmacy details if they don't already exist
     INSERT OR IGNORE INTO settings (key, value) VALUES 
       ('pharmacy_name', 'NEW SAHASNA PHARMACY'),
       ('pharmacy_address', 'No.514, Walagedara, Balapitiya'),
