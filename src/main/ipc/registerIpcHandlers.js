@@ -200,6 +200,15 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
       return { success: false, error: error.message };
     }
   });
+
+  ipcMain.handle('sales:update', async (event, { saleId, items, total }) => {
+    try {
+      const result = salesRepo.updateSale(saleId, items, total);
+      return { success: true, data: result };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 module.exports = registerIpcHandlers;
