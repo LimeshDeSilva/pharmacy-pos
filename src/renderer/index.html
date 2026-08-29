@@ -21,13 +21,7 @@
       <li class="nav-item" data-view="add-batch-view">🏷️ Add Batch</li>
       <li class="nav-item" data-view="inventory-view">
         📦 Inventory
-        <span id="sidebar-alert-badge" style="display: none;
-              background: #ef4444;
-              color: white;
-              font-size: 11px;
-              padding: 2px 6px;
-              border-radius: 99px;
-              margin-left: 6px;">
+        <span id="sidebar-alert-badge" class="sidebar-badge">
           0
         </span>
       </li>
@@ -35,23 +29,20 @@
       <li class="nav-item" data-view="sales-view">📊 Sales History</li>
       <li class="nav-item" data-view="reports-view">📈 Revenue & Charts</li>
       <li class="nav-item" data-view="profits-view">💰 Profits & Charts</li>
-      <li class="nav-item" data-view="clear-inventory-view" style="color: #f87171;">⚠️ Reset System</li>
+      <li class="nav-item nav-item-reset" data-view="clear-inventory-view">⚠️ Reset System</li>
     </ul>
   </nav>
-
-
 
   <main id="main-content">
 
     <header>
       <h1 id="page-title">Register Medicine</h1>
     </header>
-
-
+    
     <!-- Add Medicine Panel -->
     <section id="add-drug-view" class="view-panel active">
       <div class="card">
-        <h3 style="margin-bottom: 14px;">Register New Medicine</h3>
+        <h3 class="card-title-spaced">Register New Medicine</h3>
         <form id="drug-form">
           <div class="form-group">
             <label for="brand_name">Brand Name *</label>
@@ -78,7 +69,7 @@
     <!-- Add Batch View -->
     <section id="add-batch-view" class="view-panel">
       <div class="card">
-        <h3 style="margin-bottom: 14px;">Add Shipment Batch</h3>
+        <h3 class="card-title-spaced">Add Shipment Batch</h3>
         <form id="batch-form">
           <div class="form-group">
             <label for="batch_drug_input">Select Medicine (Type name to search...) *</label>
@@ -114,19 +105,16 @@
 
     <!-- Inventory View -->
     <section id="inventory-view" class="view-panel">
-      <div class="card" style="max-width: 100%; display: flex; flex-direction: column;">
+      <div class="card card-full-flex">
 
-        <!-- Top Bar: Actions & Filters (Stays Fixed at Top) -->
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <!-- Top Bar: Actions & Filters -->
+        <div class="inventory-top-bar">
 
           <!-- Left Controls: Filter + Search -->
-          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <label for="inventory-filter" style="font-weight: 600; font-size: 13px; color: #475569;">Filter
-                By:</label>
-              <select id="inventory-filter"
-                style="width: auto; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;">
+          <div class="inventory-controls-left">
+            <div class="control-group">
+              <label for="inventory-filter" class="control-label">Filter By:</label>
+              <select id="inventory-filter" class="select-filter">
                 <option value="ALL">All Items</option>
                 <option value="IN_STOCK">In Stock</option>
                 <option value="LOW_STOCK">Low Stock</option>
@@ -136,32 +124,26 @@
               </select>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <label for="inventory-search" style="font-weight: 600; font-size: 13px; color: #475569;">Search:</label>
-              <input type="text" id="inventory-search" placeholder="Search brand, generic, batch..."
-                style="width: 240px; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;"
-                autocomplete="off" />
+            <div class="control-group">
+              <label for="inventory-search" class="control-label">Search:</label>
+              <input type="text" id="inventory-search" class="input-search"
+                placeholder="Search brand, generic, batch..." autocomplete="off" />
             </div>
           </div>
 
           <!-- Action Buttons -->
-          <div style="display: flex; gap: 8px;">
-            <button id="export-csv-btn" class="btn"
-              style="width: auto; padding: 6px 12px; font-size: 13px; background: #059669;">📥 Export CSV</button>
-            <button id="backup-db-btn" class="btn"
-              style="width: auto; padding: 6px 12px; font-size: 13px; background: #475569;">💾 Backup DB</button>
-            <button id="refresh-inventory-btn" class="btn" style="width: auto; padding: 6px 12px; font-size: 13px;">🔄
-              Refresh Stock</button>
+          <div class="inventory-actions-right">
+            <button id="export-csv-btn" class="btn btn-auto btn-export">📥 Export CSV</button>
+            <button id="backup-db-btn" class="btn btn-auto btn-backup">💾 Backup DB</button>
+            <button id="refresh-inventory-btn" class="btn btn-auto">🔄 Refresh Stock</button>
           </div>
 
         </div>
 
         <!-- Scrollable Table Container -->
-        <div
-          style="max-height: calc(100vh - 230px); overflow-y: auto; overflow-x: auto; border: 1px solid #f1f5f9; border-radius: 8px;">
-          <table class="data-table" style="width: 100%; border-collapse: collapse; margin: 0;">
-            <thead
-              style="position: sticky; top: 0; background: #ffffff; z-index: 3; box-shadow: 0 1px 2px rgba(0,0,0,0.06);">
+        <div class="inventory-table-container">
+          <table class="data-table data-table-fill">
+            <thead class="sticky-thead">
               <tr>
                 <th>Brand Name</th>
                 <th>Generic Name</th>
@@ -186,23 +168,20 @@
 
     <!-- POS Billing View -->
     <section id="pos-view" class="view-panel">
-      <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; align-items: start;">
+      <div class="pos-grid">
 
         <!-- Left: Item Selector Card -->
-        <div class="card" style="max-width: 100%; position: sticky; top: 0;">
-          <h3 style="margin-bottom: 14px;">Select Item</h3>
+        <div class="card card-sticky-top">
+          <h3 class="card-title-spaced">Select Item</h3>
 
-
-          <div class="form-group" style="position: relative;">
+          <div class="form-group pos-relative">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
             <input type="text" id="pos_drug_input" placeholder="Type brand/generic name..." autocomplete="off" />
             <div id="pos-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
 
-
           <!-- Red Expiry Warning Box -->
-          <div id="pos-expiry-alert"
-            style="display: none; margin-top: 8px; padding: 8px 12px; background: #fee2e2; border: 1px solid #f87171; border-radius: 6px; color: #b91c1c; font-size: 12px; font-weight: 600;">
+          <div id="pos-expiry-alert" class="pos-expiry-alert-box" style="display: none;">
           </div>
 
           <div class="form-group">
@@ -215,15 +194,13 @@
         </div>
 
         <!-- Right ==> Current Bill -->
-        <div class="card" style="max-width: 100%; display: flex; flex-direction: column;">
-          <h3 style="margin-bottom: 14px;">Current Invoice</h3>
+        <div class="card card-full-flex">
+          <h3 class="card-title-spaced">Current Invoice</h3>
 
           <!-- Scrollable Cart Table Container -->
-          <div
-            style="max-height: 380px; overflow-y: auto; margin-bottom: 14px; border: 1px solid #f1f5f9; border-radius: 6px;">
-            <table class="data-table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-              <thead
-                style="position: sticky; top: 0; background: #ffffff; z-index: 2; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+          <div class="cart-scroll-container">
+            <table class="data-table data-table-fill no-margin-bottom">
+              <thead class="sticky-thead-shallow">
                 <tr>
                   <th>Item</th>
                   <th>Price</th>
@@ -234,39 +211,34 @@
               </thead>
               <tbody id="cart-table-body">
                 <tr>
-                  <td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td>
+                  <td colspan="5" class="table-empty-cell">Cart is empty.</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <!-- Pricing, Cash Received & Balance Calculation -->
-          <div
-            style="border-top: 2px solid #e2e8f0; padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 15px; font-weight: 700; color: #1e293b;">Net Total:</span>
-              <span id="grand-total-display" style="font-size: 20px; font-weight: 800; color: #0284c7;">LKR 0.00</span>
+          <div class="pos-calculation-panel">
+            <div class="pos-total-row">
+              <span class="pos-total-label">Net Total:</span>
+              <span id="grand-total-display" class="pos-grand-total">LKR 0.00</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;">
+            <div class="pos-payment-grid">
               <div>
-                <label for="pos-paid-amount" style="font-size: 12px; font-weight: 700; color: #475569;">Cash Paid (LKR)
-                  *</label>
-                <input type="number" step="0.01" min="0" id="pos-paid-amount" placeholder="0.00"
-                  style="width: 100%; font-size: 16px; font-weight: 700; color: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1.5px solid #cbd5e1;" />
+                <label for="pos-paid-amount" class="pos-pay-label">Cash Paid (LKR) *</label>
+                <input type="number" step="0.01" min="0" id="pos-paid-amount" class="pos-paid-input"
+                  placeholder="0.00" />
               </div>
 
               <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Balance / Change</label>
-                <div id="pos-balance-display"
-                  style="font-size: 17px; font-weight: 800; color: #16a34a; padding: 7px 0;">LKR 0.00</div>
+                <label class="pos-pay-label">Balance / Change</label>
+                <div id="pos-balance-display" class="pos-balance-value">LKR 0.00</div>
               </div>
             </div>
           </div>
 
-          <button id="checkout-btn" class="btn"
-            style="background: #16a34a; padding: 12px; font-size: 15px; margin-top: 10px;">Complete
-            Checkout & Print (F8)</button>
+          <button id="checkout-btn" class="btn btn-checkout">Complete Checkout & Print (F8)</button>
           <div id="checkout-status-msg" class="status-msg"></div>
         </div>
 
@@ -275,32 +247,25 @@
 
     <!-- Sales History View -->
     <section id="sales-view" class="view-panel">
-      <div class="card" style="max-width: 100%;">
+      <div class="card card-full-width">
 
         <!-- Top Control Bar -->
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div class="sales-top-bar">
 
           <!-- Left: Title & Live Total Revenue -->
           <div>
-            <h3 style="margin-bottom: 4px;">Sales & Transaction History</h3>
-            <p id="total-revenue-banner" style="color: #0284c7; font-weight: 700; font-size: 14px; margin: 0;">Total
-              Revenue: LKR 0.00</p>
+            <h3 class="title-compact">Sales & Transaction History</h3>
+            <p id="total-revenue-banner" class="revenue-banner-text">Total Revenue: LKR 0.00</p>
           </div>
 
           <!-- Right: Date Filter & Actions -->
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <label for="sales-date-filter" style="font-weight: 600; font-size: 13px; color: #475569;">Filter
-              Date:</label>
-            <input type="date" id="sales-date-filter"
-              style="padding: 5px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+          <div class="sales-filter-group">
+            <label for="sales-date-filter" class="control-label">Filter Date:</label>
+            <input type="date" id="sales-date-filter" class="date-input-field" />
 
-            <button id="sales-today-btn" type="button" class="btn"
-              style="width: auto; padding: 6px 12px; font-size: 12px; background: #0284c7;">Today</button>
-            <button id="sales-clear-filter-btn" type="button" class="btn"
-              style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">All Time</button>
-            <button id="refresh-sales-btn" type="button" class="btn"
-              style="width: auto; padding: 6px 12px; font-size: 12px;">🔄 Refresh</button>
+            <button id="sales-today-btn" type="button" class="btn btn-auto btn-today">Today</button>
+            <button id="sales-clear-filter-btn" type="button" class="btn btn-auto btn-all-time">All Time</button>
+            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
           </div>
 
         </div>
@@ -326,17 +291,14 @@
     </section>
 
     <!-- Receipt Details Modal Popup -->
-    <div id="receipt-modal"
-      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
-      <div class="card" style="width: 480px; max-width: 90%; max-height: 85vh; overflow-y: auto;">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+    <div id="receipt-modal" class="modal-backdrop" style="display: none;">
+      <div class="card modal-dialog-receipt">
+        <div class="modal-header">
           <h3 id="modal-invoice-title">Receipt #</h3>
-          <button id="close-modal-btn"
-            style="background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;">✕</button>
+          <button id="close-modal-btn" class="close-icon-btn">✕</button>
         </div>
 
-        <table class="data-table" style="margin-bottom: 14px;">
+        <table class="data-table modal-receipt-table">
           <thead>
             <tr>
               <th>Medicine</th>
@@ -348,9 +310,8 @@
           </thead>
           <tbody id="receipt-items-body"></tbody>
         </table>
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
-          <button id="modal-reprint-btn" class="btn" style="background: #0284c7; width: auto; padding: 6px 14px;">🖨️
-            Print Receipt</button>
+        <div class="modal-action-row">
+          <button id="modal-reprint-btn" class="btn btn-auto btn-reprint">🖨️ Print Receipt</button>
         </div>
       </div>
     </div>
@@ -359,38 +320,36 @@
     <section id="reports-view" class="view-panel">
 
       <!-- Top KPI Summary Cards -->
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="max-width: 100%; border-left: 8px solid #0284c7;">
-          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">Today's Revenue</small>
-          <h2 id="kpi-today-rev" style="color: #0284c7; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-today-orders" style="color: #0284c7;">0 orders</small>
+      <div class="kpi-grid">
+        <div class="card card-full-width kpi-card-blue">
+          <small class="kpi-label">Today's Revenue</small>
+          <h2 id="kpi-today-rev" class="kpi-value-blue">LKR 0.00</h2>
+          <small id="kpi-today-orders" class="kpi-sub-blue">0 orders</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 8px solid #16a34a;">
-          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">This Month</small>
-          <h2 id="kpi-month-rev" style="color: #16a34a; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-month-orders" style="color: #16a34a;">0 orders</small>
+        <div class="card card-full-width kpi-card-green">
+          <small class="kpi-label">This Month</small>
+          <h2 id="kpi-month-rev" class="kpi-value-green">LKR 0.00</h2>
+          <small id="kpi-month-orders" class="kpi-sub-green">0 orders</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 8px solid #8b5cf6;">
-          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">All Time Revenue</small>
-          <h2 id="kpi-total-rev" style="color: #8b5cf6; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-total-orders" style="color: #8b5cf6;">0 orders</small>
+        <div class="card card-full-width kpi-card-purple">
+          <small class="kpi-label">All Time Revenue</small>
+          <h2 id="kpi-total-rev" class="kpi-value-purple">LKR 0.00</h2>
+          <small id="kpi-total-orders" class="kpi-sub-purple">0 orders</small>
         </div>
       </div>
 
       <!-- Main Chart Container -->
-      <div class="card" style="max-width: 100%;">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div class="card card-full-width">
+        <div class="chart-header-row">
           <div>
             <h3>Revenue Analytics</h3>
-            <p style="color: #64748b; font-size: 13px;">Visual breakdown of store sales performance</p>
+            <p class="chart-subtitle">Visual breakdown of store sales performance</p>
           </div>
 
           <!-- Timeframe Filter Buttons -->
-          <div style="display: flex; gap: 8px;">
+          <div class="filter-btn-group">
             <button class="filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
             <button class="filter-btn" data-period="weekly">Weekly</button>
             <button class="filter-btn" data-period="monthly">Monthly</button>
@@ -398,174 +357,145 @@
         </div>
 
         <!-- Canvas for Chart.js -->
-        <div style="position: relative; height: 360px; width: 100%;">
+        <div class="chart-canvas-wrapper">
           <canvas id="salesChart"></canvas>
         </div>
       </div>
     </section>
 
-
-
     <!-- Visual Profit Analytics & Charts View -->
     <section id="profits-view" class="view-panel">
 
       <!-- Top Profit Summary Cards -->
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="max-width: 100%; border-left: 8px solid #0284c7;">
-          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">Today's Profit</small>
-          <h2 id="kpi-today-profit" style="color: #0284c7; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-today-profit-orders" style="color: #16a34a;">0 transactions</small>
+      <div class="kpi-grid">
+        <div class="card card-full-width kpi-card-blue">
+          <small class="kpi-label">Today's Profit</small>
+          <h2 id="kpi-today-profit" class="kpi-value-blue">LKR 0.00</h2>
+          <small id="kpi-today-profit-orders" class="kpi-sub-green-light">0 transactions</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 8px solid #16a34a;">
-          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">This Month Profit</small>
-          <h2 id="kpi-month-profit" style="color: #16a34a; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-month-profit-orders" style="color: #059669;">0 transactions</small>
+        <div class="card card-full-width kpi-card-green">
+          <small class="kpi-label">This Month Profit</small>
+          <h2 id="kpi-month-profit" class="kpi-value-green">LKR 0.00</h2>
+          <small id="kpi-month-profit-orders" class="kpi-sub-emerald">0 transactions</small>
         </div>
 
-        <div class="card" style="max-width: 100%; border-left: 8px solid #8b5cf6;">
-          <small style="color: #64748b; font-weight: bold; text-transform: uppercase;">All Time Net Profit</small>
-          <h2 id="kpi-total-profit" style="color: #8b5cf6; margin-top: 6px;">LKR 0.00</h2>
-          <small id="kpi-total-profit-orders" style="color: #7c3aed;">0 transactions</small>
+        <div class="card card-full-width kpi-card-purple">
+          <small class="kpi-label">All Time Net Profit</small>
+          <h2 id="kpi-total-profit" class="kpi-value-purple">LKR 0.00</h2>
+          <small id="kpi-total-profit-orders" class="kpi-sub-violet">0 transactions</small>
         </div>
       </div>
 
       <!-- Main Profit Chart Container -->
-      <div class="card" style="max-width: 100%;">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div class="card card-full-width">
+        <div class="chart-header-row">
           <div>
             <h3>Profit Analytics</h3>
-            <p style="color: #64748b; font-size: 13px;">Visual breakdown of net gross profit (Selling Price - Cost
-              Price)</p>
+            <p class="chart-subtitle">Visual breakdown of net gross profit (Selling Price - Cost Price)</p>
           </div>
 
           <!-- Timeframe Filter Buttons -->
-          <div style="display: flex; gap: 8px;">
-            <button class="profit-filter-btn profit-filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
-            <button class="profit-filter-btn profit-filter-btn" data-period="weekly">Weekly</button>
-            <button class="profit-filter-btn profit-filter-btn" data-period="monthly">Monthly</button>
-          </div>
-
-          <div style="position: relative; height: 360px; width: 100%;">
-            <canvas id="profitChart"></canvas>
+          <div class="filter-btn-group">
+            <button class="profit-filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
+            <button class="profit-filter-btn" data-period="weekly">Weekly</button>
+            <button class="profit-filter-btn" data-period="monthly">Monthly</button>
           </div>
         </div>
 
         <!-- Canvas for Profit Chart.js -->
-        <div style="position: relative; height: 360px; width: 100%;">
+        <div class="chart-canvas-wrapper">
           <canvas id="profitChart"></canvas>
         </div>
       </div>
     </section>
 
-
     <!-- Reset System View -->
     <section id="clear-inventory-view" class="view-panel">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+      <div class="reset-cards-grid">
 
         <!-- Delete Selected Medicine Only -->
-        <div class="card"
-          style="border-left: 4px solid #d97706; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); background: #ffffff;">
+        <div class="card reset-card reset-card-amber">
           <div>
-            <h3 style="color: #b45309; font-size: 18px; font-weight: 700; margin-bottom: 8px;">
+            <h3 class="reset-card-title reset-title-amber">
               🗑️ Delete Selected Medicine
             </h3>
-            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
-              Remove a discontinued medicine and its inventory stock. <em style="color: #475569;">Sales history &
-                reports will NOT be deleted.</em>
+            <p class="reset-card-desc">
+              Remove a discontinued medicine and its inventory stock. <em>Sales history & reports will NOT be
+                deleted.</em>
             </p>
 
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label for="delete_drug_select"
-                style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Select
-                Medicine *</label>
-              <select id="delete_drug_select"
-                style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: #ffffff;">
+            <div class="form-group reset-field-spacing">
+              <label for="delete_drug_select" class="reset-input-label">Select Medicine *</label>
+              <select id="delete_drug_select" class="reset-select">
                 <option value="">-- Choose Medicine --</option>
               </select>
             </div>
           </div>
 
           <div>
-            <button id="delete-selected-drug-btn" class="btn"
-              style="width: 100%; background: #d97706; color: #ffffff; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+            <button id="delete-selected-drug-btn" class="btn reset-btn-amber">
               Delete Selected Medicine
             </button>
-            <div id="delete-drug-status-msg" class="status-msg"
-              style="margin-top: 8px; font-size: 12px; min-height: 16px;"></div>
+            <div id="delete-drug-status-msg" class="status-msg reset-status-msg"></div>
           </div>
         </div>
 
         <!-- Delete All Medicines & Stock (Keep Sales) -->
-        <div class="card"
-          style="border-left: 4px solid #e11d48; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); background: #ffffff;">
+        <div class="card reset-card reset-card-rose">
           <div>
-            <h3 style="color: #be123c; font-size: 18px; font-weight: 700; margin-bottom: 8px;">
+            <h3 class="reset-card-title reset-title-rose">
               📦 Clear All Medicines Only
             </h3>
-            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
-              Wipe all registered drugs and batch stocks. <em style="color: #475569;">Past sales orders and revenue
-                charts are preserved. PIN required.</em>
+            <p class="reset-card-desc">
+              Wipe all registered drugs and batch stocks. <em>Past sales orders and revenue charts are preserved. PIN
+                required.</em>
             </p>
 
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label for="admin-pin-clear-medicines"
-                style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Enter PIN
-                *</label>
-              <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN...." maxlength="10"
-                style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;" />
+            <div class="form-group reset-field-spacing">
+              <label for="admin-pin-clear-medicines" class="reset-input-label">Enter PIN *</label>
+              <input type="password" id="admin-pin-clear-medicines" class="reset-pin-input" placeholder="Enter PIN...."
+                maxlength="10" />
             </div>
           </div>
 
           <div>
-            <button id="delete-all-drugs-btn" class="btn"
-              style="width: 100%; background: #be123c; color: #ffffff; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+            <button id="delete-all-drugs-btn" class="btn reset-btn-rose">
               Clear All Active Medicines
             </button>
-            <div id="delete-all-drugs-msg" class="status-msg"
-              style="margin-top: 8px; font-size: 12px; min-height: 16px;"></div>
+            <div id="delete-all-drugs-msg" class="status-msg reset-status-msg"></div>
           </div>
         </div>
 
         <!-- Factory Reset (Wipe Everything) -->
-        <div class="card"
-          style="border-left: 4px solid #dc2626; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); background: #ffffff;">
+        <div class="card reset-card reset-card-red">
           <div>
-            <h3 style="color: #dc2626; font-size: 18px; font-weight: 700; margin-bottom: 8px;">
+            <h3 class="reset-card-title reset-title-red">
               💥 Full Factory Reset
             </h3>
-            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
-              Wipe <strong style="color: #1e293b;">all medicines, batches, sales orders, and report data.</strong> <em
-                style="color: #475569;">PIN required.</em>
+            <p class="reset-card-desc">
+              Wipe <strong>all medicines, batches, sales orders, and report data.</strong> <em>PIN required.</em>
             </p>
 
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label for="admin-pin-confirm"
-                style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Enter PIN
-                *</label>
-              <input type="password" id="admin-pin-confirm" placeholder="Enter PIN...." maxlength="10"
-                style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;" />
+            <div class="form-group reset-field-spacing">
+              <label for="admin-pin-confirm" class="reset-input-label">Enter PIN *</label>
+              <input type="password" id="admin-pin-confirm" class="reset-pin-input" placeholder="Enter PIN...."
+                maxlength="10" />
             </div>
           </div>
 
           <div>
-            <button id="wipe-database-btn" class="btn"
-              style="width: 100%; background: #dc2626; color: #ffffff; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+            <button id="wipe-database-btn" class="btn reset-btn-red">
               Wipe Entire System
             </button>
-            <div id="wipe-status-msg" class="status-msg" style="margin-top: 8px; font-size: 12px; min-height: 16px;">
-            </div>
+            <div id="wipe-status-msg" class="status-msg reset-status-msg"></div>
           </div>
         </div>
 
       </div>
     </section>
 
-
   </main>
-
 
   <!-- ==================== THERMAL RECEIPT PRINT TEMPLATE ==================== -->
   <div id="thermal-receipt-area" style="display: none;">
@@ -583,10 +513,10 @@
       <table class="receipt-table">
         <thead>
           <tr>
-            <th style="text-align: left;">Item</th>
-            <th style="text-align: center;">Qty</th>
-            <th style="text-align: right;">Price</th>
-            <th style="text-align: right;">Total</th>
+            <th class="receipt-th-left">Item</th>
+            <th class="receipt-th-center">Qty</th>
+            <th class="receipt-th-right">Price</th>
+            <th class="receipt-th-right">Total</th>
           </tr>
         </thead>
         <tbody id="rec-items-body">
@@ -602,13 +532,11 @@
           <span>Grand Total:</span>
           <span id="rec-grand-total">LKR 0.00</span>
         </div>
-        <div class="receipt-row"
-          style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+        <div class="receipt-row receipt-sub-row">
           <span>Cash Paid:</span>
           <span id="rec-paid-amount">LKR 0.00</span>
         </div>
-        <div class="receipt-row"
-          style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-top: 2px;">
+        <div class="receipt-row receipt-sub-row-bold">
           <span>Change / Balance:</span>
           <span id="rec-balance-amount">LKR 0.00</span>
         </div>
@@ -623,16 +551,12 @@
     </div>
   </div>
 
-
   <!-- ==================== EDIT INVENTORY ITEM MODAL ==================== -->
-  <div id="edit-drug-modal"
-    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
-    <div class="card" style="width: 560px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-        <h3 style="margin: 0;">Edit Medicine & Batch Details</h3>
-        <button id="close-edit-drug-modal"
-          style="background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;">✕</button>
+  <div id="edit-drug-modal" class="modal-backdrop" style="display: none;">
+    <div class="card modal-dialog-edit">
+      <div class="modal-header">
+        <h3 class="no-margin">Edit Medicine & Batch Details</h3>
+        <button id="close-edit-drug-modal" class="close-icon-btn">✕</button>
       </div>
 
       <form id="edit-drug-form">
@@ -640,8 +564,8 @@
         <input type="hidden" id="edit_batch_id" />
 
         <!-- Section: Medicine Details -->
-        <h4 style="color: #0284c7; margin-bottom: 10px; font-size: 14px;">Medicine Info</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <h4 class="edit-section-heading">Medicine Info</h4>
+        <div class="grid-2-col">
           <div class="form-group">
             <label for="edit_brand_name">Brand Name *</label>
             <input type="text" id="edit_brand_name" required autocomplete="off" />
@@ -653,7 +577,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="grid-2-col">
           <div class="form-group">
             <label for="edit_category">Category</label>
             <input type="text" id="edit_category" autocomplete="off" />
@@ -667,11 +591,9 @@
 
         <!-- Section: Batch Details -->
         <div id="edit-batch-section">
-          <h4
-            style="color: #0284c7; margin: 14px 0 10px 0; font-size: 14px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
-            Batch & Pricing Info</h4>
+          <h4 class="edit-batch-heading">Batch & Pricing Info</h4>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="grid-2-col">
             <div class="form-group">
               <label for="edit_batch_number">Batch Number *</label>
               <input type="text" id="edit_batch_number" autocomplete="off" />
@@ -683,7 +605,7 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div class="grid-3-col">
             <div class="form-group">
               <label for="edit_buy_price">Buy Price (LKR) *</label>
               <input type="number" step="0.01" min="0" id="edit_buy_price" />
@@ -701,17 +623,14 @@
           </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
-          <button type="button" id="cancel-edit-drug-btn" class="btn"
-            style="background: #64748b; width: auto; padding: 6px 14px;">Cancel</button>
-          <button type="submit" class="btn" style="background: #0284c7; width: auto; padding: 6px 14px;">Save
-            Changes</button>
+        <div class="modal-footer-actions">
+          <button type="button" id="cancel-edit-drug-btn" class="btn btn-auto btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-auto btn-save">Save Changes</button>
         </div>
         <div id="edit-drug-status-msg" class="status-msg"></div>
       </form>
     </div>
   </div>
-
 
   <script src="renderer.js"></script>
 

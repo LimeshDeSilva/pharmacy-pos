@@ -8,7 +8,6 @@ let analyticsCache = null;
 let profitChartInstance = null;
 let profitAnalyticsCache = null;
 
-
 const viewTitles = {
   'add-drug-view': 'Register Medicine',
   'add-batch-view': 'Add Batch',
@@ -127,7 +126,7 @@ if (drugForm) {
   });
 }
 
-// Add Medicine Keyboard Jumps
+// Add Medicine Keyboard Navigation
 if (brandInput) {
   brandInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -255,7 +254,7 @@ if (batchForm) {
   });
 }
 
-// Add Batch Keyboard Jumps
+// Add Batch Keyboard Navigation
 const batchDrugInput = document.getElementById('batch_drug_input');
 const batchNoInput = document.getElementById('batch_number');
 const expiryDateInput = document.getElementById('expiry_date');
@@ -469,7 +468,6 @@ if (refreshInventoryBtn) {
   refreshInventoryBtn.addEventListener('click', loadInventory);
 }
 
-
 // ==================== EDIT ITEM MODAL HANDLERS ====================
 window.openEditItemModal = (drugId, batchId) => {
   const item = rawInventoryData.find((d) => d.drug_id === drugId && (batchId ? d.batch_id === batchId : true));
@@ -557,8 +555,6 @@ if (editItemForm) {
   });
 }
 
-
-
 // ==================== POS / BILLING MODULE ====================
 let dropIndex = 0;
 let dropMatches = [];
@@ -575,14 +571,12 @@ async function loadPosStock() {
   if (drugInput) setTimeout(() => drugInput.focus(), 50);
 }
 
-
 function showList(q = '') {
   const menu = document.getElementById('pos-dropdown');
   if (!menu) return;
 
   const term = q.toLowerCase().trim();
 
-  // Hide the dropdown if nothing has been typed yet
   if (!term) {
     menu.style.display = 'none';
     return;
@@ -627,16 +621,14 @@ function pickItem(item) {
   }
 }
 
-
 // Jump directly to Cash Paid field on '+' keypress
 window.addEventListener('keydown', (e) => {
   if (e.key === '+' || e.code === 'NumpadAdd') {
     const posView = document.getElementById('pos-view');
     const isPosActive = posView && posView.classList.contains('active');
 
-    // Only trigger if we are currently on the POS Billing screen
     if (isPosActive) {
-      e.preventDefault(); // Prevent typing '+' into the field
+      e.preventDefault();
       const paidInput = document.getElementById('pos-paid-amount');
       if (paidInput) {
         paidInput.focus();
@@ -646,8 +638,6 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-
-// Check and display red highlight under input if selected batch is expired
 function checkSelectedBatchExpiry() {
   const drugInput = document.getElementById('pos_drug_input');
   const expiryAlert = document.getElementById('pos-expiry-alert');
@@ -674,7 +664,6 @@ function checkSelectedBatchExpiry() {
     expiryAlert.style.display = 'none';
   }
 }
-
 
 function calculatePosBalance() {
   const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
@@ -711,7 +700,6 @@ if (posPaidInput) {
   });
 }
 
-
 function renderCart() {
   const cartBody = document.getElementById('cart-table-body');
   const totalDisplay = document.getElementById('grand-total-display');
@@ -735,8 +723,12 @@ function renderCart() {
     grandTotal += item.total_price;
     const isExpired = item.expiry_date && new Date(item.expiry_date) < today;
 
-    const batchStyle = isExpired ? 'color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;' : 'color: #64748b;';
-    const expiredBadge = isExpired ? '<span style="background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">EXPIRED</span>' : '';
+    const batchStyle = isExpired
+      ? 'color: #dc2626; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;'
+      : 'color: #64748b;';
+    const expiredBadge = isExpired
+      ? '<span style="background: #dc2626; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">EXPIRED</span>'
+      : '';
 
     const tr = document.createElement('tr');
     if (isExpired) tr.style.backgroundColor = '#fff5f5';
@@ -820,7 +812,6 @@ function handleAddToCart() {
     });
   }
 
-  // Reset inputs and styles
   msg.innerText = '';
   drugInput.value = '';
   drugInput.style.borderColor = '';
@@ -832,10 +823,8 @@ function handleAddToCart() {
   drugInput.focus();
 }
 
-
 const pInput = document.getElementById('pos_drug_input');
 if (pInput) {
-  // Triggers ONLY when typing characters into the field
   pInput.addEventListener('input', () => {
     showList(pInput.value);
     checkSelectedBatchExpiry();
@@ -876,14 +865,12 @@ if (pInput) {
   });
 }
 
-// Close dropdown on outside click
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('pos-dropdown');
   if (menu && !menu.contains(e.target) && e.target !== pInput) {
     menu.style.display = 'none';
   }
 });
-
 
 const addToCartBtn = document.getElementById('add-to-cart-btn');
 if (addToCartBtn) {
@@ -911,7 +898,6 @@ window.addEventListener('keydown', (e) => {
 // ==================== SALES HISTORY MODULE ====================
 let rawSalesData = [];
 
-// Render sales rows and calculate revenue for filtered dates
 function renderSalesTable() {
   const tableBody = document.getElementById('sales-table-body');
   const revenueBanner = document.getElementById('total-revenue-banner');
@@ -926,7 +912,6 @@ function renderSalesTable() {
     return;
   }
 
-  // Filter sales matching the date string (YYYY-MM-DD)
   const filteredSales = rawSalesData.filter((sale) => {
     if (!selectedDate) return true;
     return sale.sale_date && sale.sale_date.startsWith(selectedDate);
@@ -962,7 +947,6 @@ function renderSalesTable() {
   }
 }
 
-// Fetch all sales from SQLite
 async function loadSalesHistory() {
   const res = await window.api.getAllSales();
   if (res.success) {
@@ -971,14 +955,12 @@ async function loadSalesHistory() {
   }
 }
 
-// Date picker change event
 const salesDateFilter = document.getElementById('sales-date-filter');
 if (salesDateFilter) {
   salesDateFilter.addEventListener('input', renderSalesTable);
   salesDateFilter.addEventListener('change', renderSalesTable);
 }
 
-// "Today" quick filter button
 const salesTodayBtn = document.getElementById('sales-today-btn');
 if (salesTodayBtn) {
   salesTodayBtn.addEventListener('click', () => {
@@ -988,7 +970,6 @@ if (salesTodayBtn) {
   });
 }
 
-// "All Time" clear filter button
 const salesClearBtn = document.getElementById('sales-clear-filter-btn');
 if (salesClearBtn) {
   salesClearBtn.addEventListener('click', () => {
@@ -999,7 +980,6 @@ if (salesClearBtn) {
 
 let currentModalSale = null;
 
-// View Receipt Modal
 window.viewReceipt = async (saleId) => {
   const modal = document.getElementById('receipt-modal');
   const title = document.getElementById('modal-invoice-title');
@@ -1032,7 +1012,6 @@ window.viewReceipt = async (saleId) => {
   }
 };
 
-// Modal Reprint Button Listener
 const modalReprintBtn = document.getElementById('modal-reprint-btn');
 if (modalReprintBtn) {
   modalReprintBtn.addEventListener('click', () => {
@@ -1159,13 +1138,9 @@ filterButtons.forEach((btn) => {
   });
 });
 
-
 // ==================== PROFIT ANALYTICS MODULE ====================
-
-
 async function loadProfitAnalyticsDashboard() {
   const res = await window.api.getProfitAnalytics();
-  console.log('Profit data received:', res);
 
   if (!res || !res.success) {
     console.error('Profit fetch error:', res ? res.error : 'No response');
@@ -1266,7 +1241,6 @@ function renderProfitChart(periodType = 'daily') {
   });
 }
 
-// Profit timeframe buttons filter listener
 const profitFilterButtons = document.querySelectorAll('.profit-filter-btn');
 profitFilterButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -1276,8 +1250,6 @@ profitFilterButtons.forEach((btn) => {
     renderProfitChart(period);
   });
 });
-
-
 
 // ==================== ALERTS BADGE MODULE ====================
 async function refreshAlertBadges() {
@@ -1453,7 +1425,6 @@ if (wipeDatabaseBtn) {
   });
 }
 
-
 // ==================== RECEIPT PRINTING MODULE ====================
 async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0) {
   if (!items || items.length === 0) return;
@@ -1475,8 +1446,6 @@ async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmoun
   }
 }
 
-
-
 // ==================== CHECKOUT & PRINT ACTION ====================
 let isCheckingOut = false;
 
@@ -1485,7 +1454,6 @@ if (checkoutBtn) {
   checkoutBtn.addEventListener('click', async () => {
     const msg = document.getElementById('checkout-status-msg');
 
-    // Prevent double execution
     if (isCheckingOut) return;
 
     if (currentCart.length === 0) {
@@ -1500,13 +1468,12 @@ if (checkoutBtn) {
     checkoutBtn.disabled = true;
 
     try {
-      // 1. Capture exact values from UI before state reset
       const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
       const paidInput = document.getElementById('pos-paid-amount');
 
       let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
       if (paidVal === 0) {
-        paidVal = grandTotal; // Default to exact amount if left blank
+        paidVal = grandTotal;
       }
 
       const balanceVal = paidVal - grandTotal;
@@ -1518,7 +1485,6 @@ if (checkoutBtn) {
         msg.innerText = 'Processing sale...';
       }
 
-      // 2. Process database transaction
       const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
 
       if (res.success) {
@@ -1527,7 +1493,6 @@ if (checkoutBtn) {
           msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
         }
 
-        // 3. Clear cart and reset views
         currentCart = [];
         renderCart();
         await loadPosStock();
@@ -1536,7 +1501,6 @@ if (checkoutBtn) {
         const pInput = document.getElementById('pos_drug_input');
         if (pInput) pInput.focus();
 
-        // 4. Send single print command with all amounts included
         await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal);
 
         setTimeout(() => {
