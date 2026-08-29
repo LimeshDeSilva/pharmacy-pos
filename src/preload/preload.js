@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   getInventory: () => ipcRenderer.invoke('inventory:getAll'),
   updateInventoryItem: (itemData) => ipcRenderer.invoke('inventory:updateItem', itemData),
   deleteMedicineKeepSales: (drugId) => ipcRenderer.invoke('inventory:deleteSingleDrug', drugId),
-  deleteAllMedicinesKeepSales: () => ipcRenderer.invoke('inventory:deleteAllDrugs', () => {}),
+  deleteAllMedicinesKeepSales: () => ipcRenderer.invoke('inventory:deleteAllDrugs'),
   clearInventory: () => ipcRenderer.invoke('inventory:clearAll'),
   getAlertsSummary: () => ipcRenderer.invoke('inventory:getAlerts'),
   exportCSV: () => ipcRenderer.invoke('inventory:exportCSV'),
