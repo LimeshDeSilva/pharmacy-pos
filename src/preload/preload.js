@@ -29,5 +29,9 @@ contextBridge.exposeInMainWorld('api', {
 
   // Store Settings (Must be present)
   getSettings: () => ipcRenderer.invoke('settings:get'),
-  updateSettings: (settings) => ipcRenderer.invoke('settings:update', settings)
+  updateSettings: (settings) => ipcRenderer.invoke('settings:update', settings),
+
+  // Sales Deletion
+  deleteSingleSale: (saleId) => ipcRenderer.invoke('sales:deleteSingle', saleId),
+  deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll')
 });
