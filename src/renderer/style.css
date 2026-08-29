@@ -456,6 +456,42 @@ select {
   color: #ffffff;
 }
 
+/* Custom Searchable Dropdown Styling */
+.pos-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.15);
+  z-index: 9999;
+  margin-top: 4px;
+}
+
+.pos-option {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #0f172a;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+
+.pos-option:last-child {
+  border-bottom: none;
+}
+
+.pos-option:hover,
+.pos-option.selected {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
 /* ==================== INVENTORY SECTION ==================== */
 .inventory-top-bar {
   display: flex;
