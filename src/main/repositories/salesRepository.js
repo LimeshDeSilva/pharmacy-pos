@@ -79,6 +79,30 @@ class SalesRepository {
 
     return resetAll();
   }
+
+  deleteSaleById(saleId) {
+    const deleteSaleItems = this.db.prepare('DELETE FROM sale_items WHERE sale_id = ?');
+    const deleteSale = this.db.prepare('DELETE FROM sales WHERE id = ?');
+
+    const transaction = this.db.transaction(() => {
+      deleteSaleItems.run(saleId);
+      const res = deleteSale.run(saleId);
+      return res.changes > 0;
+    });
+
+    return transaction();
+  }
+
+  deleteAllSales() {
+    const transaction = this.db.transaction(() => {
+      this.db.prepare('DELETE FROM sale_items').run();
+      this.db.prepare('DELETE FROM sales').run();
+      this.db.prepare("DELETE FROM sqlite_sequence WHERE name = 'sales' OR name = 'sale_items'").run();
+      return true;
+    });
+
+    return transaction();
+  }
 }
 
 module.exports = SalesRepository;
