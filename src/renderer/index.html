@@ -671,13 +671,15 @@
           <h3 style="color: #b45309; margin-top: 0;">🗑️ Delete Selected Medicine</h3>
           <p style="font-size: 13px; color: #64748b;">Remove a discontinued medicine and its inventory stock. Past sales
             history will NOT be deleted.</p>
-          <div class="form-group" style="margin-top: 15px;">
-            <label for="delete_drug_select">Select Medicine *</label>
-            <select id="delete_drug_select" class="form-control"
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-              <option value="">-- Choose Medicine --</option>
-            </select>
+
+          <div class="form-group pos-relative" style="margin-top: 15px;">
+            <label for="delete_drug_input">Search Medicine to Delete *</label>
+            <input type="text" id="delete_drug_input" placeholder="Type brand or generic name..." autocomplete="off"
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+            <input type="hidden" id="selected_delete_drug_id" />
+            <div id="delete-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
+
           <button id="delete-selected-drug-btn"
             style="width: 100%; margin-top: 15px; padding: 10px; background: #d97706; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete
             Selected Medicine</button>
