@@ -68,8 +68,24 @@ class PrinterService {
           );
       });
 
+      receiptContent.rule({ style: 'single' });
+
+      // If discount was applied, show subtotal and discount rows
+      if (receiptData.discount && Number(receiptData.discount) > 0) {
+        receiptContent
+          .table(
+            [
+              { width: 24, align: 'left' },
+              { width: 24, align: 'right' }
+            ],
+            [
+              ['Subtotal:', `LKR ${Number(receiptData.subtotal || (Number(receiptData.grandTotal) + Number(receiptData.discount))).toFixed(2)}`],
+              ['Discount:', `- LKR ${Number(receiptData.discount).toFixed(2)}`]
+            ]
+          );
+      }
+
       receiptContent
-        .rule({ style: 'single' })
         .bold(true)
         .table(
           [
