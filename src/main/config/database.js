@@ -58,6 +58,21 @@ function initDatabase() {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS till_shifts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      closed_at DATETIME,
+      opening_float REAL NOT NULL,
+      total_sales REAL DEFAULT 0,
+      total_orders INTEGER DEFAULT 0,
+      total_discounts REAL DEFAULT 0,
+      expected_cash REAL DEFAULT 0,
+      actual_cash REAL DEFAULT 0,
+      variance REAL DEFAULT 0,
+      note TEXT,
+      status TEXT DEFAULT 'OPEN'
+    );
+
     INSERT OR IGNORE INTO settings (key, value) VALUES 
       ('pharmacy_name', 'NEW SAHASNA PHARMACY'),
       ('pharmacy_address', 'No.514, Walagedara, Balapitiya'),
@@ -69,6 +84,24 @@ function initDatabase() {
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) {}
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS till_shifts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        closed_at DATETIME,
+        opening_float REAL NOT NULL,
+        total_sales REAL DEFAULT 0,
+        total_orders INTEGER DEFAULT 0,
+        total_discounts REAL DEFAULT 0,
+        expected_cash REAL DEFAULT 0,
+        actual_cash REAL DEFAULT 0,
+        variance REAL DEFAULT 0,
+        note TEXT,
+        status TEXT DEFAULT 'OPEN'
+      );
+    `);
+  } catch (e) {}
 
   try {
     db.exec(`
@@ -81,7 +114,7 @@ function initDatabase() {
 
 function seedMedicinesIfEmpty() {
   const row = db.prepare('SELECT COUNT(*) AS count FROM drugs').get();
-  if (row && row.count > 0) return; // Skip if medicines are already in the database
+  if (row && row.count > 0) return;
 
   console.log('Seeding initial 1,050 medicines...');
 
