@@ -109,6 +109,53 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await PrinterService.printReceipt(receiptData);
   });
 
+  // Till & Shift Management
+  ipcMain.handle('till:getActiveShift', async () => {
+    try {
+      return { success: true, data: salesRepo.getActiveShift() };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('till:openShift', async (event, openingFloat) => {
+    try {
+      const result = salesRepo.openShift(openingFloat);
+      return { success: true, data: result };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('till:getLiveStats', async (event, shiftId) => {
+    try {
+      return { success: true, data: salesRepo.getCurrentShiftLiveStats(shiftId) };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('till:closeShift', async (event, { shiftId, actualCash, note }) => {
+    try {
+      const result = salesRepo.closeShift(shiftId, actualCash, note);
+      return { success: true, data: result };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('till:getAllShifts', async () => {
+    try {
+      return { success: true, data: salesRepo.getAllShifts() };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('till:printReport', async (event, tillData) => {
+    return await PrinterService.printTillReport(tillData);
+  });
+
   // Sales History
   ipcMain.handle('sales:getAll', async () => {
     try {
