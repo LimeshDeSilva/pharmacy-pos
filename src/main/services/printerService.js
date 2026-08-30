@@ -16,6 +16,9 @@ class PrinterService {
       const storeAddress = receiptData.pharmacyAddress || '';
       const storePhone = receiptData.pharmacyPhone ? `Tel: ${receiptData.pharmacyPhone}` : '';
 
+      const invoiceLabel = receiptData.invoiceNo !== undefined ? `#${receiptData.invoiceNo}` : `#${receiptData.saleId}`;
+      const shiftTag = receiptData.shiftId ? ` (Till #${receiptData.shiftId})` : '';
+
       const receiptContent = encoder
         .initialize()
         .raw([0x1b, 0x61, 0x01])
@@ -32,7 +35,7 @@ class PrinterService {
       receiptContent
         .rule({ style: 'single' })
         .raw([0x1b, 0x61, 0x00])
-        .line(`Invoice #: #${receiptData.saleId}`)
+        .line(`Invoice #: ${invoiceLabel}${shiftTag}`)
         .line(`Date     : ${receiptData.dateStr}`)
         .rule({ style: 'single' })
         .bold(true)
