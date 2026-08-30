@@ -70,7 +70,6 @@ class PrinterService {
 
       receiptContent.rule({ style: 'single' });
 
-      // If discount was applied, show subtotal and discount rows
       if (receiptData.discount && Number(receiptData.discount) > 0) {
         receiptContent
           .table(
@@ -132,6 +131,113 @@ class PrinterService {
       });
     } catch (error) {
       console.error('Receipt Generation Error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async printTillReport(tillData) {
+    try {
+      const encoder = new ReceiptPrinterEncoder({
+        language: 'esc-pos',
+        columns: 48
+      });
+
+      const storeName = tillData.pharmacyName || 'PHARMACY POS';
+      const storeAddress = tillData.pharmacyAddress || '';
+      const storePhone = tillData.pharmacyPhone ? `Tel: ${tillData.pharmacyPhone}` : '';
+
+      const content = encoder
+        .initialize()
+        .raw([0x1b, 0x61, 0x01])
+        .bold(true)
+        .size(2, 2)
+        .line(storeName)
+        .size(1, 1)
+        .bold(false)
+        .raw([0x1b, 0x61, 0x01]);
+
+      if (storeAddress) content.line(storeAddress);
+      if (storePhone) content.line(storePhone);
+
+      content
+        .rule({ style: 'double' })
+        .bold(true)
+        .size(1, 1)
+        .line('=== TILL CLOSING REPORT (Z-REPORT) ===')
+        .bold(false)
+        .rule({ style: 'single' })
+        .raw([0x1b, 0x61, 0x00])
+        .line(`Shift ID  : #${tillData.shiftId}`)
+        .line(`Opened At : ${tillData.opened_at}`)
+        .line(`Closed At : ${tillData.closed_at}`)
+        .rule({ style: 'single' })
+        .table(
+          [
+            { width: 26, align: 'left' },
+            { width: 22, align: 'right' }
+          ],
+          [
+            ['Opening Float:', `LKR ${Number(tillData.opening_float).toFixed(2)}`],
+            ['Total Invoices Count:', `${tillData.total_orders}`],
+            ['Total Sales Volume:', `LKR ${Number(tillData.total_sales).toFixed(2)}`],
+            ['Total Discounts Given:', `LKR ${Number(tillData.total_discounts).toFixed(2)}`]
+          ]
+        )
+        .rule({ style: 'single' })
+        .bold(true)
+        .table(
+          [
+            { width: 26, align: 'left' },
+            { width: 22, align: 'right' }
+          ],
+          [
+            ['EXPECTED CASH:', `LKR ${Number(tillData.expected_cash).toFixed(2)}`],
+            ['ACTUAL CASH COUNTED:', `LKR ${Number(tillData.actual_cash).toFixed(2)}`]
+          ]
+        )
+        .rule({ style: 'single' })
+        .bold(true)
+        .table(
+          [
+            { width: 26, align: 'left' },
+            { width: 22, align: 'right' }
+          ],
+          [
+            ['VARIANCE / DIFFERENCE:', `LKR ${Number(tillData.variance).toFixed(2)}`]
+          ]
+        )
+        .bold(false);
+
+      if (tillData.note) {
+        content.rule({ style: 'single' }).line(`Note: ${tillData.note}`);
+      }
+
+      content
+        .newline(1)
+        .raw([0x1b, 0x61, 0x01])
+        .line('--- End of Shift Summary ---')
+        .newline(6)
+        .cut();
+
+      const rawBytes = encoder.encode();
+      const tempFilePath = path.join(os.tmpdir(), `till_report_${Date.now()}.bin`);
+      fs.writeFileSync(tempFilePath, Buffer.from(rawBytes));
+
+      const rawPrintCmd = `cmd.exe /c copy /b "${tempFilePath}" "\\\\127.0.0.1\\receipt"`;
+
+      return new Promise((resolve) => {
+        exec(rawPrintCmd, (err) => {
+          try { fs.unlinkSync(tempFilePath); } catch (e) {}
+          if (err) {
+            console.error('Raw print error for till report:', err);
+            resolve({ success: false, error: err.message });
+          } else {
+            resolve({ success: true });
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Till Report Generation Error:', error);
       return { success: false, error: error.message };
     }
   }
