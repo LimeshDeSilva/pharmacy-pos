@@ -6,8 +6,30 @@ class SalesRepository {
   processSale(cartItems, totalAmount, discount = 0) {
     const executeSale = this.db.transaction(() => {
       const discountVal = parseFloat(discount) || 0;
-      const saleInsert = this.db.prepare(`INSERT INTO sales (total_amount, discount, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)`);
-      const saleResult = saleInsert.run(totalAmount, discountVal);
+
+      // 1. Get current active shift
+      const activeShift = this.db.prepare(`SELECT id FROM till_shifts WHERE status = 'OPEN' ORDER BY id DESC LIMIT 1`).get();
+      const currentShiftId = activeShift ? activeShift.id : null;
+
+      // 2. Determine shift_invoice_no for this specific shift
+      let nextShiftInvoiceNo = 1;
+      if (currentShiftId) {
+        const lastInvoice = this.db.prepare(`
+          SELECT COALESCE(MAX(shift_invoice_no), 0) + 1 AS next_no 
+          FROM sales 
+          WHERE shift_id = ?
+        `).get(currentShiftId);
+        nextShiftInvoiceNo = lastInvoice ? lastInvoice.next_no : 1;
+      } else {
+        const lastInvoice = this.db.prepare(`SELECT COALESCE(MAX(id), 0) + 1 AS next_no FROM sales`).get();
+        nextShiftInvoiceNo = lastInvoice ? lastInvoice.next_no : 1;
+      }
+
+      const saleInsert = this.db.prepare(`
+        INSERT INTO sales (shift_id, shift_invoice_no, total_amount, discount, created_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+      const saleResult = saleInsert.run(currentShiftId, nextShiftInvoiceNo, totalAmount, discountVal);
       const saleId = saleResult.lastInsertRowid;
 
       const itemInsert = this.db.prepare(`
@@ -43,7 +65,13 @@ class SalesRepository {
         );
       }
 
-      return { saleId, totalAmount, discount: discountVal };
+      return {
+        saleId,
+        shiftId: currentShiftId,
+        invoiceNo: nextShiftInvoiceNo,
+        totalAmount,
+        discount: discountVal
+      };
     });
 
     return executeSale();
@@ -55,6 +83,8 @@ class SalesRepository {
         s.id AS sale_id,
         s.total_amount,
         COALESCE(s.discount, 0) AS discount,
+        COALESCE(s.shift_invoice_no, s.id) AS invoice_no,
+        s.shift_id,
         datetime(s.created_at, 'localtime') AS sale_date,
         COUNT(si.id) AS item_count
       FROM sales s
@@ -78,7 +108,9 @@ class SalesRepository {
         COALESCE(si.drug_name, d.brand_name, 'Deleted Medicine') AS brand_name,
         COALESCE(d.generic_name, '') AS generic_name,
         COALESCE(s.discount, 0) AS sale_discount,
-        s.total_amount AS sale_net_total
+        s.total_amount AS sale_net_total,
+        COALESCE(s.shift_invoice_no, s.id) AS invoice_no,
+        s.shift_id
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
       LEFT JOIN batches b ON si.batch_id = b.id
@@ -127,9 +159,8 @@ class SalesRepository {
         COALESCE(SUM(total_amount), 0) AS total_sales,
         COALESCE(SUM(discount), 0) AS total_discounts
       FROM sales
-      WHERE datetime(created_at) >= datetime(?) 
-        AND (? IS NULL OR datetime(created_at) <= datetime(?))
-    `).get(shift.opened_at, shift.closed_at, shift.closed_at);
+      WHERE shift_id = ?
+    `).get(shiftId);
 
     const expectedCash = shift.opening_float + stats.total_sales;
 
@@ -163,8 +194,8 @@ class SalesRepository {
         COALESCE(SUM(total_amount), 0) AS total_sales,
         COALESCE(SUM(discount), 0) AS total_discounts
       FROM sales
-      WHERE datetime(created_at) >= datetime(?)
-    `).get(shift.opened_at);
+      WHERE shift_id = ?
+    `).get(shiftId);
 
     const countedCash = Math.max(0, parseFloat(actualCash) || 0);
     const expectedCash = shift.opening_float + stats.total_sales;
