@@ -917,6 +917,7 @@ if (posDiscountInput) {
   });
 }
 
+// Pressing Enter in Paid Input -> Save Sale WITHOUT printing
 const posPaidInput = document.getElementById('pos-paid-amount');
 if (posPaidInput) {
   posPaidInput.addEventListener('input', calculatePosBalance);
@@ -1140,7 +1141,8 @@ function renderSalesTable() {
 
   const filteredSales = rawSalesData.filter((sale) => {
     const saleIdStr = String(sale.sale_id || sale.id);
-    const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || saleIdStr.includes(searchInvoiceId);
+    const invoiceNoStr = String(sale.invoice_no || '');
+    const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || invoiceNoStr === searchInvoiceId;
     const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.startsWith(selectedDate));
     return matchesSearch && matchesDate;
   });
@@ -1157,8 +1159,10 @@ function renderSalesTable() {
   filteredSales.forEach((sale) => {
     cumulativeRevenue += sale.total_amount;
     const tr = document.createElement('tr');
+    const shiftTag = sale.shift_id ? `<small style="color: #64748b; margin-left: 4px;">(Till #${sale.shift_id})</small>` : '';
+
     tr.innerHTML = `
-      <td><strong>#${sale.sale_id}</strong></td>
+      <td><strong>#${sale.invoice_no}</strong> ${shiftTag}</td>
       <td>${sale.sale_date}</td>
       <td>${sale.item_count} items</td>
       <td><strong>LKR ${Number(sale.total_amount).toFixed(2)}</strong></td>
@@ -1220,18 +1224,25 @@ window.viewReceipt = async (saleId) => {
   const discountRow = document.getElementById('modal-receipt-discount-row');
   const discountVal = document.getElementById('modal-receipt-discount-val');
 
-  title.innerText = `Invoice Receipt #${saleId}`;
   itemsBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 10px;">Loading...</td></tr>`;
   modal.style.display = 'flex';
 
   const res = await window.api.getSaleDetails(saleId);
   if (res.success) {
-    const discount = res.data.length > 0 ? (res.data[0].sale_discount || 0) : 0;
+    const firstItem = res.data[0] || {};
+    const invoiceNo = firstItem.invoice_no !== undefined ? firstItem.invoice_no : saleId;
+    const shiftTag = firstItem.shift_id ? ` (Till #${firstItem.shift_id})` : '';
+
+    title.innerText = `Invoice Receipt #${invoiceNo}${shiftTag}`;
+
+    const discount = firstItem.sale_discount || 0;
     const subtotal = res.data.reduce((sum, i) => sum + i.total_price, 0);
-    const netTotal = res.data.length > 0 && res.data[0].sale_net_total !== undefined ? res.data[0].sale_net_total : Math.max(0, subtotal - discount);
+    const netTotal = firstItem.sale_net_total !== undefined ? firstItem.sale_net_total : Math.max(0, subtotal - discount);
 
     currentModalSale = {
       id: saleId,
+      invoiceNo: invoiceNo,
+      shiftId: firstItem.shift_id,
       items: res.data,
       subtotal: subtotal,
       discount: discount,
@@ -1272,7 +1283,9 @@ if (modalReprintBtn) {
         currentModalSale.total,
         0,
         currentModalSale.discount,
-        currentModalSale.subtotal
+        currentModalSale.subtotal,
+        currentModalSale.invoiceNo,
+        currentModalSale.shiftId
       );
     }
   });
@@ -1836,11 +1849,13 @@ if (wipeDatabaseBtn) {
 }
 
 // ==================== RECEIPT PRINTING MODULE ====================
-async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0, discount = 0, subtotal = null) {
+async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0, discount = 0, subtotal = null, invoiceNo = null, shiftId = null) {
   if (!items || items.length === 0) return;
 
   const payload = {
     saleId,
+    invoiceNo: invoiceNo !== null ? invoiceNo : saleId,
+    shiftId: shiftId,
     dateStr,
     items,
     grandTotal,
@@ -1911,9 +1926,10 @@ async function processCheckout({ shouldPrint = true } = {}) {
     const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
 
     if (res.success) {
+      const invoiceLabel = res.data.invoiceNo ? `#${res.data.invoiceNo}` : `#${res.data.saleId}`;
       if (msg) {
         msg.style.color = '#16a34a';
-        msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}${shouldPrint ? ' (Printing...)' : ' (Saved)'}`;
+        msg.innerText = `✓ Sale completed! Invoice ${invoiceLabel}${shouldPrint ? ' (Printing...)' : ' (Saved)'}`;
       }
 
       currentCart = [];
@@ -1928,7 +1944,18 @@ async function processCheckout({ shouldPrint = true } = {}) {
       if (pInput) pInput.focus();
 
       if (shouldPrint) {
-        await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal, discountVal, subtotal);
+        await printThermalReceipt(
+          res.data.saleId, 
+          nowStr, 
+          printedCart, 
+          grandTotal, 
+          paidVal, 
+          balanceVal, 
+          discountVal, 
+          subtotal,
+          res.data.invoiceNo,
+          res.data.shiftId
+        );
       }
 
       setTimeout(() => {
@@ -1976,6 +2003,10 @@ window.openEditSaleModal = async (saleId) => {
 
   const res = await window.api.getSaleDetails(saleId);
   if (res.success) {
+    const firstItem = res.data[0] || {};
+    const invoiceNo = firstItem.invoice_no !== undefined ? firstItem.invoice_no : saleId;
+    title.innerText = `Edit / Exchange Invoice #${invoiceNo}`;
+
     editingSaleItems = res.data.map(i => ({
       batch_id: i.batch_id,
       brand_name: i.brand_name,
