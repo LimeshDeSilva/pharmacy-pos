@@ -3,10 +3,11 @@ class SalesRepository {
     this.db = db;
   }
 
-  processSale(cartItems, totalAmount) {
+  processSale(cartItems, totalAmount, discount = 0) {
     const executeSale = this.db.transaction(() => {
-      const saleInsert = this.db.prepare(`INSERT INTO sales (total_amount) VALUES (?)`);
-      const saleResult = saleInsert.run(totalAmount);
+      const discountVal = parseFloat(discount) || 0;
+      const saleInsert = this.db.prepare(`INSERT INTO sales (total_amount, discount) VALUES (?, ?)`);
+      const saleResult = saleInsert.run(totalAmount, discountVal);
       const saleId = saleResult.lastInsertRowid;
 
       const itemInsert = this.db.prepare(`
@@ -42,7 +43,7 @@ class SalesRepository {
         );
       }
 
-      return { saleId, totalAmount };
+      return { saleId, totalAmount, discount: discountVal };
     });
 
     return executeSale();
@@ -53,6 +54,7 @@ class SalesRepository {
       SELECT 
         s.id AS sale_id,
         s.total_amount,
+        COALESCE(s.discount, 0) AS discount,
         datetime(s.created_at, 'localtime') AS sale_date,
         COUNT(si.id) AS item_count
       FROM sales s
@@ -74,8 +76,11 @@ class SalesRepository {
         si.total_price,
         COALESCE(si.batch_number, b.batch_number, 'N/A') AS batch_number,
         COALESCE(si.drug_name, d.brand_name, 'Deleted Medicine') AS brand_name,
-        COALESCE(d.generic_name, '') AS generic_name
+        COALESCE(d.generic_name, '') AS generic_name,
+        COALESCE(s.discount, 0) AS sale_discount,
+        s.total_amount AS sale_net_total
       FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
       LEFT JOIN batches b ON si.batch_id = b.id
       LEFT JOIN drugs d ON b.drug_id = d.id
       WHERE si.sale_id = ?
@@ -120,8 +125,10 @@ class SalesRepository {
     return transaction();
   }
 
-  updateSale(saleId, newItems, totalAmount) {
+  updateSale(saleId, newItems, totalAmount, discount = 0) {
     const updateTx = this.db.transaction(() => {
+      const discountVal = parseFloat(discount) || 0;
+
       // 1. Fetch old sale items to restore stock to active batches
       const oldItems = this.db.prepare(`SELECT batch_id, quantity FROM sale_items WHERE sale_id = ?`).all(saleId);
       const restoreStock = this.db.prepare(`UPDATE batches SET quantity = quantity + ? WHERE id = ?`);
@@ -135,8 +142,8 @@ class SalesRepository {
       // 2. Clear old sale items
       this.db.prepare(`DELETE FROM sale_items WHERE sale_id = ?`).run(saleId);
 
-      // 3. Update parent sales table total
-      this.db.prepare(`UPDATE sales SET total_amount = ? WHERE id = ?`).run(totalAmount, saleId);
+      // 3. Update parent sales table total & discount
+      this.db.prepare(`UPDATE sales SET total_amount = ?, discount = ? WHERE id = ?`).run(totalAmount, discountVal, saleId);
 
       // 4. Insert updated sale items & deduct new stock
       const insertItem = this.db.prepare(`
@@ -183,7 +190,7 @@ class SalesRepository {
         );
       }
 
-      return { saleId, totalAmount };
+      return { saleId, totalAmount, discount: discountVal };
     });
 
     return updateTx();
