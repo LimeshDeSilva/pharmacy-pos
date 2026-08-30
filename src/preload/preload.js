@@ -23,11 +23,19 @@ contextBridge.exposeInMainWorld('api', {
   getAllSales: () => ipcRenderer.invoke('sales:getAll'),
   getSaleDetails: (saleId) => ipcRenderer.invoke('sales:getDetails', saleId),
 
+  // Till & Shift Management
+  getActiveShift: () => ipcRenderer.invoke('till:getActiveShift'),
+  openShift: (openingFloat) => ipcRenderer.invoke('till:openShift', openingFloat),
+  getTillLiveStats: (shiftId) => ipcRenderer.invoke('till:getLiveStats', shiftId),
+  closeShift: (data) => ipcRenderer.invoke('till:closeShift', data),
+  getAllShifts: () => ipcRenderer.invoke('till:getAllShifts'),
+  printTillReport: (tillData) => ipcRenderer.invoke('till:printReport', tillData),
+
   // Analytics & Reports
   getAnalytics: () => ipcRenderer.invoke('reports:getAnalytics'),
   getProfitAnalytics: () => ipcRenderer.invoke('get:profit-analytics'),
 
-  // Store Settings (Must be present)
+  // Store Settings
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (settings) => ipcRenderer.invoke('settings:update', settings),
 
