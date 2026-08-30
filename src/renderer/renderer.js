@@ -628,13 +628,20 @@ function pickItem(item) {
   if (qty) { qty.focus(); qty.select(); }
 }
 
+// Sequential '+' Key Shortcut: Cart -> Discount (%) -> Cash Paid
 window.addEventListener('keydown', (e) => {
   if (e.key === '+' || e.code === 'NumpadAdd') {
     const posView = document.getElementById('pos-view');
     if (posView && posView.classList.contains('active')) {
       e.preventDefault();
+      const discountInput = document.getElementById('pos-discount-amount');
       const paidInput = document.getElementById('pos-paid-amount');
-      if (paidInput) { paidInput.focus(); paidInput.select(); }
+
+      if (document.activeElement !== discountInput && document.activeElement !== paidInput) {
+        if (discountInput) { discountInput.focus(); discountInput.select(); }
+      } else if (document.activeElement === discountInput) {
+        if (paidInput) { paidInput.focus(); paidInput.select(); }
+      }
     }
   }
 });
@@ -665,15 +672,24 @@ function checkSelectedBatchExpiry() {
 }
 
 function calculatePosBalance() {
-  const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+  const subtotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+  const discountInput = document.getElementById('pos-discount-amount');
   const paidInput = document.getElementById('pos-paid-amount');
+  const totalDisplay = document.getElementById('grand-total-display');
   const balanceDisplay = document.getElementById('pos-balance-display');
-  if (!paidInput || !balanceDisplay) return 0;
+  if (!paidInput || !balanceDisplay || !totalDisplay) return 0;
+
+  // Percentage Calculation
+  const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
+  const discountVal = (subtotal * discountPercent) / 100;
+  const netTotal = Math.max(0, subtotal - discountVal);
+
+  totalDisplay.innerText = `LKR ${netTotal.toFixed(2)}`;
 
   const paidVal = parseFloat(paidInput.value) || 0;
-  const balance = paidVal - grandTotal;
+  const balance = paidVal - netTotal;
 
-  if (paidVal === 0 && grandTotal === 0) {
+  if (paidVal === 0 && netTotal === 0) {
     balanceDisplay.innerText = 'LKR 0.00';
     balanceDisplay.style.color = '#16a34a';
   } else if (balance < 0) {
@@ -684,7 +700,19 @@ function calculatePosBalance() {
     balanceDisplay.style.color = '#16a34a';
   }
 
-  return { grandTotal, paidVal, balance };
+  return { subtotal, discountPercent, discountVal, netTotal, paidVal, balance };
+}
+
+const posDiscountInput = document.getElementById('pos-discount-amount');
+if (posDiscountInput) {
+  posDiscountInput.addEventListener('input', calculatePosBalance);
+  posDiscountInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const paidInput = document.getElementById('pos-paid-amount');
+      if (paidInput) { paidInput.focus(); paidInput.select(); }
+    }
+  });
 }
 
 const posPaidInput = document.getElementById('pos-paid-amount');
@@ -707,19 +735,19 @@ function renderCart() {
   if (currentCart.length === 0) {
     cartBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">Cart is empty.</td></tr>`;
     totalDisplay.innerText = 'LKR 0.00';
+    const discountInput = document.getElementById('pos-discount-amount');
     const paidInput = document.getElementById('pos-paid-amount');
+    if (discountInput) discountInput.value = '';
     if (paidInput) paidInput.value = '';
     calculatePosBalance();
     return;
   }
 
   cartBody.innerHTML = '';
-  let grandTotal = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   currentCart.forEach((item, index) => {
-    grandTotal += item.total_price;
     const isExpired = item.expiry_date && new Date(item.expiry_date) < today;
 
     const batchStyle = isExpired
@@ -745,7 +773,6 @@ function renderCart() {
     cartBody.appendChild(tr);
   });
 
-  totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
   calculatePosBalance();
 }
 
@@ -892,9 +919,11 @@ function renderSalesTable() {
   const tableBody = document.getElementById('sales-table-body');
   const revenueBanner = document.getElementById('total-revenue-banner');
   const dateInput = document.getElementById('sales-date-filter');
+  const searchInput = document.getElementById('sales-invoice-search');
   if (!tableBody) return;
 
   const selectedDate = dateInput ? dateInput.value : '';
+  const searchInvoiceId = searchInput ? searchInput.value.trim() : '';
 
   if (!rawSalesData || rawSalesData.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No sales recorded yet.</td></tr>`;
@@ -903,13 +932,15 @@ function renderSalesTable() {
   }
 
   const filteredSales = rawSalesData.filter((sale) => {
-    if (!selectedDate) return true;
-    return sale.sale_date && sale.sale_date.startsWith(selectedDate);
+    const saleIdStr = String(sale.sale_id || sale.id);
+    const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || saleIdStr.includes(searchInvoiceId);
+    const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.startsWith(selectedDate));
+    return matchesSearch && matchesDate;
   });
 
   if (filteredSales.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No sales found for date ${selectedDate}.</td></tr>`;
-    if (revenueBanner) revenueBanner.innerText = `Total Revenue (${selectedDate}): LKR 0.00`;
+    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No matching sales found.</td></tr>`;
+    if (revenueBanner) revenueBanner.innerText = `Total Revenue: LKR 0.00`;
     return;
   }
 
@@ -925,15 +956,15 @@ function renderSalesTable() {
       <td>${sale.item_count} items</td>
       <td><strong>LKR ${Number(sale.total_amount).toFixed(2)}</strong></td>
       <td>
-        <button onclick="viewReceipt(${sale.sale_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">View Details</button>
+        <button onclick="viewReceipt(${sale.sale_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-right: 4px;">View Details</button>
+        <button onclick="openEditSaleModal(${sale.sale_id})" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">🔄 Change/Exchange</button>
       </td>
     `;
     tableBody.appendChild(tr);
   });
 
   if (revenueBanner) {
-    const label = selectedDate ? `Revenue (${selectedDate})` : 'Total Revenue';
-    revenueBanner.innerText = `${label}: LKR ${cumulativeRevenue.toFixed(2)}`;
+    revenueBanner.innerText = `Total Revenue: LKR ${cumulativeRevenue.toFixed(2)}`;
   }
 }
 
@@ -968,12 +999,19 @@ if (salesClearBtn) {
   });
 }
 
+const salesInvoiceSearchInput = document.getElementById('sales-invoice-search');
+if (salesInvoiceSearchInput) {
+  salesInvoiceSearchInput.addEventListener('input', renderSalesTable);
+}
+
 let currentModalSale = null;
 
 window.viewReceipt = async (saleId) => {
   const modal = document.getElementById('receipt-modal');
   const title = document.getElementById('modal-invoice-title');
   const itemsBody = document.getElementById('receipt-items-body');
+  const discountRow = document.getElementById('modal-receipt-discount-row');
+  const discountVal = document.getElementById('modal-receipt-discount-val');
 
   title.innerText = `Invoice Receipt #${saleId}`;
   itemsBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 10px;">Loading...</td></tr>`;
@@ -981,10 +1019,16 @@ window.viewReceipt = async (saleId) => {
 
   const res = await window.api.getSaleDetails(saleId);
   if (res.success) {
+    const discount = res.data.length > 0 ? (res.data[0].sale_discount || 0) : 0;
+    const subtotal = res.data.reduce((sum, i) => sum + i.total_price, 0);
+    const netTotal = res.data.length > 0 && res.data[0].sale_net_total !== undefined ? res.data[0].sale_net_total : Math.max(0, subtotal - discount);
+
     currentModalSale = {
       id: saleId,
       items: res.data,
-      total: res.data.reduce((sum, i) => sum + i.total_price, 0)
+      subtotal: subtotal,
+      discount: discount,
+      total: netTotal
     };
 
     itemsBody.innerHTML = '';
@@ -999,6 +1043,13 @@ window.viewReceipt = async (saleId) => {
       `;
       itemsBody.appendChild(tr);
     });
+
+    if (discount > 0 && discountRow && discountVal) {
+      discountRow.style.display = 'flex';
+      discountVal.innerText = `- LKR ${Number(discount).toFixed(2)}`;
+    } else if (discountRow) {
+      discountRow.style.display = 'none';
+    }
   }
 };
 
@@ -1012,7 +1063,9 @@ if (modalReprintBtn) {
         currentModalSale.items,
         currentModalSale.total,
         currentModalSale.total,
-        0
+        0,
+        currentModalSale.discount,
+        currentModalSale.subtotal
       );
     }
   });
@@ -1251,27 +1304,6 @@ if (backupDbBtn) {
 }
 
 // ==================== RESET SYSTEM & INVENTORY DELETION ====================
-async function loadDeleteDrugDropdown() {
-  const select = document.getElementById('delete_drug_select');
-  if (!select) return;
-
-  try {
-    const allDrugs = await window.api.getAllDrugs();
-    if (allDrugs && allDrugs.success) {
-      select.innerHTML = '<option value="">-- Choose Medicine --</option>';
-      allDrugs.data.forEach((drug) => {
-        const option = document.createElement('option');
-        option.value = drug.id;
-        option.textContent = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
-        select.appendChild(option);
-      });
-    }
-  } catch (err) {
-    console.error('Error loading delete drug dropdown:', err);
-  }
-}
-
-// 1. Delete Selected Medicine
 let deleteDropIndex = 0;
 let deleteDropMatches = [];
 
@@ -1597,7 +1629,7 @@ if (wipeDatabaseBtn) {
 }
 
 // ==================== RECEIPT PRINTING MODULE ====================
-async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0) {
+async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0, discount = 0, subtotal = null) {
   if (!items || items.length === 0) return;
 
   const payload = {
@@ -1607,6 +1639,8 @@ async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmoun
     grandTotal,
     paidAmount,
     balanceAmount,
+    discount: parseFloat(discount) || 0,
+    subtotal: subtotal !== null ? subtotal : grandTotal + (parseFloat(discount) || 0),
     pharmacyName: currentSettings.pharmacy_name,
     pharmacyAddress: currentSettings.pharmacy_address,
     pharmacyPhone: currentSettings.pharmacy_phone
@@ -1642,8 +1676,13 @@ if (checkoutBtn) {
     checkoutBtn.disabled = true;
 
     try {
-      const grandTotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+      const subtotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+      const discountInput = document.getElementById('pos-discount-amount');
       const paidInput = document.getElementById('pos-paid-amount');
+
+      const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput && discountInput.value ? discountInput.value : 0) || 0));
+      const discountVal = (subtotal * discountPercent) / 100;
+      const grandTotal = Math.max(0, subtotal - discountVal);
 
       let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
       if (paidVal === 0) {
@@ -1659,7 +1698,7 @@ if (checkoutBtn) {
         msg.innerText = 'Processing sale...';
       }
 
-      const res = await window.api.checkout({ cart: currentCart, total: grandTotal });
+      const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
 
       if (res.success) {
         if (msg) {
@@ -1668,6 +1707,8 @@ if (checkoutBtn) {
         }
 
         currentCart = [];
+        if (discountInput) discountInput.value = '';
+        if (paidInput) paidInput.value = '';
         renderCart();
         await loadPosStock();
         await refreshAlertBadges();
@@ -1675,7 +1716,7 @@ if (checkoutBtn) {
         const pInput = document.getElementById('pos_drug_input');
         if (pInput) pInput.focus();
 
-        await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal);
+        await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal, discountVal, subtotal);
 
         setTimeout(() => {
           if (msg) msg.innerText = '';
@@ -1701,71 +1742,13 @@ let editingSaleItems = [];
 let editDropIndex = 0;
 let editDropMatches = [];
 
-// 1. Live Search by Invoice ID or Date
-function renderSalesTable() {
-  const tableBody = document.getElementById('sales-table-body');
-  const revenueBanner = document.getElementById('total-revenue-banner');
-  const dateInput = document.getElementById('sales-date-filter');
-  const searchInput = document.getElementById('sales-invoice-search');
-  if (!tableBody) return;
-
-  const selectedDate = dateInput ? dateInput.value : '';
-  const searchInvoiceId = searchInput ? searchInput.value.trim() : '';
-
-  if (!rawSalesData || rawSalesData.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No sales recorded yet.</td></tr>`;
-    if (revenueBanner) revenueBanner.innerText = 'Total Revenue: LKR 0.00';
-    return;
-  }
-
-  const filteredSales = rawSalesData.filter((sale) => {
-    const saleIdStr = String(sale.sale_id || sale.id);
-    const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || saleIdStr.includes(searchInvoiceId);
-    const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.startsWith(selectedDate));
-    return matchesSearch && matchesDate;
-  });
-
-  if (filteredSales.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No matching sales found.</td></tr>`;
-    if (revenueBanner) revenueBanner.innerText = `Total Revenue: LKR 0.00`;
-    return;
-  }
-
-  tableBody.innerHTML = '';
-  let cumulativeRevenue = 0;
-
-  filteredSales.forEach((sale) => {
-    cumulativeRevenue += sale.total_amount;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>#${sale.sale_id}</strong></td>
-      <td>${sale.sale_date}</td>
-      <td>${sale.item_count} items</td>
-      <td><strong>LKR ${Number(sale.total_amount).toFixed(2)}</strong></td>
-      <td>
-        <button onclick="viewReceipt(${sale.sale_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-right: 4px;">View Details</button>
-        <button onclick="openEditSaleModal(${sale.sale_id})" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">🔄 Change/Exchange</button>
-      </td>
-    `;
-    tableBody.appendChild(tr);
-  });
-
-  if (revenueBanner) {
-    revenueBanner.innerText = `Total Revenue: LKR ${cumulativeRevenue.toFixed(2)}`;
-  }
-}
-
-const salesInvoiceSearchInput = document.getElementById('sales-invoice-search');
-if (salesInvoiceSearchInput) {
-  salesInvoiceSearchInput.addEventListener('input', renderSalesTable);
-}
-
 // 2. Open Edit & Exchange Invoice Modal
 window.openEditSaleModal = async (saleId) => {
   editingSaleId = saleId;
   const modal = document.getElementById('edit-sale-modal');
   const title = document.getElementById('edit-sale-modal-title');
   const msg = document.getElementById('edit-sale-status-msg');
+  const discountInput = document.getElementById('edit-sale-discount-input');
   if (msg) msg.innerText = '';
 
   title.innerText = `Edit / Exchange Invoice #${saleId}`;
@@ -1784,6 +1767,14 @@ window.openEditSaleModal = async (saleId) => {
       quantity: parseInt(i.quantity, 10),
       total_price: parseFloat(i.total_price)
     }));
+
+    if (discountInput) {
+      const discountLKR = res.data.length > 0 && res.data[0].sale_discount ? res.data[0].sale_discount : 0;
+      const subtotal = editingSaleItems.reduce((sum, item) => sum + item.total_price, 0);
+      const percent = subtotal > 0 ? ((discountLKR / subtotal) * 100).toFixed(2) : 0;
+      discountInput.value = parseFloat(percent) > 0 ? percent : '';
+    }
+
     renderEditSaleItems();
   }
 };
@@ -1791,6 +1782,7 @@ window.openEditSaleModal = async (saleId) => {
 function renderEditSaleItems() {
   const tbody = document.getElementById('edit-sale-items-body');
   const totalDisplay = document.getElementById('edit-sale-total-display');
+  const discountInput = document.getElementById('edit-sale-discount-input');
   if (!tbody) return;
 
   if (editingSaleItems.length === 0) {
@@ -1800,10 +1792,10 @@ function renderEditSaleItems() {
   }
 
   tbody.innerHTML = '';
-  let grandTotal = 0;
+  let subtotal = 0;
 
   editingSaleItems.forEach((item, index) => {
-    grandTotal += item.total_price;
+    subtotal += item.total_price;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${item.brand_name}</strong></td>
@@ -1820,7 +1812,15 @@ function renderEditSaleItems() {
     tbody.appendChild(tr);
   });
 
-  totalDisplay.innerText = `LKR ${grandTotal.toFixed(2)}`;
+  const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
+  const discountVal = (subtotal * discountPercent) / 100;
+  const netTotal = Math.max(0, subtotal - discountVal);
+  totalDisplay.innerText = `LKR ${netTotal.toFixed(2)}`;
+}
+
+const editSaleDiscountInput = document.getElementById('edit-sale-discount-input');
+if (editSaleDiscountInput) {
+  editSaleDiscountInput.addEventListener('input', renderEditSaleItems);
 }
 
 window.updateEditItemQty = (index, val) => {
@@ -1836,8 +1836,6 @@ window.removeEditItem = (index) => {
   renderEditSaleItems();
 };
 
-// Search Dropdown inside Edit Modal
-// Search Dropdown inside Edit Modal with Full Keyboard Navigation
 function pickEditSaleItem(item) {
   const input = document.getElementById('edit_sale_drug_input');
   const menu = document.getElementById('edit-sale-dropdown');
@@ -1855,7 +1853,6 @@ function pickEditSaleItem(item) {
 
 const editSaleDrugInput = document.getElementById('edit_sale_drug_input');
 if (editSaleDrugInput) {
-  // Input search filter
   editSaleDrugInput.addEventListener('input', () => {
     const menu = document.getElementById('edit-sale-dropdown');
     const term = editSaleDrugInput.value.toLowerCase().trim();
@@ -1896,7 +1893,6 @@ if (editSaleDrugInput) {
     menu.style.display = 'block';
   });
 
-  // Arrow Keys, Enter & Escape Navigation
   editSaleDrugInput.addEventListener('keydown', (e) => {
     const menu = document.getElementById('edit-sale-dropdown');
     const items = menu ? menu.querySelectorAll('.pos-option') : [];
@@ -1932,7 +1928,6 @@ if (editSaleDrugInput) {
   });
 }
 
-// Add Item on Enter Key press in Quantity Input
 const editSaleQtyInput = document.getElementById('edit_sale_qty');
 if (editSaleQtyInput) {
   editSaleQtyInput.addEventListener('keydown', (e) => {
@@ -1951,7 +1946,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Add Item Button inside Edit Modal
 const editSaleAddItemBtn = document.getElementById('edit-sale-add-item-btn');
 if (editSaleAddItemBtn) {
   editSaleAddItemBtn.addEventListener('click', () => {
@@ -1991,7 +1985,6 @@ if (editSaleAddItemBtn) {
   });
 }
 
-// Close/Cancel Modal
 const closeEditSaleBtn = document.getElementById('close-edit-sale-modal');
 if (closeEditSaleBtn) {
   closeEditSaleBtn.addEventListener('click', () => {
@@ -2005,7 +1998,6 @@ if (cancelEditSaleBtn) {
   });
 }
 
-// Save & Reprint Updated Invoice
 const saveEditSaleBtn = document.getElementById('save-edit-sale-btn');
 if (saveEditSaleBtn) {
   saveEditSaleBtn.addEventListener('click', async () => {
@@ -2017,7 +2009,11 @@ if (saveEditSaleBtn) {
       return;
     }
 
-    const grandTotal = editingSaleItems.reduce((sum, i) => sum + i.total_price, 0);
+    const subtotal = editingSaleItems.reduce((sum, i) => sum + i.total_price, 0);
+    const discountInput = document.getElementById('edit-sale-discount-input');
+    const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
+    const discountVal = (subtotal * discountPercent) / 100;
+    const grandTotal = Math.max(0, subtotal - discountVal);
 
     saveEditSaleBtn.disabled = true;
     msg.style.color = '#475569';
@@ -2027,7 +2023,8 @@ if (saveEditSaleBtn) {
       const res = await window.api.updateSale({
         saleId: editingSaleId,
         items: editingSaleItems,
-        total: grandTotal
+        total: grandTotal,
+        discount: discountVal
       });
 
       if (res.success) {
@@ -2038,14 +2035,15 @@ if (saveEditSaleBtn) {
         await loadPosStock();
         await refreshAlertBadges();
 
-        // Automatically reprint the revised receipt
         await printThermalReceipt(
           editingSaleId,
           new Date().toLocaleString() + ' (MODIFIED)',
           editingSaleItems,
           grandTotal,
           grandTotal,
-          0
+          0,
+          discountVal,
+          subtotal
         );
 
         setTimeout(() => {
@@ -2077,7 +2075,6 @@ const functionKeyTabMap = {
 
 window.addEventListener('keydown', (e) => {
   if (functionKeyTabMap[e.key]) {
-    // Prevent default browser/system behavior (e.g. F1 Help, F3 Search, F5 Page Reload)
     e.preventDefault();
 
     const targetViewId = functionKeyTabMap[e.key];
