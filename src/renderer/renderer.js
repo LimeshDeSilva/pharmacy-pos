@@ -7,6 +7,7 @@ let salesChartInstance = null;
 let analyticsCache = null;
 let profitChartInstance = null;
 let profitAnalyticsCache = null;
+let currentActiveShift = null;
 
 let currentSettings = {
   pharmacy_name: 'NEW SAHASNA PHARMACY',
@@ -19,6 +20,7 @@ const viewTitles = {
   'add-batch-view': 'Add Batch',
   'inventory-view': 'Inventory Overview',
   'pos-view': 'Billing (POS)',
+  'till-view': 'Till & Shift Management',
   'sales-view': 'Sales History',
   'reports-view': 'Reports & Charts',
   'profits-view': 'Profits & Charts',
@@ -30,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     await loadStoreSettings();
     await refreshAlertBadges();
+    await checkActiveShiftStatus();
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
@@ -45,57 +48,258 @@ const navItems = document.querySelectorAll('.nav-item');
 const viewPanels = document.querySelectorAll('.view-panel');
 const pageTitle = document.getElementById('page-title');
 
+function navigateToTab(targetViewId, customMessage = '') {
+  navItems.forEach((nav) => nav.classList.remove('active'));
+  const targetNav = document.querySelector(`.nav-item[data-view="${targetViewId}"]`);
+  if (targetNav) targetNav.classList.add('active');
+
+  viewPanels.forEach((panel) => panel.classList.remove('active'));
+  const activePanel = document.getElementById(targetViewId);
+  if (activePanel) {
+    activePanel.classList.add('active');
+  }
+
+  if (pageTitle && viewTitles[targetViewId]) {
+    pageTitle.innerText = viewTitles[targetViewId];
+  }
+
+  refreshAlertBadges();
+
+  if (targetViewId === 'add-drug-view') {
+    setTimeout(() => {
+      const bInput = document.getElementById('brand_name');
+      if (bInput) { bInput.focus(); bInput.select(); }
+    }, 50);
+  } else if (targetViewId === 'add-batch-view') {
+    displayDrugDropdown();
+    setTimeout(() => {
+      const bDrugInput = document.getElementById('batch_drug_input');
+      if (bDrugInput) { bDrugInput.focus(); bDrugInput.select(); }
+    }, 50);
+  } else if (targetViewId === 'pos-view') {
+    loadPosStock();
+    setTimeout(() => {
+      const pInput = document.getElementById('pos_drug_input');
+      if (pInput) { pInput.focus(); pInput.select(); }
+    }, 50);
+  } else if (targetViewId === 'till-view') {
+    loadTillManagementView(customMessage);
+  } else if (targetViewId === 'inventory-view') {
+    loadInventory();
+  } else if (targetViewId === 'sales-view') {
+    loadSalesHistory();
+  } else if (targetViewId === 'reports-view') {
+    loadAnalyticsDashboard();
+  } else if (targetViewId === 'profits-view') {
+    loadProfitAnalyticsDashboard();
+  } else if (targetViewId === 'settings-view') {
+    loadStoreSettings();
+  } else if (targetViewId === 'clear-inventory-view') {
+    loadDeleteDrugDropdown();
+  }
+}
+
 navItems.forEach((item) => {
-  item.addEventListener('click', async () => {
+  item.addEventListener('click', async (e) => {
     const targetViewId = item.getAttribute('data-view');
 
-    navItems.forEach((nav) => nav.classList.remove('active'));
-    item.classList.add('active');
-
-    viewPanels.forEach((panel) => panel.classList.remove('active'));
-    const activePanel = document.getElementById(targetViewId);
-    if (activePanel) {
-      activePanel.classList.add('active');
+    // TILL GATEKEEPER: Non-blocking check before entering POS Billing
+    if (targetViewId === 'pos-view') {
+      await checkActiveShiftStatus();
+      if (!currentActiveShift) {
+        navigateToTab('till-view', '⚠️ Till is currently CLOSED. Please enter starting cash float and open till shift first.');
+        return;
+      }
     }
 
-    if (pageTitle && viewTitles[targetViewId]) {
-      pageTitle.innerText = viewTitles[targetViewId];
-    }
-
-    await refreshAlertBadges();
-
-    if (targetViewId === 'add-drug-view') {
-      setTimeout(() => {
-        const bInput = document.getElementById('brand_name');
-        if (bInput) { bInput.focus(); bInput.select(); }
-      }, 100);
-    } else if (targetViewId === 'add-batch-view') {
-      await displayDrugDropdown();
-      setTimeout(() => {
-        const bDrugInput = document.getElementById('batch_drug_input');
-        if (bDrugInput) { bDrugInput.focus(); bDrugInput.select(); }
-      }, 100);
-    } else if (targetViewId === 'pos-view') {
-      await loadPosStock();
-      setTimeout(() => {
-        const pInput = document.getElementById('pos_drug_input');
-        if (pInput) { pInput.focus(); pInput.select(); }
-      }, 100);
-    } else if (targetViewId === 'inventory-view') {
-      await loadInventory();
-    } else if (targetViewId === 'sales-view') {
-      await loadSalesHistory();
-    } else if (targetViewId === 'reports-view') {
-      await loadAnalyticsDashboard();
-    } else if (targetViewId === 'profits-view') {
-      await loadProfitAnalyticsDashboard();
-    } else if (targetViewId === 'settings-view') {
-      await loadStoreSettings();
-    } else if (targetViewId === 'clear-inventory-view') {
-      await loadDeleteDrugDropdown();
-    }
+    navigateToTab(targetViewId);
   });
 });
+
+// ==================== TILL / SHIFT MANAGEMENT MODULE ====================
+async function checkActiveShiftStatus() {
+  const indicator = document.getElementById('header-shift-indicator');
+  if (!window.api || !window.api.getActiveShift) return;
+
+  const res = await window.api.getActiveShift();
+  if (res && res.success && res.data) {
+    currentActiveShift = res.data;
+    if (indicator) {
+      indicator.innerText = `🟢 Till: Open (#${currentActiveShift.id})`;
+      indicator.style.color = '#15803d';
+      indicator.style.backgroundColor = '#dcfce7';
+      indicator.style.borderColor = '#86efac';
+    }
+  } else {
+    currentActiveShift = null;
+    if (indicator) {
+      indicator.innerText = '🔴 Till: Closed';
+      indicator.style.color = '#dc2626';
+      indicator.style.backgroundColor = '#fee2e2';
+      indicator.style.borderColor = '#fecaca';
+    }
+  }
+}
+
+async function loadTillManagementView(customMessage = '') {
+  await checkActiveShiftStatus();
+  const openSection = document.getElementById('till-open-section');
+  const closeSection = document.getElementById('till-close-section');
+  const msg = document.getElementById('till-status-msg');
+
+  if (msg) {
+    if (customMessage) {
+      msg.style.color = '#dc2626';
+      msg.innerText = customMessage;
+    } else {
+      msg.innerText = '';
+    }
+  }
+
+  if (currentActiveShift) {
+    if (openSection) openSection.style.display = 'none';
+    if (closeSection) closeSection.style.display = 'block';
+
+    const liveRes = await window.api.getTillLiveStats(currentActiveShift.id);
+    if (liveRes && liveRes.success) {
+      const stats = liveRes.data;
+      document.getElementById('active-shift-id').innerText = stats.shiftId;
+      document.getElementById('active-shift-opened').innerText = stats.opened_at;
+      document.getElementById('active-shift-float').innerText = `LKR ${Number(stats.opening_float).toFixed(2)}`;
+      document.getElementById('active-shift-sales').innerText = `LKR ${Number(stats.total_sales).toFixed(2)}`;
+      document.getElementById('active-shift-expected').innerText = `LKR ${Number(stats.expected_cash).toFixed(2)}`;
+    }
+
+    setTimeout(() => {
+      const actualInp = document.getElementById('till_counted_cash');
+      if (actualInp) { actualInp.focus(); actualInp.select(); }
+    }, 100);
+  } else {
+    if (openSection) openSection.style.display = 'block';
+    if (closeSection) closeSection.style.display = 'none';
+
+    setTimeout(() => {
+      const floatInp = document.getElementById('till_opening_float');
+      if (floatInp) { floatInp.focus(); floatInp.select(); }
+    }, 100);
+  }
+
+  await loadShiftsHistoryTable();
+}
+
+async function loadShiftsHistoryTable() {
+  const tbody = document.getElementById('till-history-body');
+  if (!tbody) return;
+
+  const res = await window.api.getAllShifts();
+  if (res && res.success) {
+    if (res.data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #64748b; padding: 15px;">No shift history recorded yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = '';
+    res.data.forEach((s) => {
+      const tr = document.createElement('tr');
+      const isClosed = s.status === 'CLOSED';
+      const varianceColor = s.variance < 0 ? '#dc2626' : (s.variance > 0 ? '#0284c7' : '#16a34a');
+
+      tr.innerHTML = `
+        <td><strong>#${s.id}</strong></td>
+        <td><small>${s.opened_at}</small></td>
+        <td><small>${s.closed_at || '<span style="color:#16a34a; font-weight: bold;">ACTIVE</span>'}</small></td>
+        <td>${Number(s.opening_float).toFixed(2)}</td>
+        <td>${Number(s.total_sales).toFixed(2)}</td>
+        <td><strong>${Number(s.expected_cash).toFixed(2)}</strong></td>
+        <td>${isClosed ? Number(s.actual_cash).toFixed(2) : '-'}</td>
+        <td style="font-weight: bold; color: ${varianceColor};">${isClosed ? Number(s.variance).toFixed(2) : '-'}</td>
+        <td>
+          <span class="badge ${isClosed ? 'badge-expired' : 'badge-in-stock'}">${s.status}</span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+// Open Shift Form Handler
+const tillOpenForm = document.getElementById('till-open-form');
+if (tillOpenForm) {
+  tillOpenForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const floatInp = document.getElementById('till_opening_float');
+    const msg = document.getElementById('till-status-msg');
+
+    const floatVal = parseFloat(floatInp.value) || 0;
+    msg.style.color = '#475569';
+    msg.innerText = 'Opening till register...';
+
+    const res = await window.api.openShift(floatVal);
+    if (res && res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ Till shift opened successfully!';
+      floatInp.value = '';
+      await checkActiveShiftStatus();
+      await loadTillManagementView();
+
+      setTimeout(() => {
+        navigateToTab('pos-view');
+      }, 700);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+// Close Shift Form Handler
+const tillCloseForm = document.getElementById('till-close-form');
+if (tillCloseForm) {
+  tillCloseForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentActiveShift) return;
+
+    const actualCashInp = document.getElementById('till_counted_cash');
+    const noteInp = document.getElementById('till_close_note');
+    const msg = document.getElementById('till-status-msg');
+
+    const payload = {
+      shiftId: currentActiveShift.id,
+      actualCash: parseFloat(actualCashInp.value) || 0,
+      note: noteInp ? noteInp.value.trim() : ''
+    };
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Closing shift & generating Z-Report...';
+
+    const res = await window.api.closeShift(payload);
+    if (res && res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ Till closed successfully! Printing closing summary...';
+
+      await window.api.printTillReport({
+        ...res.data,
+        pharmacyName: currentSettings.pharmacy_name,
+        pharmacyAddress: currentSettings.pharmacy_address,
+        pharmacyPhone: currentSettings.pharmacy_phone
+      });
+
+      actualCashInp.value = '';
+      if (noteInp) noteInp.value = '';
+
+      await checkActiveShiftStatus();
+      await loadTillManagementView();
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+const refreshShiftsBtn = document.getElementById('refresh-shifts-btn');
+if (refreshShiftsBtn) {
+  refreshShiftsBtn.addEventListener('click', loadShiftsHistoryTable);
+}
 
 // ==================== STORE SETTINGS MODULE ====================
 async function loadStoreSettings() {
@@ -630,18 +834,17 @@ function pickItem(item) {
 
 // Sequential '+' Key Shortcut: Cart -> Discount (%) -> Cash Paid
 window.addEventListener('keydown', (e) => {
-  if (e.key === '+' || e.code === 'NumpadAdd') {
-    const posView = document.getElementById('pos-view');
-    if (posView && posView.classList.contains('active')) {
-      e.preventDefault();
-      const discountInput = document.getElementById('pos-discount-amount');
-      const paidInput = document.getElementById('pos-paid-amount');
+  const isPosView = document.getElementById('pos-view')?.classList.contains('active');
+  if (isPosView && (e.key === '+' || e.code === 'NumpadAdd')) {
+    const discountInput = document.getElementById('pos-discount-amount');
+    const paidInput = document.getElementById('pos-paid-amount');
 
-      if (document.activeElement !== discountInput && document.activeElement !== paidInput) {
-        if (discountInput) { discountInput.focus(); discountInput.select(); }
-      } else if (document.activeElement === discountInput) {
-        if (paidInput) { paidInput.focus(); paidInput.select(); }
-      }
+    if (document.activeElement !== discountInput && document.activeElement !== paidInput) {
+      e.preventDefault();
+      if (discountInput) { discountInput.focus(); discountInput.select(); }
+    } else if (document.activeElement === discountInput) {
+      e.preventDefault();
+      if (paidInput) { paidInput.focus(); paidInput.select(); }
     }
   }
 });
@@ -679,7 +882,6 @@ function calculatePosBalance() {
   const balanceDisplay = document.getElementById('pos-balance-display');
   if (!paidInput || !balanceDisplay || !totalDisplay) return 0;
 
-  // Percentage Calculation
   const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
   const discountVal = (subtotal * discountPercent) / 100;
   const netTotal = Math.max(0, subtotal - discountVal);
@@ -715,7 +917,6 @@ if (posDiscountInput) {
   });
 }
 
-// Pressing Enter in Paid Input -> Save Sale WITHOUT printing
 const posPaidInput = document.getElementById('pos-paid-amount');
 if (posPaidInput) {
   posPaidInput.addEventListener('input', calculatePosBalance);
@@ -782,6 +983,11 @@ window.removeFromCart = (index) => {
 };
 
 function handleAddToCart() {
+  if (!currentActiveShift) {
+    navigateToTab('till-view', '⚠️ Till is closed. Please open a shift first.');
+    return;
+  }
+
   const drugInput = document.getElementById('pos_drug_input');
   const qtyInput = document.getElementById('pos_qty');
   const msg = document.getElementById('pos-input-msg');
@@ -906,7 +1112,8 @@ if (posQtyInput) {
 
 // Global F8 Key Shortcut -> Complete Checkout AND Print
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'F8') {
+  const isPosView = document.getElementById('pos-view')?.classList.contains('active');
+  if (isPosView && e.key === 'F8') {
     e.preventDefault();
     processCheckout({ shouldPrint: true });
   }
@@ -1662,6 +1869,11 @@ async function processCheckout({ shouldPrint = true } = {}) {
 
   if (isCheckingOut) return;
 
+  if (!currentActiveShift) {
+    navigateToTab('till-view', '⚠️ Till is closed. Please open a shift before completing transactions.');
+    return;
+  }
+
   if (currentCart.length === 0) {
     if (msg) {
       msg.style.color = '#dc2626';
@@ -1710,6 +1922,7 @@ async function processCheckout({ shouldPrint = true } = {}) {
       renderCart();
       await loadPosStock();
       await refreshAlertBadges();
+      await checkActiveShiftStatus();
 
       const pInput = document.getElementById('pos_drug_input');
       if (pInput) pInput.focus();
@@ -1748,7 +1961,6 @@ let editingSaleItems = [];
 let editDropIndex = 0;
 let editDropMatches = [];
 
-// 2. Open Edit & Exchange Invoice Modal
 window.openEditSaleModal = async (saleId) => {
   editingSaleId = saleId;
   const modal = document.getElementById('edit-sale-modal');
@@ -1760,7 +1972,7 @@ window.openEditSaleModal = async (saleId) => {
   title.innerText = `Edit / Exchange Invoice #${saleId}`;
   modal.style.display = 'flex';
 
-  await loadPosStock(); // Refresh current available batches
+  await loadPosStock();
 
   const res = await window.api.getSaleDetails(saleId);
   if (res.success) {
@@ -2079,15 +2291,25 @@ const functionKeyTabMap = {
   F7: 'profits-view'
 };
 
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', async (e) => {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+    if (e.key !== 'Escape' && !e.key.startsWith('F')) {
+      return;
+    }
+  }
+
   if (functionKeyTabMap[e.key]) {
     e.preventDefault();
-
     const targetViewId = functionKeyTabMap[e.key];
-    const targetNavItem = document.querySelector(`.nav-item[data-view="${targetViewId}"]`);
 
-    if (targetNavItem) {
-      targetNavItem.click();
+    if (targetViewId === 'pos-view') {
+      await checkActiveShiftStatus();
+      if (!currentActiveShift) {
+        navigateToTab('till-view', '⚠️ Till is currently CLOSED. Please enter starting cash float and open till shift first.');
+        return;
+      }
     }
+
+    navigateToTab(targetViewId);
   }
 });
