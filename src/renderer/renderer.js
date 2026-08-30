@@ -715,14 +715,14 @@ if (posDiscountInput) {
   });
 }
 
+// Pressing Enter in Paid Input -> Save Sale WITHOUT printing
 const posPaidInput = document.getElementById('pos-paid-amount');
 if (posPaidInput) {
   posPaidInput.addEventListener('input', calculatePosBalance);
   posPaidInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const checkoutBtn = document.getElementById('checkout-btn');
-      if (checkoutBtn) checkoutBtn.click();
+      processCheckout({ shouldPrint: false });
     }
   });
 }
@@ -904,11 +904,11 @@ if (posQtyInput) {
   });
 }
 
+// Global F8 Key Shortcut -> Complete Checkout AND Print
 window.addEventListener('keydown', (e) => {
   if (e.key === 'F8') {
     e.preventDefault();
-    const btn = document.getElementById('checkout-btn');
-    if (btn) btn.click();
+    processCheckout({ shouldPrint: true });
   }
 });
 
@@ -1657,82 +1657,88 @@ async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmoun
 // ==================== CHECKOUT & PRINT ACTION ====================
 let isCheckingOut = false;
 
-const checkoutBtn = document.getElementById('checkout-btn');
-if (checkoutBtn) {
-  checkoutBtn.addEventListener('click', async () => {
-    const msg = document.getElementById('checkout-status-msg');
+async function processCheckout({ shouldPrint = true } = {}) {
+  const msg = document.getElementById('checkout-status-msg');
 
-    if (isCheckingOut) return;
+  if (isCheckingOut) return;
 
-    if (currentCart.length === 0) {
+  if (currentCart.length === 0) {
+    if (msg) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Cart is empty. Add items first.';
+    }
+    return;
+  }
+
+  isCheckingOut = true;
+  if (checkoutBtn) checkoutBtn.disabled = true;
+
+  try {
+    const subtotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+    const discountInput = document.getElementById('pos-discount-amount');
+    const paidInput = document.getElementById('pos-paid-amount');
+
+    const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput && discountInput.value ? discountInput.value : 0) || 0));
+    const discountVal = (subtotal * discountPercent) / 100;
+    const grandTotal = Math.max(0, subtotal - discountVal);
+
+    let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
+    if (paidVal === 0) {
+      paidVal = grandTotal;
+    }
+
+    const balanceVal = paidVal - grandTotal;
+    const printedCart = [...currentCart];
+    const nowStr = new Date().toLocaleString();
+
+    if (msg) {
+      msg.style.color = '#475569';
+      msg.innerText = 'Processing sale...';
+    }
+
+    const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
+
+    if (res.success) {
+      if (msg) {
+        msg.style.color = '#16a34a';
+        msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}${shouldPrint ? ' (Printing...)' : ' (Saved)'}`;
+      }
+
+      currentCart = [];
+      if (discountInput) discountInput.value = '';
+      if (paidInput) paidInput.value = '';
+      renderCart();
+      await loadPosStock();
+      await refreshAlertBadges();
+
+      const pInput = document.getElementById('pos_drug_input');
+      if (pInput) pInput.focus();
+
+      if (shouldPrint) {
+        await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal, discountVal, subtotal);
+      }
+
+      setTimeout(() => {
+        if (msg) msg.innerText = '';
+      }, 3000);
+    } else {
       if (msg) {
         msg.style.color = '#dc2626';
-        msg.innerText = 'Cart is empty. Add items first.';
+        msg.innerText = '✗ Error: ' + res.error;
       }
-      return;
     }
+  } catch (err) {
+    console.error('Checkout error:', err);
+  } finally {
+    isCheckingOut = false;
+    if (checkoutBtn) checkoutBtn.disabled = false;
+  }
+}
 
-    isCheckingOut = true;
-    checkoutBtn.disabled = true;
-
-    try {
-      const subtotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
-      const discountInput = document.getElementById('pos-discount-amount');
-      const paidInput = document.getElementById('pos-paid-amount');
-
-      const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput && discountInput.value ? discountInput.value : 0) || 0));
-      const discountVal = (subtotal * discountPercent) / 100;
-      const grandTotal = Math.max(0, subtotal - discountVal);
-
-      let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
-      if (paidVal === 0) {
-        paidVal = grandTotal;
-      }
-
-      const balanceVal = paidVal - grandTotal;
-      const printedCart = [...currentCart];
-      const nowStr = new Date().toLocaleString();
-
-      if (msg) {
-        msg.style.color = '#475569';
-        msg.innerText = 'Processing sale...';
-      }
-
-      const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
-
-      if (res.success) {
-        if (msg) {
-          msg.style.color = '#16a34a';
-          msg.innerText = `✓ Sale completed! Invoice #${res.data.saleId}`;
-        }
-
-        currentCart = [];
-        if (discountInput) discountInput.value = '';
-        if (paidInput) paidInput.value = '';
-        renderCart();
-        await loadPosStock();
-        await refreshAlertBadges();
-
-        const pInput = document.getElementById('pos_drug_input');
-        if (pInput) pInput.focus();
-
-        await printThermalReceipt(res.data.saleId, nowStr, printedCart, grandTotal, paidVal, balanceVal, discountVal, subtotal);
-
-        setTimeout(() => {
-          if (msg) msg.innerText = '';
-        }, 3000);
-      } else {
-        if (msg) {
-          msg.style.color = '#dc2626';
-          msg.innerText = '✗ Error: ' + res.error;
-        }
-      }
-    } catch (err) {
-      console.error('Checkout error:', err);
-    } finally {
-      isCheckingOut = false;
-      checkoutBtn.disabled = false;
-    }
+const checkoutBtn = document.getElementById('checkout-btn');
+if (checkoutBtn) {
+  checkoutBtn.addEventListener('click', () => {
+    processCheckout({ shouldPrint: true });
   });
 }
 
