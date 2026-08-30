@@ -342,7 +342,7 @@
             </table>
           </div>
 
-          <!-- Pricing, Cash Received & Balance Calculation -->
+          <!-- Pricing, Discount %, Cash Received & Balance Calculation -->
           <div class="pos-calculation-panel">
             <div class="pos-total-row">
               <span class="pos-total-label">Net Total:</span>
@@ -351,15 +351,21 @@
 
             <div class="pos-payment-grid">
               <div>
+                <label for="pos-discount-amount" class="pos-pay-label">Discount (%)</label>
+                <input type="number" step="0.01" min="0" max="100" id="pos-discount-amount" class="pos-paid-input"
+                  placeholder="0%" />
+              </div>
+
+              <div>
                 <label for="pos-paid-amount" class="pos-pay-label">Cash Paid (LKR) *</label>
                 <input type="number" step="0.01" min="0" id="pos-paid-amount" class="pos-paid-input"
                   placeholder="0.00" />
               </div>
+            </div>
 
-              <div>
-                <label class="pos-pay-label">Balance / Change</label>
-                <div id="pos-balance-display" class="pos-balance-value">LKR 0.00</div>
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+              <label class="pos-pay-label" style="margin-bottom: 0;">Balance / Change</label>
+              <div id="pos-balance-display" class="pos-balance-value">LKR 0.00</div>
             </div>
           </div>
 
@@ -437,6 +443,13 @@
           </thead>
           <tbody id="receipt-items-body"></tbody>
         </table>
+
+        <!-- Modal Receipt Discount Summary -->
+        <div id="modal-receipt-discount-row" style="display: none; justify-content: space-between; padding: 4px 8px; font-size: 13px; color: #dc2626;">
+          <span>Discount Applied:</span>
+          <span id="modal-receipt-discount-val">- LKR 0.00</span>
+        </div>
+
         <div class="modal-action-row">
           <button id="modal-reprint-btn" class="btn btn-auto btn-reprint">🖨️ Print Receipt</button>
         </div>
@@ -486,6 +499,11 @@
             </thead>
             <tbody id="edit-sale-items-body"></tbody>
           </table>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center; justify-content: flex-end;">
+          <label for="edit-sale-discount-input" style="font-size: 13px; font-weight: bold; margin-bottom: 0;">Discount (%):</label>
+          <input type="number" step="0.01" min="0" max="100" id="edit-sale-discount-input" style="width: 110px; padding: 4px 8px;" placeholder="0%" />
         </div>
 
         <div
