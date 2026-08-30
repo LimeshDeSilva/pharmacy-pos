@@ -8,21 +8,23 @@
     "postinstall": "electron-builder install-app-deps",
     "build:win": "electron-builder --win"
   },
+  "dependencies": {
+    "@point-of-sale/receipt-printer-encoder": "^3.0.3",
+    "better-sqlite3": "^11.8.6"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.15.3"
+  },
   "build": {
     "appId": "com.medicare.pos",
     "productName": "MediCare POS",
     "directories": {
       "output": "dist"
     },
-    "files": [
-      "src/**/*",
-      "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "pharmacy.db",
-        "to": "pharmacy.db"
-      }
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**"
     ],
     "win": {
       "target": [
@@ -40,9 +42,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "MediCare POS"
-    },
-    "asarUnpack": [
-      "**/node_modules/better-sqlite3/**"
-    ]
+    }
   }
 }
