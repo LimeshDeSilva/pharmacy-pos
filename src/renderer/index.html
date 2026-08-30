@@ -26,12 +26,14 @@
       <li class="nav-item" data-view="inventory-view">
         <span>📦 Inventory</span>
         <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
-          <!-- <small style="opacity: 0.6; font-size: 11px;">(F3)</small> -->
           <span id="sidebar-alert-badge" class="sidebar-badge">0</span>
         </div>
       </li>
       <li class="nav-item" data-view="pos-view">
         <span>🛒 Billing (POS)</span> <small style="opacity: 0.6; font-size: 11px;">(F4)</small>
+      </li>
+      <li class="nav-item" data-view="till-view">
+        <span>💵 Till / Shift</span>
       </li>
       <li class="nav-item" data-view="sales-view">
         <span>💰 Sales History</span> <small style="opacity: 0.6; font-size: 11px;">(F5)</small>
@@ -49,8 +51,11 @@
 
   <main id="main-content">
 
-    <header>
+    <header style="display: flex; justify-content: space-between; align-items: center;">
       <h1 id="page-title">Register Medicine</h1>
+      <div id="header-shift-indicator" style="font-size: 13px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 4px 10px; border-radius: 6px; border: 1px solid #fecaca;">
+        🔴 Till: Closed
+      </div>
     </header>
 
     <!-- Add Medicine Panel -->
@@ -93,21 +98,18 @@
             <div class="hero-illustration">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
                 <circle cx="100" cy="100" r="85" fill="#e0f2fe" opacity="0.6" />
-                <!-- Medicine Bottle -->
                 <rect x="55" y="70" width="45" height="75" rx="6" fill="#0284c7" />
                 <rect x="62" y="58" width="31" height="12" rx="3" fill="#38bdf8" />
                 <rect x="65" y="90" width="25" height="35" rx="2" fill="#ffffff" />
                 <rect x="70" y="100" width="15" height="3" rx="1.5" fill="#0284c7" />
                 <rect x="70" y="107" width="15" height="3" rx="1.5" fill="#0284c7" />
                 <rect x="70" y="114" width="10" height="3" rx="1.5" fill="#0284c7" />
-                <!-- Capsule -->
                 <g transform="rotate(-35 130 110)">
                   <rect x="115" y="80" width="30" height="60" rx="15" fill="#38bdf8" />
                   <path d="M115 110 H145 V125 C145 133.284 138.284 140 130 140 C121.716 140 115 133.284 115 125 Z"
                     fill="#16a34a" />
                   <circle cx="130" cy="95" r="4" fill="#ffffff" opacity="0.7" />
                 </g>
-                <!-- Medical Cross Badge -->
                 <circle cx="150" cy="65" r="16" fill="#16a34a" />
                 <path d="M150 56 V74 M141 65 H159" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
               </svg>
@@ -154,11 +156,11 @@
             </div>
             <div class="form-group">
               <label for="buy_price">Cost / Buy Price (LKR) *</label>
-              <input type="number" step="0.01" id="buy_price" placeholder="e.g. 5.00" required />
+              <input type="number" step="any" id="buy_price" placeholder="e.g. 5.00" required />
             </div>
             <div class="form-group">
               <label for="sell_price">Selling Price (LKR) *</label>
-              <input type="number" step="0.01" id="sell_price" placeholder="e.g. 8.00" required />
+              <input type="number" step="any" id="sell_price" placeholder="e.g. 8.00" required />
             </div>
             <div class="form-group">
               <label for="quantity">Quantity (Units/Tablets) *</label>
@@ -180,16 +182,10 @@
             <div class="hero-illustration">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
                 <circle cx="100" cy="100" r="85" fill="#e0f2fe" opacity="0.6" />
-
-                <!-- Shipment Package / Warehouse Box -->
                 <path d="M50 85 L100 60 L150 85 L100 110 Z" fill="#38bdf8" />
                 <path d="M50 85 L100 110 V155 L50 130 Z" fill="#0284c7" />
                 <path d="M100 110 L150 85 V130 L100 155 Z" fill="#0369a1" />
-
-                <!-- Box Top Sealing Tape -->
                 <path d="M75 72.5 L125 97.5 L115 102.5 L65 77.5 Z" fill="#bae6fd" opacity="0.8" />
-
-                <!-- Calender & Expiry Shield Badge -->
                 <g transform="translate(110, 45)">
                   <rect x="0" y="0" width="45" height="42" rx="6" fill="#ffffff" stroke="#16a34a" stroke-width="2.5" />
                   <rect x="0" y="0" width="45" height="12" rx="4" fill="#16a34a" />
@@ -198,8 +194,6 @@
                   <path d="M12 22 L20 30 L34 16" stroke="#16a34a" stroke-width="3" stroke-linecap="round"
                     stroke-linejoin="round" />
                 </g>
-
-                <!-- Barcode Tag Badge -->
                 <g transform="translate(60, 105)">
                   <rect x="0" y="0" width="32" height="20" rx="3" fill="#ffffff" />
                   <line x1="5" y1="4" x2="5" y2="16" stroke="#0f172a" stroke-width="2" />
@@ -231,11 +225,7 @@
     <!-- Inventory View -->
     <section id="inventory-view" class="view-panel">
       <div class="card card-full-flex">
-
-        <!-- Top Bar: Actions & Filters -->
         <div class="inventory-top-bar">
-
-          <!-- Left Controls: Filter + Search -->
           <div class="inventory-controls-left">
             <div class="control-group">
               <label for="inventory-filter" class="control-label">Filter By:</label>
@@ -256,16 +246,13 @@
             </div>
           </div>
 
-          <!-- Action Buttons -->
           <div class="inventory-actions-right">
             <button id="export-csv-btn" class="btn btn-auto btn-export">📥 Export CSV</button>
             <button id="backup-db-btn" class="btn btn-auto btn-backup">💾 Backup DB</button>
             <button id="refresh-inventory-btn" class="btn btn-auto">🔄 Refresh Stock</button>
           </div>
-
         </div>
 
-        <!-- Scrollable Table Container -->
         <div class="inventory-table-container">
           <table class="data-table data-table-fill">
             <thead class="sticky-thead">
@@ -282,9 +269,7 @@
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="inventory-table-body">
-              <!-- Populated dynamically -->
-            </tbody>
+            <tbody id="inventory-table-body"></tbody>
           </table>
         </div>
 
@@ -305,9 +290,7 @@
             <div id="pos-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
 
-          <!-- Red Expiry Warning Box -->
-          <div id="pos-expiry-alert" class="pos-expiry-alert-box" style="display: none;">
-          </div>
+          <div id="pos-expiry-alert" class="pos-expiry-alert-box" style="display: none;"></div>
 
           <div class="form-group">
             <label for="pos_qty">Quantity to Sell *</label>
@@ -322,7 +305,6 @@
         <div class="card card-full-flex">
           <h3 class="card-title-spaced">Current Invoice</h3>
 
-          <!-- Scrollable Cart Table Container -->
           <div class="cart-scroll-container">
             <table class="data-table data-table-fill no-margin-bottom">
               <thead class="sticky-thead-shallow">
@@ -342,7 +324,6 @@
             </table>
           </div>
 
-          <!-- Pricing, Discount %, Cash Received & Balance Calculation -->
           <div class="pos-calculation-panel">
             <div class="pos-total-row">
               <span class="pos-total-label">Net Total:</span>
@@ -352,14 +333,14 @@
             <div class="pos-payment-grid">
               <div>
                 <label for="pos-discount-amount" class="pos-pay-label">Discount (%)</label>
-                <input type="number" step="0.01" min="0" max="100" id="pos-discount-amount" class="pos-paid-input"
-                  placeholder="0%" />
+                <input type="text" inputmode="decimal" id="pos-discount-amount" class="pos-paid-input"
+                  placeholder="0%" autocomplete="off" />
               </div>
 
               <div>
                 <label for="pos-paid-amount" class="pos-pay-label">Cash Paid (LKR) *</label>
-                <input type="number" step="0.01" min="0" id="pos-paid-amount" class="pos-paid-input"
-                  placeholder="0.00" />
+                <input type="text" inputmode="decimal" id="pos-paid-amount" class="pos-paid-input"
+                  placeholder="0.00" autocomplete="off" />
               </div>
             </div>
 
@@ -376,20 +357,92 @@
       </div>
     </section>
 
+    <!-- TILL / SHIFT MANAGEMENT VIEW -->
+    <section id="till-view" class="view-panel">
+      <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
+        
+        <!-- Shift Action Panel -->
+        <div class="card">
+          <h3 id="till-action-title">Till Operations</h3>
+          
+          <!-- State 1: Open Till Form -->
+          <div id="till-open-section">
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float.</p>
+            <form id="till-open-form">
+              <div class="form-group">
+                <label for="till_opening_float">Starting Cash Float (LKR) *</label>
+                <input type="text" inputmode="decimal" id="till_opening_float" placeholder="0.00" required autocomplete="off" />
+              </div>
+              <button type="submit" class="btn btn-checkout" style="margin-top: 5px;">🟢 Open Till Shift</button>
+            </form>
+          </div>
+
+          <!-- State 2: Active Shift Status & Close Till Form -->
+          <div id="till-close-section" style="display: none;">
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+              <div style="font-weight: 700; color: #166534; font-size: 15px; margin-bottom: 4px;">🟢 Shift Currently Active</div>
+              <div style="font-size: 12px; color: #4b5563;">Shift #<span id="active-shift-id">-</span> (Opened: <span id="active-shift-opened">-</span>)</div>
+              <div style="font-size: 13px; margin-top: 6px;">Opening Float: <strong id="active-shift-float" style="color: #0284c7;">LKR 0.00</strong></div>
+              <div style="font-size: 13px;">Shift Sales: <strong id="active-shift-sales" style="color: #16a34a;">LKR 0.00</strong></div>
+              <div style="font-size: 14px; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
+                Expected Cash: <strong id="active-shift-expected" style="color: #0f172a;">LKR 0.00</strong>
+              </div>
+            </div>
+
+            <form id="till-close-form">
+              <div class="form-group">
+                <label for="till_counted_cash">Counted Physical Cash in Drawer (LKR) *</label>
+                <input type="text" inputmode="decimal" id="till_counted_cash" placeholder="0.00" required autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label for="till_close_note">Shift Notes (Optional)</label>
+                <input type="text" id="till_close_note" placeholder="e.g. Day-end closing" />
+              </div>
+              <button type="submit" class="btn" style="background: #dc2626;">🔴 End Till & Print Z-Report</button>
+            </form>
+          </div>
+
+          <div id="till-status-msg" class="status-msg"></div>
+        </div>
+
+        <!-- Shift History List -->
+        <div class="card card-full-flex">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="no-margin">Shift / Till History</h3>
+            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
+          </div>
+          <div class="table-scroll-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Shift #</th>
+                  <th>Opened</th>
+                  <th>Closed</th>
+                  <th>Float</th>
+                  <th>Sales</th>
+                  <th>Expected</th>
+                  <th>Actual</th>
+                  <th>Variance</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="till-history-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- Sales History View -->
     <section id="sales-view" class="view-panel">
       <div class="card card-full-width">
-
-        <!-- Top Control Bar -->
         <div class="sales-top-bar">
-
-          <!-- Left: Title & Live Total Revenue -->
           <div>
             <h3 class="title-compact">Sales & Transaction History</h3>
             <p id="total-revenue-banner" class="revenue-banner-text">Total Revenue: LKR 0.00</p>
           </div>
 
-          <!-- Right: Search Invoice ID, Date Filter & Actions -->
           <div class="sales-filter-group">
             <input type="number" id="sales-invoice-search" placeholder="Search Invoice # (e.g. 2)..."
               class="date-input-field" style="width: 190px;" />
@@ -400,10 +453,8 @@
             <button id="sales-clear-filter-btn" type="button" class="btn btn-auto btn-all-time">All Time</button>
             <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
           </div>
-
         </div>
 
-        <!-- Sales Table -->
         <div class="table-scroll-container">
           <table class="data-table">
             <thead>
@@ -415,9 +466,7 @@
                 <th>Action</th>
               </tr>
             </thead>
-            <tbody id="sales-table-body">
-              <!-- Dynamic rows load here -->
-            </tbody>
+            <tbody id="sales-table-body"></tbody>
           </table>
         </div>
       </div>
@@ -444,7 +493,6 @@
           <tbody id="receipt-items-body"></tbody>
         </table>
 
-        <!-- Modal Receipt Discount Summary -->
         <div id="modal-receipt-discount-row" style="display: none; justify-content: space-between; padding: 4px 8px; font-size: 13px; color: #dc2626;">
           <span>Discount Applied:</span>
           <span id="modal-receipt-discount-val">- LKR 0.00</span>
@@ -503,7 +551,7 @@
 
         <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center; justify-content: flex-end;">
           <label for="edit-sale-discount-input" style="font-size: 13px; font-weight: bold; margin-bottom: 0;">Discount (%):</label>
-          <input type="number" step="0.01" min="0" max="100" id="edit-sale-discount-input" style="width: 110px; padding: 4px 8px;" placeholder="0%" />
+          <input type="text" inputmode="decimal" id="edit-sale-discount-input" style="width: 110px; padding: 4px 8px;" placeholder="0%" autocomplete="off" />
         </div>
 
         <div
@@ -524,8 +572,6 @@
 
     <!-- Visual Revenues & Reports View -->
     <section id="reports-view" class="view-panel">
-
-      <!-- Top KPI Summary Cards -->
       <div class="kpi-grid">
         <div class="card card-full-width kpi-card-blue">
           <small class="kpi-label">Today's Revenue</small>
@@ -546,7 +592,6 @@
         </div>
       </div>
 
-      <!-- Main Chart Container -->
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
@@ -554,7 +599,6 @@
             <p class="chart-subtitle">Visual breakdown of store sales performance</p>
           </div>
 
-          <!-- Timeframe Filter Buttons -->
           <div class="filter-btn-group">
             <button class="filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
             <button class="filter-btn" data-period="weekly">Weekly</button>
@@ -562,7 +606,6 @@
           </div>
         </div>
 
-        <!-- Canvas for Chart.js -->
         <div class="chart-canvas-wrapper">
           <canvas id="salesChart"></canvas>
         </div>
@@ -571,8 +614,6 @@
 
     <!-- Visual Profit Analytics & Charts View -->
     <section id="profits-view" class="view-panel">
-
-      <!-- Top Profit Summary Cards -->
       <div class="kpi-grid">
         <div class="card card-full-width kpi-card-blue">
           <small class="kpi-label">Today's Profit</small>
@@ -593,7 +634,6 @@
         </div>
       </div>
 
-      <!-- Main Profit Chart Container -->
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
@@ -601,7 +641,6 @@
             <p class="chart-subtitle">Visual breakdown of net gross profit (Selling Price - Cost Price)</p>
           </div>
 
-          <!-- Timeframe Filter Buttons -->
           <div class="filter-btn-group">
             <button class="profit-filter-btn active-filter" data-period="daily">Daily (Last 7 Days)</button>
             <button class="profit-filter-btn" data-period="weekly">Weekly</button>
@@ -609,7 +648,6 @@
           </div>
         </div>
 
-        <!-- Canvas for Profit Chart.js -->
         <div class="chart-canvas-wrapper">
           <canvas id="profitChart"></canvas>
         </div>
@@ -619,8 +657,6 @@
     <!-- Store Settings View -->
     <section id="settings-view" class="view-panel">
       <div class="form-hero-layout">
-
-        <!-- Left: Form Card -->
         <div class="card">
           <h3 class="card-title-spaced">Pharmacy Information</h3>
           <form id="settings-form">
@@ -642,22 +678,18 @@
           <div id="settings-status-msg" class="status-msg"></div>
         </div>
 
-        <!-- Right: Showcase Panel -->
         <div class="hero-showcase-panel">
           <div class="hero-showcase-content">
             <div class="hero-badge">Receipt Branding</div>
             <h2>Custom Thermal Header</h2>
-            <p>Changes saved here automatically update the business header and footer on every thermal receipt printed.
-            </p>
+            <p>Changes saved here automatically update the business header and footer on every thermal receipt printed.</p>
 
             <div class="hero-illustration">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
                 <circle cx="100" cy="100" r="85" fill="#e0f2fe" opacity="0.6" />
-                <!-- Storefront -->
                 <path d="M50 85 L100 55 L150 85 V150 H50 Z" fill="#0284c7" />
                 <rect x="65" y="95" width="30" height="30" rx="4" fill="#38bdf8" />
                 <rect x="105" y="95" width="30" height="55" rx="4" fill="#ffffff" />
-                <!-- Awning -->
                 <path d="M45 85 Q100 95 155 85 L150 75 Q100 85 50 75 Z" fill="#16a34a" />
               </svg>
             </div>
@@ -804,14 +836,11 @@
             <th class="receipt-th-right">Total</th>
           </tr>
         </thead>
-        <tbody id="rec-items-body">
-          <!-- Rows injected dynamically -->
-        </tbody>
+        <tbody id="rec-items-body"></tbody>
       </table>
 
       <div class="receipt-divider"></div>
 
-      <!-- Receipt Summary -->
       <div class="receipt-summary">
         <div class="receipt-row total-row">
           <span>Grand Total:</span>
@@ -848,7 +877,6 @@
         <input type="hidden" id="edit_drug_id" />
         <input type="hidden" id="edit_batch_id" />
 
-        <!-- Section: Medicine Details -->
         <h4 class="edit-section-heading">Medicine Info</h4>
         <div class="grid-2-col">
           <div class="form-group">
@@ -874,7 +902,6 @@
           </div>
         </div>
 
-        <!-- Section: Batch Details -->
         <div id="edit-batch-section">
           <h4 class="edit-batch-heading">Batch & Pricing Info</h4>
 
@@ -893,12 +920,12 @@
           <div class="grid-3-col">
             <div class="form-group">
               <label for="edit_buy_price">Buy Price (LKR) *</label>
-              <input type="number" step="0.01" min="0" id="edit_buy_price" />
+              <input type="number" step="any" min="0" id="edit_buy_price" />
             </div>
 
             <div class="form-group">
               <label for="edit_sell_price">Sell Price (LKR) *</label>
-              <input type="number" step="0.01" min="0" id="edit_sell_price" />
+              <input type="number" step="any" min="0" id="edit_sell_price" />
             </div>
 
             <div class="form-group">
