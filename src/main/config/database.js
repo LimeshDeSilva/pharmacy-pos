@@ -36,6 +36,7 @@ function initDatabase() {
     CREATE TABLE IF NOT EXISTS sales (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       total_amount REAL NOT NULL,
+      discount REAL DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -64,6 +65,7 @@ function initDatabase() {
   `);
 
   // Migrations for existing databases
+  try { db.exec(`ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) {}
