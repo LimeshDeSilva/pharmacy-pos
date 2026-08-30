@@ -96,9 +96,9 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  ipcMain.handle('pos:checkout', async (event, { cart, total }) => {
+  ipcMain.handle('pos:checkout', async (event, { cart, total, discount }) => {
     try {
-      const result = salesRepo.processSale(cart, total);
+      const result = salesRepo.processSale(cart, total, discount);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -201,9 +201,9 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  ipcMain.handle('sales:update', async (event, { saleId, items, total }) => {
+  ipcMain.handle('sales:update', async (event, { saleId, items, total, discount }) => {
     try {
-      const result = salesRepo.updateSale(saleId, items, total);
+      const result = salesRepo.updateSale(saleId, items, total, discount);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
