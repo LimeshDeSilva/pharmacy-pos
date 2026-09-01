@@ -34,11 +34,11 @@ contextBridge.exposeInMainWorld('api', {
 
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (settings) => ipcRenderer.invoke('settings:update', settings),
+  verifyPin: (pin) => ipcRenderer.invoke('auth:verifyPin', pin),
 
   deleteSingleSale: (saleId) => ipcRenderer.invoke('sales:deleteSingle', saleId),
   deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll'),
   updateSale: (data) => ipcRenderer.invoke('sales:update', data),
 
-  // Inside contextBridge.exposeInMainWorld('api', { ... })
   importCSV: () => ipcRenderer.invoke('inventory:importCSV'),
 });
