@@ -4,10 +4,9 @@ const SystemService = require('../services/systemService');
 const ExportService = require('../services/exportService');
 
 function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo) {
-  // Drugs
   ipcMain.handle('drugs:add', async (event, drugData) => {
     try {
-      const result = drugRepo.addDrug(drugData.brand_name, drugData.generic_name, drugData.category, drugData.min_stock_alert);
+      const result = drugRepo.addDrug(drugData.brand_name, drugData.generic_name, drugData.category, drugData.min_stock_alert, drugData.barcode);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -22,7 +21,23 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  // Batches
+  ipcMain.handle('drugs:getByBarcode', async (event, barcode) => {
+    try {
+      return { success: true, data: drugRepo.getDrugByBarcode(barcode) };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('drugs:bindBarcode', async (event, { drugId, barcode }) => {
+    try {
+      drugRepo.bindBarcode(drugId, barcode);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle('batches:add', async (event, batchData) => {
     try {
       const result = batchRepo.addBatch(batchData.drug_id, batchData.batch_number, batchData.expiry_date, batchData.buy_price, batchData.sell_price, batchData.quantity);
@@ -32,7 +47,6 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  // Inventory
   ipcMain.handle('inventory:getAll', async () => {
     try {
       return { success: true, data: batchRepo.getInventoryOverview() };
@@ -87,7 +101,6 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await ExportService.exportInventoryCSV(inventory);
   });
 
-  // POS
   ipcMain.handle('pos:getStock', async () => {
     try {
       return { success: true, data: batchRepo.getAvailableStock() };
@@ -109,7 +122,6 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await PrinterService.printReceipt(receiptData);
   });
 
-  // Till & Shift Management
   ipcMain.handle('till:getActiveShift', async () => {
     try {
       return { success: true, data: salesRepo.getActiveShift() };
@@ -156,7 +168,6 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await PrinterService.printTillReport(tillData);
   });
 
-  // Sales History
   ipcMain.handle('sales:getAll', async () => {
     try {
       return { success: true, data: salesRepo.getAllSales() };
@@ -173,7 +184,6 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  // Analytics & Reports
   ipcMain.handle('reports:getAnalytics', async () => {
     try {
       return {
@@ -206,7 +216,6 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  // Settings Handlers
   ipcMain.handle('settings:get', async () => {
     try {
       return { success: true, data: settingsRepo.getSettings() };
@@ -224,12 +233,10 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
-  // System Backup
   ipcMain.handle('database:backup', async () => {
     return await SystemService.backupDatabase();
   });
   
-  // Sales Deletion Handlers
   ipcMain.handle('sales:deleteSingle', async (event, saleId) => {
     try {
       const success = salesRepo.deleteSaleById(saleId);
