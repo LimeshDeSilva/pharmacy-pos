@@ -42,10 +42,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ==================== SIDEBAR TAB NAVIGATION ====================
+// ==================== SIDEBAR TAB NAVIGATION & FOCUS MAGNET ====================
 const navItems = document.querySelectorAll('.nav-item');
 const viewPanels = document.querySelectorAll('.view-panel');
 const pageTitle = document.getElementById('page-title');
+
+function forceFocusInput(inputId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  
+  el.focus();
+  el.select();
+  
+  setTimeout(() => { 
+    el.focus(); 
+    el.select(); 
+  }, 50);
+  
+  setTimeout(() => { 
+    el.focus(); 
+    el.select(); 
+  }, 200);
+}
 
 function navigateToTab(targetViewId, customMessage = '') {
   navItems.forEach((nav) => nav.classList.remove('active'));
@@ -66,16 +84,10 @@ function navigateToTab(targetViewId, customMessage = '') {
 
   if (targetViewId === 'stock-inward-view') {
     displayDrugDropdown();
-    setTimeout(() => {
-      const bInput = document.getElementById('inward_barcode');
-      if (bInput) { bInput.focus(); bInput.select(); }
-    }, 50);
+    forceFocusInput('inward_barcode');
   } else if (targetViewId === 'pos-view') {
     loadPosStock();
-    setTimeout(() => {
-      const pBarInput = document.getElementById('pos_barcode_input');
-      if (pBarInput) { pBarInput.focus(); pBarInput.select(); }
-    }, 50);
+    forceFocusInput('pos_barcode_input');
   } else if (targetViewId === 'till-view') {
     loadTillManagementView(customMessage);
   } else if (targetViewId === 'inventory-view') {
@@ -338,7 +350,7 @@ if (settingsForm) {
   });
 }
 
-// ==================== DUAL-MODE BARCODE & 2D GS1 / TEXT PARSER ====================
+// ==================== UNIVERSAL BARCODE & 2D GS1 / TEXT PARSER ====================
 function parsePharmaceuticalBarcode(rawText) {
   const result = {
     is2D: false,
@@ -349,9 +361,13 @@ function parsePharmaceuticalBarcode(rawText) {
   };
 
   if (!rawText) return result;
+  
+  // Sanity check: Ignore accidental finger shadows or micro-glitches (too short to be valid)
   const text = rawText.trim().replace(/^[,;\s]+|[,;\s]+$/g, '');
+  if (text.length < 3) {
+    return result; 
+  }
 
-  // 1. GS1 Application Identifier Format: (01)GTIN(17)YYMMDD(10)BATCH(21)SERIAL
   const gs1Gtin = text.match(/(?:01|\(01\))(\d{14})/);
   const gs1Exp = text.match(/(?:17|\(17\))(\d{6})/);
   const gs1Batch = text.match(/(?:10|\(10\))([A-Za-z0-9_-]+)/);
@@ -371,19 +387,16 @@ function parsePharmaceuticalBarcode(rawText) {
     return result;
   }
 
-  // 2. Text-based 2D Barcode (e.g. ", Fexofenadine Hydrochloride Tablets USP 120mg, B.No.: FGH001, MFG.: 02-2026, EXP: 01/2029")
   const is2DComposite = /B\.?\s*No|LOT|EXP|MFG|,/i.test(text);
 
   if (is2DComposite) {
     result.is2D = true;
 
-    // Extract Batch Number
     const batchMatch = text.match(/(?:B\.?\s*No\.?|Batch|LOT|B\/N)[\s.:]*([A-Za-z0-9_-]+)/i);
     if (batchMatch) {
       result.batchNo = batchMatch[1].trim();
     }
 
-    // Extract Expiry Date (handles MM-YYYY, MM/YYYY, MM/YY, YYYY-MM, DD-MM-YYYY)
     const expMatch = text.match(/(?:EXP\.?\s*(?:Date)?|Expiry)[\s.:]*([0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{4}[-/.][0-9]{1,2}|[0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4})/i);
     if (expMatch) {
       const expStr = expMatch[1].replace(/[/.]/g, '-');
@@ -406,7 +419,6 @@ function parsePharmaceuticalBarcode(rawText) {
       }
     }
 
-    // Extract Drug Name
     const segments = text.split(/[,;\n\r]|B\.?\s*No|LOT|MFG|EXP/i).map(s => s.trim()).filter(Boolean);
     for (const seg of segments) {
       if (/[a-zA-Z]{3,}/.test(seg) && !/^(B\.?No|LOT|MFG|EXP)/i.test(seg)) {
@@ -417,7 +429,6 @@ function parsePharmaceuticalBarcode(rawText) {
 
     result.cleanBarcode = result.batchNo || text.slice(0, 20);
   } else {
-    // 3. Traditional 1D Barcode (UPC / EAN / GTIN / Manual Entry)
     result.is2D = false;
     result.cleanBarcode = text;
   }
@@ -425,66 +436,7 @@ function parsePharmaceuticalBarcode(rawText) {
   return result;
 }
 
-// Unified scanner handler for both 1D and 2D methods
-let barcodeScanTimeout = null;
-
-async function handleScannedBarcodeValue(rawBarcode) {
-  if (!rawBarcode) return;
-
-  const parsed = parsePharmaceuticalBarcode(rawBarcode);
-
-  if (parsed.is2D) {
-    // ==================== 2D BARCODE WORKFLOW ====================
-    if (inwardBarcodeInput) {
-      inwardBarcodeInput.value = parsed.cleanBarcode;
-    }
-    if (parsed.batchNo) {
-      const batchInput = document.getElementById('inward_batch_number');
-      if (batchInput) batchInput.value = parsed.batchNo;
-    }
-    if (parsed.expiryDate) {
-      const expInput = document.getElementById('inward_expiry_date');
-      if (expInput) expInput.value = parsed.expiryDate;
-    }
-
-    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
-    if (res && res.success && res.data) {
-      pickInwardDrug(res.data);
-      inwardStatusMsg.style.color = '#16a34a';
-      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
-    } else {
-      if (parsed.drugName && inwardDrugInput) {
-        inwardDrugInput.value = parsed.drugName;
-        showInwardDrugList(parsed.drugName);
-      }
-      inwardStatusMsg.style.color = '#0284c7';
-      inwardStatusMsg.innerText = `✓ 2D Barcode processed: Batch & Expiry extracted.`;
-
-      const buyPriceInput = document.getElementById('inward_buy_price');
-      if (buyPriceInput) buyPriceInput.focus();
-    }
-  } else {
-    // ==================== 1D BARCODE WORKFLOW ====================
-    inwardStatusMsg.style.color = '#475569';
-    inwardStatusMsg.innerText = 'Checking barcode...';
-
-    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
-    if (res && res.success && res.data) {
-      pickInwardDrug(res.data);
-      inwardStatusMsg.style.color = '#16a34a';
-      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
-    } else {
-      inwardStatusMsg.style.color = '#0284c7';
-      inwardStatusMsg.innerText = `ℹ️ 1D Barcode scanned. Select or create medicine below to bind it.`;
-      if (inwardDrugInput) {
-        inwardDrugInput.focus();
-        inwardDrugInput.select();
-      }
-    }
-  }
-}
-
-// ==================== STOCK INWARD (UNIFIED RECEIVING) MODULE ====================
+// ==================== STOCK INWARD MODULE ====================
 let inwardDropIndex = 0;
 let inwardDropMatches = [];
 
@@ -503,24 +455,76 @@ const newDrugFieldsContainer = document.getElementById('new-drug-fields-containe
 const stockInwardForm = document.getElementById('stock-inward-form');
 const inwardStatusMsg = document.getElementById('inward-status-msg');
 
+let inwardScanTimer = null;
+
+async function processInwardScan(rawText) {
+  if (!rawText) return;
+  const parsed = parsePharmaceuticalBarcode(rawText);
+  if (!parsed.cleanBarcode) return;
+
+  if (parsed.is2D) {
+    if (inwardBarcodeInput) inwardBarcodeInput.value = parsed.cleanBarcode;
+    if (parsed.batchNo) {
+      const bInput = document.getElementById('inward_batch_number');
+      if (bInput) bInput.value = parsed.batchNo;
+    }
+    if (parsed.expiryDate) {
+      const eInput = document.getElementById('inward_expiry_date');
+      if (eInput) eInput.value = parsed.expiryDate;
+    }
+
+    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
+    if (res && res.success && res.data) {
+      pickInwardDrug(res.data);
+      inwardStatusMsg.style.color = '#16a34a';
+      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
+    } else {
+      if (parsed.drugName && inwardDrugInput) {
+        inwardDrugInput.value = parsed.drugName;
+        showInwardDrugList(parsed.drugName);
+      }
+      inwardStatusMsg.style.color = '#0284c7';
+      inwardStatusMsg.innerText = `✓ 2D Barcode processed: Batch & Expiry extracted.`;
+      const buyPrice = document.getElementById('inward_buy_price');
+      if (buyPrice) buyPrice.focus();
+    }
+  } else {
+    inwardStatusMsg.style.color = '#475569';
+    inwardStatusMsg.innerText = 'Checking barcode...';
+
+    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
+    if (res && res.success && res.data) {
+      pickInwardDrug(res.data);
+      inwardStatusMsg.style.color = '#16a34a';
+      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
+    } else {
+      inwardStatusMsg.style.color = '#0284c7';
+      inwardStatusMsg.innerText = `ℹ️ New barcode scanned. Select or create medicine below to bind it.`;
+      if (inwardDrugInput) {
+        inwardDrugInput.focus();
+        inwardDrugInput.select();
+      }
+    }
+  }
+}
+
 if (inwardBarcodeInput) {
-  // Enter key trigger (standard for 1D laser & 2D suffix scanners)
   inwardBarcodeInput.addEventListener('keydown', async (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      clearTimeout(barcodeScanTimeout);
-      await handleScannedBarcodeValue(inwardBarcodeInput.value.trim());
+      e.stopPropagation();
+      clearTimeout(inwardScanTimer);
+      await processInwardScan(inwardBarcodeInput.value.trim());
     }
   });
 
-  // Fast burst trigger (for 2D scanners sending multi-line/comma streams without Enter)
   inwardBarcodeInput.addEventListener('input', () => {
     const val = inwardBarcodeInput.value.trim();
-    if (val.length > 25 || val.includes(',') || val.includes('B.No')) {
-      clearTimeout(barcodeScanTimeout);
-      barcodeScanTimeout = setTimeout(async () => {
-        await handleScannedBarcodeValue(inwardBarcodeInput.value.trim());
-      }, 120);
+    if (val.length > 20 || val.includes(',') || val.includes('B.No')) {
+      clearTimeout(inwardScanTimer);
+      inwardScanTimer = setTimeout(async () => {
+        await processInwardScan(inwardBarcodeInput.value.trim());
+      }, 100);
     }
   });
 }
@@ -567,6 +571,11 @@ function pickInwardDrug(drug) {
   if (inwardDropdown) inwardDropdown.style.display = 'none';
   if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
   
+  const minStockInput = document.getElementById('inward_min_stock');
+  if (minStockInput && drug.min_stock_alert !== undefined) {
+    minStockInput.value = drug.min_stock_alert;
+  }
+
   const batchNoInput = document.getElementById('inward_batch_number');
   if (batchNoInput && !batchNoInput.value) { 
     batchNoInput.focus(); 
@@ -623,6 +632,7 @@ if (stockInwardForm) {
     let drugId = parseInt(inwardSelectedDrugId.value, 10);
     const brandName = inwardDrugInput.value.trim();
     const barcodeVal = inwardBarcodeInput ? inwardBarcodeInput.value.trim() : '';
+    const minStockVal = parseInt(document.getElementById('inward_min_stock').value, 10) || 10;
 
     inwardStatusMsg.style.color = '#475569';
     inwardStatusMsg.innerText = 'Processing stock inward...';
@@ -631,9 +641,9 @@ if (stockInwardForm) {
       if (!drugId || isNaN(drugId)) {
         const newDrugPayload = {
           brand_name: brandName,
-          generic_name: document.getElementById('inward_generic_name').value.trim(),
-          category: document.getElementById('inward_category').value.trim(),
-          min_stock_alert: parseInt(document.getElementById('inward_min_stock').value, 10) || 10,
+          generic_name: document.getElementById('inward_generic_name') ? document.getElementById('inward_generic_name').value.trim() : '',
+          category: document.getElementById('inward_category') ? document.getElementById('inward_category').value.trim() : '',
+          min_stock_alert: minStockVal,
           barcode: barcodeVal || null
         };
 
@@ -642,8 +652,15 @@ if (stockInwardForm) {
           throw new Error(drugRes.error);
         }
         drugId = drugRes.data.lastInsertRowid;
-      } else if (barcodeVal) {
-        await window.api.bindBarcode({ drugId, barcode: barcodeVal });
+      } else {
+        if (barcodeVal) {
+          await window.api.bindBarcode({ drugId, barcode: barcodeVal });
+        }
+        await window.api.updateInventoryItem({
+          drug_id: drugId,
+          brand_name: brandName,
+          min_stock_alert: minStockVal
+        });
       }
 
       const batchPayload = {
@@ -664,6 +681,9 @@ if (stockInwardForm) {
       inwardStatusMsg.innerText = '✓ Stock received, barcode bound, & batch logged successfully!';
       stockInwardForm.reset();
       inwardSelectedDrugId.value = '';
+      if (document.getElementById('inward_min_stock')) {
+        document.getElementById('inward_min_stock').value = '10';
+      }
       if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
       
       await displayDrugDropdown();
@@ -874,8 +894,8 @@ async function loadPosStock() {
   }
 }
 
-// ==================== POS / BILLING BARCODE HANDLER (1D & 2D GS1 / TEXT) ====================
-let posScanTimeout = null;
+// ==================== POS BARCODE HANDLER ====================
+let posScanTimer = null;
 
 async function handlePosScannedBarcode(rawCode) {
   if (!rawCode) return;
@@ -885,13 +905,13 @@ async function handlePosScannedBarcode(rawCode) {
   const qtyInput = document.getElementById('pos_qty');
   const pBarInput = document.getElementById('pos_barcode_input');
 
-  // Parse 2D or 1D barcode
   const parsed = parsePharmaceuticalBarcode(rawCode);
+  if (!parsed.cleanBarcode) return;
+
   const searchCode = parsed.cleanBarcode.trim().toLowerCase();
   const searchBatch = (parsed.batchNo || '').trim().toLowerCase();
   const searchName = (parsed.drugName || '').trim().toLowerCase();
 
-  // Find item by: 1. Barcode, 2. Batch Number, 3. Brand / Generic Name
   let foundItem = availablePosStock.find((item) => {
     const itemBarcode = (item.barcode || '').toLowerCase();
     const itemBatch = (item.batch_number || '').toLowerCase();
@@ -942,18 +962,19 @@ if (posBarcodeInput) {
   posBarcodeInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      clearTimeout(posScanTimeout);
+      e.stopPropagation();
+      clearTimeout(posScanTimer);
       handlePosScannedBarcode(posBarcodeInput.value.trim());
     }
   });
 
   posBarcodeInput.addEventListener('input', () => {
     const val = posBarcodeInput.value.trim();
-    if (val.length > 25 || val.includes(',') || val.includes('B.No')) {
-      clearTimeout(posScanTimeout);
-      posScanTimeout = setTimeout(() => {
+    if (val.length > 20 || val.includes(',') || val.includes('B.No')) {
+      clearTimeout(posScanTimer);
+      posScanTimer = setTimeout(() => {
         handlePosScannedBarcode(posBarcodeInput.value.trim());
-      }, 120);
+      }, 100);
     }
   });
 }
@@ -1933,7 +1954,7 @@ if (editSaleDrugInput) {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (items.length) {
-        dropIndex = (editDropIndex - 1 + items.length) % items.length;
+        editDropIndex = (editDropIndex - 1 + items.length) % items.length;
         items.forEach((el, i) => el.classList.toggle('selected', i === editDropIndex));
         items[editDropIndex].scrollIntoView({ block: 'nearest' });
       }
