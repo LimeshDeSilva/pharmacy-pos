@@ -120,9 +120,15 @@ function seedMedicinesIfEmpty() {
   const row = db.prepare('SELECT COUNT(*) AS count FROM drugs').get();
   if (row && row.count > 0) return;
 
-  console.log('Seeding initial 1,050 medicines...');
+  console.log('Seeding initial medicines...');
 
   const commonDrugs = [
+    { brand: 'Vomikind-MD 8', generic: 'Ondansetron', category: 'Antiemetic' },
+    { brand: 'Silagra 50', generic: 'Sildenafil Citrate', category: 'Erectile Dysfunction' },
+    { brand: 'Xadine', generic: 'Fexofenadine HCl', category: 'Antihistamine' },
+    { brand: 'Dometic 10mg', generic: 'Domperidone', category: 'Antiemetic' },
+    { brand: 'Bifilac', generic: 'Probiotic Blend', category: 'Gastrointestinal / Supplement' },
+    { brand: 'Meldol', generic: 'Paracetamol', category: 'Analgesic / Antipyretic' },
     { brand: 'Panadol 500mg', generic: 'Paracetamol', category: 'Analgesic / Antipyretic' },
     { brand: 'Panadol Extra', generic: 'Paracetamol + Caffeine', category: 'Analgesic' },
     { brand: 'Panadol ActiFast', generic: 'Paracetamol', category: 'Analgesic' },
@@ -379,7 +385,7 @@ function seedMedicinesIfEmpty() {
   });
 
   seedTransaction(expandedDataset);
-  console.log('✓ Successfully seeded 1,050 medicines.');
+  console.log('✓ Successfully seeded medicines.');
 }
 
 initDatabase();
