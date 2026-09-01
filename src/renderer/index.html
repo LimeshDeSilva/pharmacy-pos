@@ -70,7 +70,7 @@
           <form id="stock-inward-form">
 
             <div class="form-group">
-              <label for="inward_barcode">Scan Product Barcode (GTIN / UPC)</label>
+              <label for="inward_barcode">Scan Product Barcode (GTIN / UPC / 2D)</label>
               <input type="text" id="inward_barcode" placeholder="Scan barcode or press Enter..." autocomplete="off"
                 autofocus />
             </div>
@@ -88,18 +88,14 @@
               <small style="color: #0284c7; font-weight: bold; display: block; margin-bottom: 8px;">✨ New Medicine
                 Detected: Fill details for master catalog registration</small>
               <div class="grid-2-col">
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0;">
                   <label for="inward_generic_name">Generic Name</label>
                   <input type="text" id="inward_generic_name" placeholder="e.g. Paracetamol" />
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0;">
                   <label for="inward_category">Category</label>
                   <input type="text" id="inward_category" placeholder="e.g. Analgesic" />
                 </div>
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label for="inward_min_stock">Low Stock Alert Limit</label>
-                <input type="number" id="inward_min_stock" value="10" />
               </div>
             </div>
 
@@ -115,18 +111,22 @@
               </div>
             </div>
 
-            <div class="grid-3-col">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1.1fr; gap: 10px;">
               <div class="form-group">
-                <label for="inward_buy_price">Buy Price (LKR) *</label>
+                <label for="inward_buy_price">Buy Price *</label>
                 <input type="number" step="any" min="0" id="inward_buy_price" placeholder="0.00" required />
               </div>
               <div class="form-group">
-                <label for="inward_sell_price">Sell Price (LKR) *</label>
+                <label for="inward_sell_price">Sell Price *</label>
                 <input type="number" step="any" min="0" id="inward_sell_price" placeholder="0.00" required />
               </div>
               <div class="form-group">
-                <label for="inward_quantity">Quantity (Units) *</label>
+                <label for="inward_quantity">Quantity *</label>
                 <input type="number" min="1" id="inward_quantity" placeholder="0" required />
+              </div>
+              <div class="form-group">
+                <label for="inward_min_stock">Min Alert *</label>
+                <input type="number" min="1" id="inward_min_stock" value="10" placeholder="10" required />
               </div>
             </div>
 
