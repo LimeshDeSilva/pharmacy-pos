@@ -16,8 +16,7 @@ let currentSettings = {
 };
 
 const viewTitles = {
-  'add-drug-view': 'Register Medicine',
-  'add-batch-view': 'Add Batch',
+  'stock-inward-view': 'Stock Inward (Goods Receiving)',
   'inventory-view': 'Inventory Overview',
   'pos-view': 'Billing (POS)',
   'till-view': 'Till & Shift Management',
@@ -36,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
-    const bInput = document.getElementById('brand_name');
+    const bInput = document.getElementById('inward_drug_input');
     if (bInput) bInput.focus();
   } catch (err) {
     console.error('Failed to initialize app on startup:', err);
@@ -65,16 +64,11 @@ function navigateToTab(targetViewId, customMessage = '') {
 
   refreshAlertBadges();
 
-  if (targetViewId === 'add-drug-view') {
-    setTimeout(() => {
-      const bInput = document.getElementById('brand_name');
-      if (bInput) { bInput.focus(); bInput.select(); }
-    }, 50);
-  } else if (targetViewId === 'add-batch-view') {
+  if (targetViewId === 'stock-inward-view') {
     displayDrugDropdown();
     setTimeout(() => {
-      const bDrugInput = document.getElementById('batch_drug_input');
-      if (bDrugInput) { bDrugInput.focus(); bDrugInput.select(); }
+      const bInput = document.getElementById('inward_drug_input');
+      if (bInput) { bInput.focus(); bInput.select(); }
     }, 50);
   } else if (targetViewId === 'pos-view') {
     loadPosStock();
@@ -103,7 +97,6 @@ navItems.forEach((item) => {
   item.addEventListener('click', async (e) => {
     const targetViewId = item.getAttribute('data-view');
 
-    // TILL GATEKEEPER: Non-blocking check before entering POS Billing
     if (targetViewId === 'pos-view') {
       await checkActiveShiftStatus();
       if (!currentActiveShift) {
@@ -222,7 +215,6 @@ async function loadShiftsHistoryTable() {
   }
 }
 
-// Open Shift Form Handler
 const tillOpenForm = document.getElementById('till-open-form');
 if (tillOpenForm) {
   tillOpenForm.addEventListener('submit', async (e) => {
@@ -252,7 +244,6 @@ if (tillOpenForm) {
   });
 }
 
-// Close Shift Form Handler
 const tillCloseForm = document.getElementById('till-close-form');
 if (tillCloseForm) {
   tillCloseForm.addEventListener('submit', async (e) => {
@@ -347,71 +338,9 @@ if (settingsForm) {
   });
 }
 
-// ==================== ADD MEDICINE MODULE ====================
-const drugForm = document.getElementById('drug-form');
-const drugStatusMsg = document.getElementById('drug-status-msg');
-const brandInput = document.getElementById('brand_name');
-const genericInput = document.getElementById('generic_name');
-const categoryInput = document.getElementById('category');
-const minStockInput = document.getElementById('min_stock_alert');
-
-if (drugForm) {
-  drugForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const drugData = {
-      brand_name: document.getElementById('brand_name').value.trim(),
-      generic_name: document.getElementById('generic_name').value.trim(),
-      category: document.getElementById('category').value.trim(),
-      min_stock_alert: parseInt(document.getElementById('min_stock_alert').value, 10) || 10
-    };
-
-    drugStatusMsg.style.color = '#475569';
-    drugStatusMsg.innerText = 'Saving medicine...';
-
-    const response = await window.api.addDrug(drugData);
-
-    if (response.success) {
-      drugStatusMsg.style.color = '#16a34a';
-      drugStatusMsg.innerText = '✓ Medicine saved successfully!';
-      drugForm.reset();
-      document.getElementById('min_stock_alert').value = '10';
-      await refreshAlertBadges();
-
-      if (brandInput) brandInput.focus();
-      setTimeout(() => { drugStatusMsg.innerText = ''; }, 2000);
-    } else {
-      drugStatusMsg.style.color = '#dc2626';
-      drugStatusMsg.innerText = '✗ Error: ' + response.error;
-      setTimeout(() => { drugStatusMsg.innerText = ''; }, 2000);
-    }
-  });
-}
-
-if (brandInput) {
-  brandInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (genericInput) { genericInput.focus(); genericInput.select(); } }
-  });
-}
-if (genericInput) {
-  genericInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (categoryInput) { categoryInput.focus(); categoryInput.select(); } }
-  });
-}
-if (categoryInput) {
-  categoryInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (minStockInput) { minStockInput.focus(); minStockInput.select(); } }
-  });
-}
-if (minStockInput) {
-  minStockInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (drugForm) drugForm.requestSubmit(); }
-  });
-}
-
-// ==================== ADD BATCH MODULE ====================
-let batchDropIndex = 0;
-let batchDropMatches = [];
+// ==================== STOCK INWARD (UNIFIED RECEIVING) MODULE ====================
+let inwardDropIndex = 0;
+let inwardDropMatches = [];
 
 async function displayDrugDropdown() {
   const res = await window.api.getAllDrugs();
@@ -420,177 +349,189 @@ async function displayDrugDropdown() {
   }
 }
 
-function showBatchDrugList(q = '') {
-  const menu = document.getElementById('batch-dropdown');
-  if (!menu) return;
+const inwardDrugInput = document.getElementById('inward_drug_input');
+const inwardSelectedDrugId = document.getElementById('inward_selected_drug_id');
+const inwardDropdown = document.getElementById('inward-drug-dropdown');
+const newDrugFieldsContainer = document.getElementById('new-drug-fields-container');
+const stockInwardForm = document.getElementById('stock-inward-form');
+const inwardStatusMsg = document.getElementById('inward-status-msg');
 
+function showInwardDrugList(q = '') {
+  if (!inwardDropdown) return;
   const term = q.toLowerCase().trim();
+  
   if (!term) {
-    menu.style.display = 'none';
+    inwardDropdown.style.display = 'none';
     return;
   }
 
-  batchDropMatches = registeredDrugsList.filter((d) =>
+  inwardDropMatches = registeredDrugsList.filter((d) =>
     d.brand_name.toLowerCase().includes(term) ||
-    (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
-    (d.category && d.category.toLowerCase().includes(term))
+    (d.generic_name && d.generic_name.toLowerCase().includes(term))
   );
 
-  if (batchDropMatches.length === 0) {
-    menu.style.display = 'none';
+  if (inwardDropMatches.length === 0) {
+    inwardDropdown.style.display = 'none';
+    newDrugFieldsContainer.style.display = 'block';
+    inwardSelectedDrugId.value = '';
     return;
   }
 
-  batchDropIndex = 0;
-  menu.innerHTML = batchDropMatches.map((d, i) => `
+  newDrugFieldsContainer.style.display = 'none';
+  inwardDropIndex = 0;
+  inwardDropdown.innerHTML = inwardDropMatches.map((d, i) => `
     <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
-      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
+      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span>
     </div>
   `).join('');
 
-  menu.querySelectorAll('.pos-option').forEach((el) => {
-    el.addEventListener('click', () => pickBatchDrug(batchDropMatches[el.dataset.idx]));
+  inwardDropdown.querySelectorAll('.pos-option').forEach((el) => {
+    el.addEventListener('click', () => pickInwardDrug(inwardDropMatches[el.dataset.idx]));
   });
 
-  menu.style.display = 'block';
+  inwardDropdown.style.display = 'block';
 }
 
-function pickBatchDrug(drug) {
-  const input = document.getElementById('batch_drug_input');
-  const hiddenId = document.getElementById('selected_batch_drug_id');
-  const menu = document.getElementById('batch-dropdown');
-  const nextInput = document.getElementById('batch_number');
-
-  if (input) input.value = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
-  if (hiddenId) hiddenId.value = drug.id;
-  if (menu) menu.style.display = 'none';
-
-  if (nextInput) { nextInput.focus(); nextInput.select(); }
+function pickInwardDrug(drug) {
+  if (inwardDrugInput) inwardDrugInput.value = drug.brand_name;
+  if (inwardSelectedDrugId) inwardSelectedDrugId.value = drug.id;
+  if (inwardDropdown) inwardDropdown.style.display = 'none';
+  if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
+  
+  const batchNoInput = document.getElementById('inward_batch_number');
+  if (batchNoInput) { batchNoInput.focus(); batchNoInput.select(); }
 }
 
-const batchDrugInputEl = document.getElementById('batch_drug_input');
-if (batchDrugInputEl) {
-  batchDrugInputEl.addEventListener('input', () => {
-    document.getElementById('selected_batch_drug_id').value = '';
-    showBatchDrugList(batchDrugInputEl.value);
+if (inwardDrugInput) {
+  inwardDrugInput.addEventListener('input', () => {
+    inwardSelectedDrugId.value = '';
+    showInwardDrugList(inwardDrugInput.value);
   });
 
-  batchDrugInputEl.addEventListener('keydown', (e) => {
-    const menu = document.getElementById('batch-dropdown');
-    const items = menu ? menu.querySelectorAll('.pos-option') : [];
+  inwardDrugInput.addEventListener('keydown', (e) => {
+    const items = inwardDropdown ? inwardDropdown.querySelectorAll('.pos-option') : [];
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (items.length) {
-        batchDropIndex = (batchDropIndex + 1) % items.length;
-        items.forEach((el, i) => el.classList.toggle('selected', i === batchDropIndex));
-        items[batchDropIndex].scrollIntoView({ block: 'nearest' });
+        inwardDropIndex = (inwardDropIndex + 1) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === inwardDropIndex));
+        items[inwardDropIndex].scrollIntoView({ block: 'nearest' });
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (items.length) {
-        batchDropIndex = (batchDropIndex - 1 + items.length) % items.length;
-        items.forEach((el, i) => el.classList.toggle('selected', i === batchDropIndex));
-        items[batchDropIndex].scrollIntoView({ block: 'nearest' });
+        inwardDropIndex = (inwardDropIndex - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === inwardDropIndex));
+        items[inwardDropIndex].scrollIntoView({ block: 'nearest' });
       }
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (menu && menu.style.display !== 'none' && batchDropMatches[batchDropIndex]) {
-        pickBatchDrug(batchDropMatches[batchDropIndex]);
+      if (inwardDropdown && inwardDropdown.style.display !== 'none' && inwardDropMatches[inwardDropIndex]) {
+        pickInwardDrug(inwardDropMatches[inwardDropIndex]);
       } else {
-        const next = document.getElementById('batch_number');
-        if (next) next.focus();
+        const batchInput = document.getElementById('inward_batch_number');
+        if (batchInput) batchInput.focus();
       }
     } else if (e.key === 'Escape') {
-      if (menu) menu.style.display = 'none';
+      if (inwardDropdown) inwardDropdown.style.display = 'none';
     }
   });
 }
 
 document.addEventListener('click', (e) => {
-  const menu = document.getElementById('batch-dropdown');
-  if (menu && !menu.contains(e.target) && e.target !== batchDrugInputEl) {
-    menu.style.display = 'none';
+  if (inwardDropdown && !inwardDropdown.contains(e.target) && e.target !== inwardDrugInput) {
+    inwardDropdown.style.display = 'none';
   }
 });
 
-const batchForm = document.getElementById('batch-form');
-const batchStatusMsg = document.getElementById('batch-status-msg');
-
-if (batchForm) {
-  batchForm.addEventListener('submit', async (e) => {
+if (stockInwardForm) {
+  stockInwardForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    let drugId = parseInt(inwardSelectedDrugId.value, 10);
+    const brandName = inwardDrugInput.value.trim();
 
-    const selectedDrugId = parseInt(document.getElementById('selected_batch_drug_id').value, 10);
-    const drugInput = document.getElementById('batch_drug_input');
+    inwardStatusMsg.style.color = '#475569';
+    inwardStatusMsg.innerText = 'Processing stock inward...';
 
-    if (!selectedDrugId) {
-      batchStatusMsg.style.color = '#dc2626';
-      batchStatusMsg.innerText = '✗ Please select a registered medicine from the dropdown list.';
-      if (drugInput) drugInput.focus();
-      return;
-    }
+    try {
+      if (!drugId || isNaN(drugId)) {
+        const newDrugPayload = {
+          brand_name: brandName,
+          generic_name: document.getElementById('inward_generic_name').value.trim(),
+          category: document.getElementById('inward_category').value.trim(),
+          min_stock_alert: parseInt(document.getElementById('inward_min_stock').value, 10) || 10
+        };
 
-    const batchData = {
-      drug_id: selectedDrugId,
-      batch_number: document.getElementById('batch_number').value.trim(),
-      expiry_date: document.getElementById('expiry_date').value,
-      buy_price: parseFloat(document.getElementById('buy_price').value),
-      sell_price: parseFloat(document.getElementById('sell_price').value),
-      quantity: parseInt(document.getElementById('quantity').value, 10)
-    };
+        const drugRes = await window.api.addDrug(newDrugPayload);
+        if (!drugRes.success) {
+          throw new Error(drugRes.error);
+        }
+        drugId = drugRes.data.lastInsertRowid;
+      }
 
-    batchStatusMsg.style.color = '#475569';
-    batchStatusMsg.innerText = 'Saving batch...';
+      const batchPayload = {
+        drug_id: drugId,
+        batch_number: document.getElementById('inward_batch_number').value.trim(),
+        expiry_date: document.getElementById('inward_expiry_date').value,
+        buy_price: parseFloat(document.getElementById('inward_buy_price').value),
+        sell_price: parseFloat(document.getElementById('inward_sell_price').value),
+        quantity: parseInt(document.getElementById('inward_quantity').value, 10)
+      };
 
-    const response = await window.api.addBatch(batchData);
+      const batchRes = await window.api.addBatch(batchPayload);
+      if (!batchRes.success) {
+        throw new Error(batchRes.error);
+      }
 
-    if (response.success) {
-      batchStatusMsg.style.color = '#16a34a';
-      batchStatusMsg.innerText = '✓ Batch saved successfully!';
-      batchForm.reset();
-      document.getElementById('selected_batch_drug_id').value = '';
+      inwardStatusMsg.style.color = '#16a34a';
+      inwardStatusMsg.innerText = '✓ Stock received and batch logged successfully!';
+      stockInwardForm.reset();
+      inwardSelectedDrugId.value = '';
+      if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
+      
+      await displayDrugDropdown();
       await refreshAlertBadges();
 
-      if (drugInput) drugInput.focus();
-      setTimeout(() => { batchStatusMsg.innerText = ''; }, 2000);
-    } else {
-      batchStatusMsg.style.color = '#dc2626';
-      batchStatusMsg.innerText = '✗ Error: ' + response.error;
-      setTimeout(() => { batchStatusMsg.innerText = ''; }, 3000);
+      setTimeout(() => { inwardStatusMsg.innerText = ''; }, 2500);
+      if (inwardDrugInput) inwardDrugInput.focus();
+    } catch (err) {
+      inwardStatusMsg.style.color = '#dc2626';
+      inwardStatusMsg.innerText = '✗ Error: ' + err.message;
     }
   });
 }
 
-const batchNoInput = document.getElementById('batch_number');
-const expiryDateInput = document.getElementById('expiry_date');
-const buyPriceInput = document.getElementById('buy_price');
-const sellPriceInput = document.getElementById('sell_price');
-const batchQtyInput = document.getElementById('quantity');
+// Batch input navigation helpers
+const inwardBatchNoInput = document.getElementById('inward_batch_number');
+const inwardExpiryDateInput = document.getElementById('inward_expiry_date');
+const inwardBuyPriceInput = document.getElementById('inward_buy_price');
+const inwardSellPriceInput = document.getElementById('inward_sell_price');
+const inwardBatchQtyInput = document.getElementById('inward_quantity');
 
-if (batchNoInput) {
-  batchNoInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (expiryDateInput) expiryDateInput.focus(); }
+if (inwardBatchNoInput) {
+  inwardBatchNoInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); if (inwardExpiryDateInput) inwardExpiryDateInput.focus(); }
   });
 }
-if (expiryDateInput) {
-  expiryDateInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (buyPriceInput) { buyPriceInput.focus(); buyPriceInput.select(); } }
+if (inwardExpiryDateInput) {
+  inwardExpiryDateInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); if (inwardBuyPriceInput) { inwardBuyPriceInput.focus(); inwardBuyPriceInput.select(); } }
   });
 }
-if (buyPriceInput) {
-  buyPriceInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (sellPriceInput) { sellPriceInput.focus(); sellPriceInput.select(); } }
+if (inwardBuyPriceInput) {
+  inwardBuyPriceInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); if (inwardSellPriceInput) { inwardSellPriceInput.focus(); inwardSellPriceInput.select(); } }
   });
 }
-if (sellPriceInput) {
-  sellPriceInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (batchQtyInput) { batchQtyInput.focus(); batchQtyInput.select(); } }
+if (inwardSellPriceInput) {
+  inwardSellPriceInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); if (inwardBatchQtyInput) { inwardBatchQtyInput.focus(); inwardBatchQtyInput.select(); } }
   });
 }
-if (batchQtyInput) {
-  batchQtyInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (batchForm) batchForm.requestSubmit(); }
+if (inwardBatchQtyInput) {
+  inwardBatchQtyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); if (stockInwardForm) stockInwardForm.requestSubmit(); }
   });
 }
 
@@ -832,7 +773,6 @@ function pickItem(item) {
   if (qty) { qty.focus(); qty.select(); }
 }
 
-// Sequential '+' Key Shortcut: Cart -> Discount (%) -> Cash Paid
 window.addEventListener('keydown', (e) => {
   const isPosView = document.getElementById('pos-view')?.classList.contains('active');
   if (isPosView && (e.key === '+' || e.code === 'NumpadAdd')) {
@@ -917,7 +857,6 @@ if (posDiscountInput) {
   });
 }
 
-// Pressing Enter in Paid Input -> Save Sale WITHOUT printing
 const posPaidInput = document.getElementById('pos-paid-amount');
 if (posPaidInput) {
   posPaidInput.addEventListener('input', calculatePosBalance);
@@ -1111,7 +1050,6 @@ if (posQtyInput) {
   });
 }
 
-// Global F8 Key Shortcut -> Complete Checkout AND Print
 window.addEventListener('keydown', (e) => {
   const isPosView = document.getElementById('pos-view')?.classList.contains('active');
   if (isPosView && e.key === 'F8') {
@@ -2313,8 +2251,7 @@ if (saveEditSaleBtn) {
 
 // ==================== GLOBAL FUNCTION KEY TAB SHORTCUTS (F1 - F7) ====================
 const functionKeyTabMap = {
-  F1: 'add-drug-view',
-  F2: 'add-batch-view',
+  F1: 'stock-inward-view',
   F3: 'inventory-view',
   F4: 'pos-view',
   F5: 'sales-view',
