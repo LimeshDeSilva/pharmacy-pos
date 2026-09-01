@@ -1,40 +1,30 @@
 {
-  "name": "medicare-pos",
+  "name": "pharmacy-pos",
   "version": "1.0.0",
-  "description": "Offline Pharmacy Management & POS System",
+  "description": "Pharmacy POS & Inventory Management System",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
     "postinstall": "electron-builder install-app-deps",
-    "build:win": "electron-builder --win"
+    "build": "electron-builder --win"
   },
   "dependencies": {
-    "@point-of-sale/receipt-printer-encoder": "^3.0.3",
-    "better-sqlite3": "^11.8.6"
+    "@point-of-sale/receipt-printer-encoder": "latest",
+    "better-sqlite3": "^11.8.0"
   },
   "devDependencies": {
-    "electron": "^31.7.7",
-    "electron-builder": "^26.15.3"
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.medicare.pos",
+    "appId": "com.pharmacy.pos",
     "productName": "MediCare POS",
     "directories": {
       "output": "dist"
     },
-    "asar": true,
-    "asarUnpack": [
-      "**/node_modules/better-sqlite3/**"
-    ],
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
+      "target": "nsis",
+      "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
       "oneClick": false,
@@ -42,6 +32,12 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "MediCare POS"
-    }
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*"
+    ]
   }
 }
