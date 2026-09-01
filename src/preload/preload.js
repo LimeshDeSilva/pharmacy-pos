@@ -37,5 +37,8 @@ contextBridge.exposeInMainWorld('api', {
 
   deleteSingleSale: (saleId) => ipcRenderer.invoke('sales:deleteSingle', saleId),
   deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll'),
-  updateSale: (data) => ipcRenderer.invoke('sales:update', data)
+  updateSale: (data) => ipcRenderer.invoke('sales:update', data),
+
+  // Inside contextBridge.exposeInMainWorld('api', { ... })
+  importCSV: () => ipcRenderer.invoke('inventory:importCSV'),
 });
