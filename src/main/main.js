@@ -17,7 +17,7 @@ const salesRepo = new SalesRepository(db);
 const analyticsRepo = new AnalyticsRepository(db);
 const settingsRepo = new SettingsRepository(db);
 
-registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo);
+registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo);
 
 function createWindow() {
   const win = new BrowserWindow({
