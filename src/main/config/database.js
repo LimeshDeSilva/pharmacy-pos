@@ -79,7 +79,8 @@ function initDatabase() {
     INSERT OR IGNORE INTO settings (key, value) VALUES 
       ('pharmacy_name', 'NEW SAHASNA PHARMACY'),
       ('pharmacy_address', 'No.514, Walagedara, Balapitiya'),
-      ('pharmacy_phone', '077-6723395');
+      ('pharmacy_phone', '077-6723395'),
+      ('admin_pin', '1234');
   `);
 
   try { db.exec(`ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0;`); } catch (e) {}
@@ -89,25 +90,6 @@ function initDatabase() {
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) {}
   try { db.exec(`ALTER TABLE drugs ADD COLUMN barcode TEXT UNIQUE;`); } catch (e) {}
-  
-  try {
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS till_shifts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        closed_at DATETIME,
-        opening_float REAL NOT NULL,
-        total_sales REAL DEFAULT 0,
-        total_orders INTEGER DEFAULT 0,
-        total_discounts REAL DEFAULT 0,
-        expected_cash REAL DEFAULT 0,
-        actual_cash REAL DEFAULT 0,
-        variance REAL DEFAULT 0,
-        note TEXT,
-        status TEXT DEFAULT 'OPEN'
-      );
-    `);
-  } catch (e) {}
 
   try {
     db.exec(`
@@ -336,43 +318,6 @@ function seedMedicinesIfEmpty() {
     { brand: 'Soframycin 1% Skin Cream', generic: 'Framycetin Sulfate', category: 'Topical Antibacterial' }
   ];
 
-  const expandedDataset = [];
-  commonDrugs.forEach((item) => {
-    expandedDataset.push(item);
-    expandedDataset.push({ brand: `${item.brand} (SPC / State Generic)`, generic: item.generic, category: item.category });
-    expandedDataset.push({ brand: `${item.brand} - Strip Pack`, generic: item.generic, category: item.category });
-    expandedDataset.push({ brand: `${item.brand} - Bottle Pack`, generic: item.generic, category: item.category });
-  });
-
-  const essentialGenerics = [
-    'Allopurinol', 'Alprazolam', 'Amitriptyline', 'Baclofen', 'Carbamazepine',
-    'Chloramphenicol', 'Chlorpromazine', 'Clonazepam', 'Clozapine', 'Diazepam',
-    'Digoxin', 'Diltiazem', 'Fluconazole', 'Fluoxetine', 'Gabapentin',
-    'Haloperidol', 'Hydrochlorothiazide', 'Imipramine', 'Indapamide', 'Isosorbide Mononitrate',
-    'Ketoconazole', 'Levodopa + Carbidopa', 'Lithium Carbonate', 'Lorazepam', 'Methyldopa',
-    'Miconazole', 'Nitroglycerin', 'Nitrofurantoin', 'Nystatin', 'Olanzapine',
-    'Oxcarbazepine', 'Paroxetine', 'Phenobarbital', 'Phenytoin', 'Prednisolone',
-    'Propranolol', 'Quetiapine', 'Risperidone', 'Salbutamol', 'Sertraline',
-    'Spironolactone', 'Terbinafine', 'Theophylline', 'Timolol', 'Valproate Sodium',
-    'Verapamil', 'Warfarin Sodium', 'Zinc Sulfate'
-  ];
-
-  const strengths = ['5mg', '10mg', '20mg', '25mg', '50mg', '100mg', '200mg', '500mg'];
-  const forms = ['Tablet', 'Capsule', 'Syrup', 'Suspension', 'Eye Drops', 'Ointment'];
-
-  for (const generic of essentialGenerics) {
-    for (const strength of strengths) {
-      for (const form of forms) {
-        if (expandedDataset.length >= 1050) break;
-        expandedDataset.push({
-          brand: `${generic} ${strength} ${form}`,
-          generic: generic,
-          category: 'Essential Generic Medicines'
-        });
-      }
-    }
-  }
-
   const insertDrug = db.prepare(`
     INSERT OR IGNORE INTO drugs (brand_name, generic_name, category, min_stock_alert)
     VALUES (?, ?, ?, 10)
@@ -384,8 +329,8 @@ function seedMedicinesIfEmpty() {
     }
   });
 
-  seedTransaction(expandedDataset);
-  console.log('✓ Successfully seeded medicines.');
+  seedTransaction(commonDrugs);
+  console.log('✓ Successfully seeded initial medicines.');
 }
 
 initDatabase();
