@@ -3,17 +3,27 @@ class DrugRepository {
     this.db = db;
   }
 
-  addDrug(brandName, genericName, category, minStockAlert) {
+  addDrug(brandName, genericName, category, minStockAlert, barcode = null) {
     const query = this.db.prepare(`
-      INSERT INTO drugs (brand_name, generic_name, category, min_stock_alert)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO drugs (brand_name, generic_name, category, min_stock_alert, barcode)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    return query.run(brandName, genericName, category, minStockAlert);
+    return query.run(brandName, genericName, category, minStockAlert, barcode);
   }
 
   getAllDrugs() {
-    const query = this.db.prepare(`SELECT id, brand_name, generic_name FROM drugs ORDER BY brand_name ASC`);
+    const query = this.db.prepare(`SELECT id, brand_name, generic_name, barcode FROM drugs ORDER BY brand_name ASC`);
     return query.all();
+  }
+
+  getDrugByBarcode(barcode) {
+    const query = this.db.prepare(`SELECT * FROM drugs WHERE barcode = ?`);
+    return query.get(barcode);
+  }
+
+  bindBarcode(drugId, barcode) {
+    const query = this.db.prepare(`UPDATE drugs SET barcode = ? WHERE id = ?`);
+    return query.run(barcode, drugId);
   }
 
   deleteMedicineKeepSales(drugId) {
@@ -64,9 +74,9 @@ class DrugRepository {
     const tx = this.db.transaction(() => {
       this.db.prepare(`
         UPDATE drugs
-        SET brand_name = ?, generic_name = ?, category = ?, min_stock_alert = ?
+        SET brand_name = ?, generic_name = ?, category = ?, min_stock_alert = ?, barcode = ?
         WHERE id = ?
-      `).run(data.brand_name, data.generic_name, data.category, data.min_stock_alert, data.drug_id);
+      `).run(data.brand_name, data.generic_name, data.category, data.min_stock_alert, data.barcode, data.drug_id);
 
       if (data.batch_id) {
         this.db.prepare(`
