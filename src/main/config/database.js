@@ -18,7 +18,8 @@ function initDatabase() {
       brand_name TEXT NOT NULL UNIQUE,
       generic_name TEXT,
       category TEXT,
-      min_stock_alert INTEGER DEFAULT 10
+      min_stock_alert INTEGER DEFAULT 10,
+      barcode TEXT UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS batches (
@@ -81,13 +82,14 @@ function initDatabase() {
       ('pharmacy_phone', '077-6723395');
   `);
 
-  // Migrations for existing databases
   try { db.exec(`ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sales ADD COLUMN shift_id INTEGER;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sales ADD COLUMN shift_invoice_no INTEGER;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) {}
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) {}
+  try { db.exec(`ALTER TABLE drugs ADD COLUMN barcode TEXT UNIQUE;`); } catch (e) {}
+  
   try {
     db.exec(`
       CREATE TABLE IF NOT EXISTS till_shifts (
@@ -119,8 +121,6 @@ function initDatabase() {
 function seedMedicinesIfEmpty() {
   const row = db.prepare('SELECT COUNT(*) AS count FROM drugs').get();
   if (row && row.count > 0) return;
-
-  console.log('Seeding initial medicines...');
 
   const commonDrugs = [
     { brand: 'Vomikind-MD 8', generic: 'Ondansetron', category: 'Antiemetic' },
