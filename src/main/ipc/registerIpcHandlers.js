@@ -224,7 +224,7 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
-  // Settings Handlers
+  // Settings & PIN Verification Handlers
   ipcMain.handle('settings:get', async () => {
     try {
       return { success: true, data: settingsRepo.getSettings() };
@@ -237,6 +237,16 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     try {
       settingsRepo.updateSettings(settings);
       return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:verifyPin', async (event, pin) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const currentPin = settings.admin_pin || '1234';
+      return { success: String(pin).trim() === String(currentPin).trim() };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -274,12 +284,16 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
       return { success: false, error: error.message };
     }
   });
-  // Inventory Import Handler
+
+  // Inventory Import Handler (Allows CSV, TSV, TXT, and all structured sheets)
   ipcMain.handle('inventory:importCSV', async () => {
     try {
       const { filePaths } = await dialog.showOpenDialog({
         title: 'Import Inventory Spreadsheet / CSV',
-        filters: [{ name: 'CSV / Spreadsheet Files', extensions: ['csv', 'txt'] }],
+        filters: [
+          { name: 'CSV & Delimited Text Files (*.csv, *.txt, *.tsv)', extensions: ['csv', 'txt', 'tsv'] },
+          { name: 'All Files (*.*)', extensions: ['*'] }
+        ],
         properties: ['openFile']
       });
 
