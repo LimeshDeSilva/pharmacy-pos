@@ -2362,3 +2362,33 @@ window.addEventListener('keydown', async (e) => {
     navigateToTab(targetViewId);
   }
 });
+
+// ==================== CSV IMPORT MODULE ====================
+const importCsvBtn = document.getElementById('import-csv-btn');
+if (importCsvBtn) {
+  importCsvBtn.addEventListener('click', async () => {
+    const msg = document.getElementById('inward-status-msg');
+    if (msg) {
+      msg.style.color = '#475569';
+      msg.innerText = 'Selecting CSV file for import...';
+    }
+
+    const res = await window.api.importCSV();
+    if (res.success) {
+      if (msg) {
+        msg.style.color = '#16a34a';
+        msg.innerText = `✓ Successfully imported ${res.count} items/batches from CSV!`;
+      }
+      await displayDrugDropdown();
+      await refreshAlertBadges();
+      setTimeout(() => { if (msg) msg.innerText = ''; }, 3000);
+    } else if (!res.canceled) {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Import failed: ' + res.error;
+      }
+    } else {
+      if (msg) msg.innerText = '';
+    }
+  });
+}
