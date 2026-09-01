@@ -338,6 +338,152 @@ if (settingsForm) {
   });
 }
 
+// ==================== DUAL-MODE BARCODE & 2D GS1 / TEXT PARSER ====================
+function parsePharmaceuticalBarcode(rawText) {
+  const result = {
+    is2D: false,
+    cleanBarcode: '',
+    drugName: '',
+    batchNo: '',
+    expiryDate: ''
+  };
+
+  if (!rawText) return result;
+  const text = rawText.trim().replace(/^[,;\s]+|[,;\s]+$/g, '');
+
+  // 1. GS1 Application Identifier Format: (01)GTIN(17)YYMMDD(10)BATCH(21)SERIAL
+  const gs1Gtin = text.match(/(?:01|\(01\))(\d{14})/);
+  const gs1Exp = text.match(/(?:17|\(17\))(\d{6})/);
+  const gs1Batch = text.match(/(?:10|\(10\))([A-Za-z0-9_-]+)/);
+
+  if (gs1Gtin || gs1Exp || gs1Batch) {
+    result.is2D = true;
+    if (gs1Gtin) result.cleanBarcode = gs1Gtin[1];
+    if (gs1Batch) result.batchNo = gs1Batch[1];
+    if (gs1Exp) {
+      const yymmdd = gs1Exp[1];
+      const yy = '20' + yymmdd.substring(0, 2);
+      const mm = yymmdd.substring(2, 4);
+      let dd = yymmdd.substring(4, 6);
+      if (dd === '00') dd = '28';
+      result.expiryDate = `${yy}-${mm}-${dd}`;
+    }
+    return result;
+  }
+
+  // 2. Text-based 2D Barcode (e.g. ", Fexofenadine Hydrochloride Tablets USP 120mg, B.No.: FGH001, MFG.: 02-2026, EXP: 01/2029")
+  const is2DComposite = /B\.?\s*No|LOT|EXP|MFG|,/i.test(text);
+
+  if (is2DComposite) {
+    result.is2D = true;
+
+    // Extract Batch Number
+    const batchMatch = text.match(/(?:B\.?\s*No\.?|Batch|LOT|B\/N)[\s.:]*([A-Za-z0-9_-]+)/i);
+    if (batchMatch) {
+      result.batchNo = batchMatch[1].trim();
+    }
+
+    // Extract Expiry Date (handles MM-YYYY, MM/YYYY, MM/YY, YYYY-MM, DD-MM-YYYY)
+    const expMatch = text.match(/(?:EXP\.?\s*(?:Date)?|Expiry)[\s.:]*([0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{4}[-/.][0-9]{1,2}|[0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4})/i);
+    if (expMatch) {
+      const expStr = expMatch[1].replace(/[/.]/g, '-');
+      const parts = expStr.split('-');
+      if (parts.length === 2) {
+        let [p1, p2] = parts;
+        if (p2.length === 2) p2 = '20' + p2;
+        if (p1.length === 4) {
+          result.expiryDate = `${p1}-${p2.padStart(2, '0')}-28`;
+        } else {
+          result.expiryDate = `${p2}-${p1.padStart(2, '0')}-28`;
+        }
+      } else if (parts.length === 3) {
+        const [p1, p2, p3] = parts;
+        if (p3.length === 4) {
+          result.expiryDate = `${p3}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
+        } else if (p1.length === 4) {
+          result.expiryDate = `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
+        }
+      }
+    }
+
+    // Extract Drug Name
+    const segments = text.split(/[,;\n\r]|B\.?\s*No|LOT|MFG|EXP/i).map(s => s.trim()).filter(Boolean);
+    for (const seg of segments) {
+      if (/[a-zA-Z]{3,}/.test(seg) && !/^(B\.?No|LOT|MFG|EXP)/i.test(seg)) {
+        result.drugName = seg;
+        break;
+      }
+    }
+
+    result.cleanBarcode = result.batchNo || text.slice(0, 20);
+  } else {
+    // 3. Traditional 1D Barcode (UPC / EAN / GTIN / Manual Entry)
+    result.is2D = false;
+    result.cleanBarcode = text;
+  }
+
+  return result;
+}
+
+// Unified scanner handler for both 1D and 2D methods
+let barcodeScanTimeout = null;
+
+async function handleScannedBarcodeValue(rawBarcode) {
+  if (!rawBarcode) return;
+
+  const parsed = parsePharmaceuticalBarcode(rawBarcode);
+
+  if (parsed.is2D) {
+    // ==================== 2D BARCODE WORKFLOW ====================
+    if (inwardBarcodeInput) {
+      inwardBarcodeInput.value = parsed.cleanBarcode;
+    }
+    if (parsed.batchNo) {
+      const batchInput = document.getElementById('inward_batch_number');
+      if (batchInput) batchInput.value = parsed.batchNo;
+    }
+    if (parsed.expiryDate) {
+      const expInput = document.getElementById('inward_expiry_date');
+      if (expInput) expInput.value = parsed.expiryDate;
+    }
+
+    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
+    if (res && res.success && res.data) {
+      pickInwardDrug(res.data);
+      inwardStatusMsg.style.color = '#16a34a';
+      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
+    } else {
+      if (parsed.drugName && inwardDrugInput) {
+        inwardDrugInput.value = parsed.drugName;
+        showInwardDrugList(parsed.drugName);
+      }
+      inwardStatusMsg.style.color = '#0284c7';
+      inwardStatusMsg.innerText = `✓ 2D Barcode processed: Batch & Expiry extracted.`;
+
+      const buyPriceInput = document.getElementById('inward_buy_price');
+      if (buyPriceInput) buyPriceInput.focus();
+    }
+  } else {
+    // ==================== 1D BARCODE WORKFLOW ====================
+    inwardStatusMsg.style.color = '#475569';
+    inwardStatusMsg.innerText = 'Checking barcode...';
+
+    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
+    if (res && res.success && res.data) {
+      pickInwardDrug(res.data);
+      inwardStatusMsg.style.color = '#16a34a';
+      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
+    } else {
+      inwardStatusMsg.style.color = '#0284c7';
+      inwardStatusMsg.innerText = `ℹ️ 1D Barcode scanned. Select or create medicine below to bind it.`;
+      if (inwardDrugInput) {
+        inwardDrugInput.focus();
+        inwardDrugInput.select();
+      }
+    }
+  }
+}
+
 // ==================== STOCK INWARD (UNIFIED RECEIVING) MODULE ====================
 let inwardDropIndex = 0;
 let inwardDropMatches = [];
@@ -358,28 +504,23 @@ const stockInwardForm = document.getElementById('stock-inward-form');
 const inwardStatusMsg = document.getElementById('inward-status-msg');
 
 if (inwardBarcodeInput) {
+  // Enter key trigger (standard for 1D laser & 2D suffix scanners)
   inwardBarcodeInput.addEventListener('keydown', async (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const scannedBarcode = inwardBarcodeInput.value.trim();
-      if (!scannedBarcode) return;
+      clearTimeout(barcodeScanTimeout);
+      await handleScannedBarcodeValue(inwardBarcodeInput.value.trim());
+    }
+  });
 
-      inwardStatusMsg.style.color = '#475569';
-      inwardStatusMsg.innerText = 'Checking barcode...';
-
-      const res = await window.api.getDrugByBarcode(scannedBarcode);
-      if (res && res.success && res.data) {
-        pickInwardDrug(res.data);
-        inwardStatusMsg.style.color = '#16a34a';
-        inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
-      } else {
-        inwardStatusMsg.style.color = '#0284c7';
-        inwardStatusMsg.innerText = `ℹ️ New barcode scanned. Select or create medicine below to permanently bind it.`;
-        if (inwardDrugInput) {
-          inwardDrugInput.focus();
-          inwardDrugInput.select();
-        }
-      }
+  // Fast burst trigger (for 2D scanners sending multi-line/comma streams without Enter)
+  inwardBarcodeInput.addEventListener('input', () => {
+    const val = inwardBarcodeInput.value.trim();
+    if (val.length > 25 || val.includes(',') || val.includes('B.No')) {
+      clearTimeout(barcodeScanTimeout);
+      barcodeScanTimeout = setTimeout(async () => {
+        await handleScannedBarcodeValue(inwardBarcodeInput.value.trim());
+      }, 120);
     }
   });
 }
@@ -427,7 +568,10 @@ function pickInwardDrug(drug) {
   if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
   
   const batchNoInput = document.getElementById('inward_batch_number');
-  if (batchNoInput) { batchNoInput.focus(); batchNoInput.select(); }
+  if (batchNoInput && !batchNoInput.value) { 
+    batchNoInput.focus(); 
+    batchNoInput.select(); 
+  }
 }
 
 if (inwardDrugInput) {
@@ -730,44 +874,86 @@ async function loadPosStock() {
   }
 }
 
+// ==================== POS / BILLING BARCODE HANDLER (1D & 2D GS1 / TEXT) ====================
+let posScanTimeout = null;
+
+async function handlePosScannedBarcode(rawCode) {
+  if (!rawCode) return;
+
+  const msg = document.getElementById('pos-input-msg');
+  const drugInput = document.getElementById('pos_drug_input');
+  const qtyInput = document.getElementById('pos_qty');
+  const pBarInput = document.getElementById('pos_barcode_input');
+
+  // Parse 2D or 1D barcode
+  const parsed = parsePharmaceuticalBarcode(rawCode);
+  const searchCode = parsed.cleanBarcode.trim().toLowerCase();
+  const searchBatch = (parsed.batchNo || '').trim().toLowerCase();
+  const searchName = (parsed.drugName || '').trim().toLowerCase();
+
+  // Find item by: 1. Barcode, 2. Batch Number, 3. Brand / Generic Name
+  let foundItem = availablePosStock.find((item) => {
+    const itemBarcode = (item.barcode || '').toLowerCase();
+    const itemBatch = (item.batch_number || '').toLowerCase();
+    const itemBrand = (item.brand_name || '').toLowerCase();
+    const itemGeneric = (item.generic_name || '').toLowerCase();
+
+    if (itemBarcode && (itemBarcode === searchCode || itemBarcode === rawCode.toLowerCase())) return true;
+    if (searchBatch && itemBatch === searchBatch) return true;
+    if (searchName && (itemBrand.includes(searchName) || itemGeneric.includes(searchName))) return true;
+
+    return false;
+  });
+
+  if (!foundItem) {
+    if (msg) {
+      msg.style.color = '#dc2626';
+      msg.innerText = `✗ No stock found for barcode / batch: ${parsed.batchNo || parsed.cleanBarcode}`;
+    }
+    if (pBarInput) {
+      pBarInput.value = '';
+      pBarInput.focus();
+    }
+    return;
+  }
+
+  if (drugInput) {
+    drugInput.value = `${foundItem.brand_name} | Batch: ${foundItem.batch_number} | Exp: ${foundItem.expiry_date} | Stock: ${foundItem.available_qty} | LKR ${foundItem.sell_price.toFixed(2)}`;
+  }
+
+  checkSelectedBatchExpiry();
+
+  if (msg) {
+    msg.style.color = '#16a34a';
+    msg.innerText = `✓ Item loaded: ${foundItem.brand_name} (Batch: ${foundItem.batch_number})`;
+    setTimeout(() => { msg.innerText = ''; }, 2000);
+  }
+
+  if (pBarInput) pBarInput.value = '';
+
+  if (qtyInput) {
+    qtyInput.focus();
+    qtyInput.select();
+  }
+}
+
 const posBarcodeInput = document.getElementById('pos_barcode_input');
 if (posBarcodeInput) {
   posBarcodeInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const code = posBarcodeInput.value.trim();
-      const msg = document.getElementById('pos-input-msg');
-      if (!code) return;
+      clearTimeout(posScanTimeout);
+      handlePosScannedBarcode(posBarcodeInput.value.trim());
+    }
+  });
 
-      const foundItem = availablePosStock.find((item) => item.barcode === code);
-      if (!foundItem) {
-        if (msg) {
-          msg.style.color = '#dc2626';
-          msg.innerText = `✗ No stock found for barcode: ${code}`;
-        }
-        posBarcodeInput.select();
-        return;
-      }
-
-      const drugInput = document.getElementById('pos_drug_input');
-      if (drugInput) {
-        drugInput.value = `${foundItem.brand_name} | Batch: ${foundItem.batch_number} | Exp: ${foundItem.expiry_date} | Stock: ${foundItem.available_qty} | LKR ${foundItem.sell_price.toFixed(2)}`;
-      }
-
-      checkSelectedBatchExpiry();
-
-      if (msg) {
-        msg.style.color = '#16a34a';
-        msg.innerText = `✓ Item loaded: ${foundItem.brand_name}`;
-        setTimeout(() => { msg.innerText = ''; }, 2000);
-      }
-
-      posBarcodeInput.value = '';
-      const qtyInput = document.getElementById('pos_qty');
-      if (qtyInput) {
-        qtyInput.focus();
-        qtyInput.select();
-      }
+  posBarcodeInput.addEventListener('input', () => {
+    const val = posBarcodeInput.value.trim();
+    if (val.length > 25 || val.includes(',') || val.includes('B.No')) {
+      clearTimeout(posScanTimeout);
+      posScanTimeout = setTimeout(() => {
+        handlePosScannedBarcode(posBarcodeInput.value.trim());
+      }, 120);
     }
   });
 }
@@ -1747,7 +1933,7 @@ if (editSaleDrugInput) {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (items.length) {
-        editDropIndex = (editDropIndex - 1 + items.length) % items.length;
+        dropIndex = (editDropIndex - 1 + items.length) % items.length;
         items.forEach((el, i) => el.classList.toggle('selected', i === editDropIndex));
         items[editDropIndex].scrollIntoView({ block: 'nearest' });
       }
@@ -2314,7 +2500,6 @@ document.addEventListener('keydown', async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Blur active input so shortcuts always switch smoothly
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
       document.activeElement.blur();
     }
