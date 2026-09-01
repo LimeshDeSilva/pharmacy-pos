@@ -62,23 +62,31 @@
 
         <!-- Left: Form Card -->
         <div class="card" style="max-width: 700px;">
-          <h3 class="card-title-spaced">Goods Receiving & Stock Inward</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 class="card-title-spaced" style="margin-bottom: 0;">Goods Receiving & Stock Inward</h3>
+            <button type="button" id="import-csv-btn" class="btn btn-auto btn-sm" style="background: #059669;">📥 Import
+              CSV Spreadsheet</button>
+          </div>
           <form id="stock-inward-form">
-            
+
             <div class="form-group">
               <label for="inward_barcode">Scan Product Barcode (GTIN / UPC)</label>
-              <input type="text" id="inward_barcode" placeholder="Scan barcode or press Enter..." autocomplete="off" autofocus />
+              <input type="text" id="inward_barcode" placeholder="Scan barcode or press Enter..." autocomplete="off"
+                autofocus />
             </div>
 
             <div class="form-group pos-relative">
               <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
-              <input type="text" id="inward_drug_input" placeholder="Type to search 1,050+ master drugs or enter new name..." autocomplete="off" required />
+              <input type="text" id="inward_drug_input"
+                placeholder="Type to search 1,050+ master drugs or enter new name..." autocomplete="off" required />
               <input type="hidden" id="inward_selected_drug_id" />
               <div id="inward-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
             </div>
 
-            <div id="new-drug-fields-container" style="display: none; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 14px;">
-              <small style="color: #0284c7; font-weight: bold; display: block; margin-bottom: 8px;">✨ New Medicine Detected: Fill details for master catalog registration</small>
+            <div id="new-drug-fields-container"
+              style="display: none; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 14px;">
+              <small style="color: #0284c7; font-weight: bold; display: block; margin-bottom: 8px;">✨ New Medicine
+                Detected: Fill details for master catalog registration</small>
               <div class="grid-2-col">
                 <div class="form-group">
                   <label for="inward_generic_name">Generic Name</label>
@@ -132,7 +140,8 @@
           <div class="hero-showcase-content">
             <div class="hero-badge">Smart Pharmacy POS</div>
             <h2>Inventory & Prescription Management</h2>
-            <p>Maintain accurate stock balances, configure batch expiry trackers, and handle point-of-sale invoicing seamlessly.</p>
+            <p>Maintain accurate stock balances, configure batch expiry trackers, and handle point-of-sale invoicing
+              seamlessly.</p>
 
             <div class="hero-illustration">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
@@ -235,7 +244,8 @@
 
           <div class="form-group">
             <label for="pos_barcode_input">Scan Barcode / GTIN</label>
-            <input type="text" id="pos_barcode_input" placeholder="Scan barcode or type..." autocomplete="off" autofocus />
+            <input type="text" id="pos_barcode_input" placeholder="Scan barcode or type..." autocomplete="off"
+              autofocus />
           </div>
 
           <div class="form-group pos-relative">
