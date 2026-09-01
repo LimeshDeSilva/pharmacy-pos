@@ -1,9 +1,11 @@
-const { ipcMain } = require('electron');
+const { ipcMain, dialog } = require('electron');
 const PrinterService = require('../services/printerService');
 const SystemService = require('../services/systemService');
 const ExportService = require('../services/exportService');
+const ImportService = require('../services/importService');
 
-function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo) {
+function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo) {
+  // Drugs
   ipcMain.handle('drugs:add', async (event, drugData) => {
     try {
       const result = drugRepo.addDrug(drugData.brand_name, drugData.generic_name, drugData.category, drugData.min_stock_alert, drugData.barcode);
@@ -38,6 +40,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
+  // Batches
   ipcMain.handle('batches:add', async (event, batchData) => {
     try {
       const result = batchRepo.addBatch(batchData.drug_id, batchData.batch_number, batchData.expiry_date, batchData.buy_price, batchData.sell_price, batchData.quantity);
@@ -47,6 +50,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
+  // Inventory
   ipcMain.handle('inventory:getAll', async () => {
     try {
       return { success: true, data: batchRepo.getInventoryOverview() };
@@ -101,6 +105,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await ExportService.exportInventoryCSV(inventory);
   });
 
+  // POS
   ipcMain.handle('pos:getStock', async () => {
     try {
       return { success: true, data: batchRepo.getAvailableStock() };
@@ -122,6 +127,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await PrinterService.printReceipt(receiptData);
   });
 
+  // Till & Shift Management
   ipcMain.handle('till:getActiveShift', async () => {
     try {
       return { success: true, data: salesRepo.getActiveShift() };
@@ -168,6 +174,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     return await PrinterService.printTillReport(tillData);
   });
 
+  // Sales History
   ipcMain.handle('sales:getAll', async () => {
     try {
       return { success: true, data: salesRepo.getAllSales() };
@@ -184,6 +191,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
+  // Analytics & Reports
   ipcMain.handle('reports:getAnalytics', async () => {
     try {
       return {
@@ -216,6 +224,7 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
+  // Settings Handlers
   ipcMain.handle('settings:get', async () => {
     try {
       return { success: true, data: settingsRepo.getSettings() };
@@ -233,10 +242,12 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
     }
   });
 
+  // System Backup
   ipcMain.handle('database:backup', async () => {
     return await SystemService.backupDatabase();
   });
   
+  // Sales Deletion Handlers
   ipcMain.handle('sales:deleteSingle', async (event, saleId) => {
     try {
       const success = salesRepo.deleteSaleById(saleId);
@@ -261,6 +272,22 @@ function registerIpcHandlers(drugRepo, batchRepo, salesRepo, analyticsRepo, sett
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
+    }
+  });
+  // Inventory Import Handler
+  ipcMain.handle('inventory:importCSV', async () => {
+    try {
+      const { filePaths } = await dialog.showOpenDialog({
+        title: 'Import Inventory Spreadsheet / CSV',
+        filters: [{ name: 'CSV / Spreadsheet Files', extensions: ['csv', 'txt'] }],
+        properties: ['openFile']
+      });
+
+      if (!filePaths || filePaths.length === 0) return { success: false, canceled: true };
+
+      return await ImportService.importInventoryCSV(db, drugRepo, batchRepo, filePaths[0]);
+    } catch (err) {
+      return { success: false, error: err.message };
     }
   });
 }
