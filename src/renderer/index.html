@@ -65,9 +65,14 @@
           <h3 class="card-title-spaced">Goods Receiving & Stock Inward</h3>
           <form id="stock-inward-form">
             
+            <div class="form-group">
+              <label for="inward_barcode">Scan Product Barcode (GTIN / UPC)</label>
+              <input type="text" id="inward_barcode" placeholder="Scan barcode or press Enter..." autocomplete="off" autofocus />
+            </div>
+
             <div class="form-group pos-relative">
               <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
-              <input type="text" id="inward_drug_input" placeholder="Type to search 1,050+ master drugs or enter new name..." autocomplete="off" required autofocus />
+              <input type="text" id="inward_drug_input" placeholder="Type to search 1,050+ master drugs or enter new name..." autocomplete="off" required />
               <input type="hidden" id="inward_selected_drug_id" />
               <div id="inward-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
             </div>
@@ -203,6 +208,7 @@
                 <th>Brand Name</th>
                 <th>Generic Name</th>
                 <th>Category</th>
+                <th>Barcode</th>
                 <th>Batch No</th>
                 <th>Expiry Date</th>
                 <th>Sell Price (LKR)</th>
@@ -226,6 +232,11 @@
         <!-- Left: Item Selector Card -->
         <div class="card card-sticky-top">
           <h3 class="card-title-spaced">Select Item</h3>
+
+          <div class="form-group">
+            <label for="pos_barcode_input">Scan Barcode / GTIN</label>
+            <input type="text" id="pos_barcode_input" placeholder="Scan barcode or type..." autocomplete="off" autofocus />
+          </div>
 
           <div class="form-group pos-relative">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
@@ -855,6 +866,11 @@
             <label for="edit_min_stock_alert">Low Stock Alert *</label>
             <input type="number" id="edit_min_stock_alert" min="1" required />
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit_barcode">Barcode (GTIN/UPC)</label>
+          <input type="text" id="edit_barcode" autocomplete="off" placeholder="Optional barcode..." />
         </div>
 
         <div id="edit-batch-section">
