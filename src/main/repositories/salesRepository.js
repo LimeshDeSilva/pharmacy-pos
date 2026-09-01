@@ -313,15 +313,21 @@ class SalesRepository {
     const updateTx = this.db.transaction(() => {
       const discountVal = parseFloat(discount) || 0;
 
+      // 1. Restore previous stock for batches that still exist in the database
       const oldItems = this.db.prepare(`SELECT batch_id, quantity FROM sale_items WHERE sale_id = ?`).all(saleId);
+      const checkBatchExists = this.db.prepare(`SELECT id FROM batches WHERE id = ?`);
       const restoreStock = this.db.prepare(`UPDATE batches SET quantity = quantity + ? WHERE id = ?`);
 
       for (const old of oldItems) {
         if (old.batch_id) {
-          restoreStock.run(old.quantity, old.batch_id);
+          const exists = checkBatchExists.get(old.batch_id);
+          if (exists) {
+            restoreStock.run(old.quantity, old.batch_id);
+          }
         }
       }
 
+      // 2. Clear old line items and update sale headers
       this.db.prepare(`DELETE FROM sale_items WHERE sale_id = ?`).run(saleId);
       this.db.prepare(`UPDATE sales SET total_amount = ?, discount = ? WHERE id = ?`).run(totalAmount, discountVal, saleId);
 
@@ -336,6 +342,7 @@ class SalesRepository {
         WHERE id = ? AND quantity >= ?
       `);
 
+      // 3. Deduct updated stock and insert replacement items
       for (const item of newItems) {
         const buyPrice = parseFloat(item.buy_price) || 0;
         const sellPrice = parseFloat(item.sell_price) || 0;
@@ -358,7 +365,7 @@ class SalesRepository {
 
         insertItem.run(
           saleId,
-          finalBatchId || 0,
+          finalBatchId || null,
           item.brand_name,
           item.batch_number || 'N/A',
           buyPrice,
