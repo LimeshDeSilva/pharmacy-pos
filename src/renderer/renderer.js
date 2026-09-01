@@ -534,39 +534,7 @@ if (stockInwardForm) {
   });
 }
 
-const inwardBatchNoInput = document.getElementById('inward_batch_number');
-const inwardExpiryDateInput = document.getElementById('inward_expiry_date');
-const inwardBuyPriceInput = document.getElementById('inward_buy_price');
-const inwardSellPriceInput = document.getElementById('inward_sell_price');
-const inwardBatchQtyInput = document.getElementById('inward_quantity');
-
-if (inwardBatchNoInput) {
-  inwardBatchNoInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (inwardExpiryDateInput) inwardExpiryDateInput.focus(); }
-  });
-}
-if (inwardExpiryDateInput) {
-  inwardExpiryDateInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (inwardBuyPriceInput) { inwardBuyPriceInput.focus(); inwardBuyPriceInput.select(); } }
-  });
-}
-if (inwardBuyPriceInput) {
-  inwardBuyPriceInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (inwardSellPriceInput) { inwardSellPriceInput.focus(); inwardSellPriceInput.select(); } }
-  });
-}
-if (inwardSellPriceInput) {
-  inwardSellPriceInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (inwardBatchQtyInput) { inwardBatchQtyInput.focus(); inwardBatchQtyInput.select(); } }
-  });
-}
-if (inwardBatchQtyInput) {
-  inwardBatchQtyInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); if (stockInwardForm) stockInwardForm.requestSubmit(); }
-  });
-}
-
-// ==================== INVENTORY OVERVIEW & FILTER MODULE ====================
+// ==================== INVENTORY OVERVIEW MODULE ====================
 function calculateItemStatus(row) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -851,22 +819,6 @@ function pickItem(item) {
   if (qty) { qty.focus(); qty.select(); }
 }
 
-window.addEventListener('keydown', (e) => {
-  const isPosView = document.getElementById('pos-view')?.classList.contains('active');
-  if (isPosView && (e.key === '+' || e.code === 'NumpadAdd')) {
-    const discountInput = document.getElementById('pos-discount-amount');
-    const paidInput = document.getElementById('pos-paid-amount');
-
-    if (document.activeElement !== discountInput && document.activeElement !== paidInput) {
-      e.preventDefault();
-      if (discountInput) { discountInput.focus(); discountInput.select(); }
-    } else if (document.activeElement === discountInput) {
-      e.preventDefault();
-      if (paidInput) { paidInput.focus(); paidInput.select(); }
-    }
-  }
-});
-
 function checkSelectedBatchExpiry() {
   const drugInput = document.getElementById('pos_drug_input');
   const expiryAlert = document.getElementById('pos-expiry-alert');
@@ -1128,13 +1080,119 @@ if (posQtyInput) {
   });
 }
 
-window.addEventListener('keydown', (e) => {
-  const isPosView = document.getElementById('pos-view')?.classList.contains('active');
-  if (isPosView && e.key === 'F8') {
-    e.preventDefault();
-    processCheckout({ shouldPrint: true });
+// ==================== CHECKOUT ACTION ====================
+let isCheckingOut = false;
+
+async function processCheckout({ shouldPrint = true } = {}) {
+  const msg = document.getElementById('checkout-status-msg');
+
+  if (isCheckingOut) return;
+
+  if (!currentActiveShift) {
+    navigateToTab('till-view', '⚠️ Till is closed. Please open a shift before completing transactions.');
+    return;
   }
-});
+
+  if (currentCart.length === 0) {
+    if (msg) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Cart is empty. Add items first.';
+    }
+    return;
+  }
+
+  isCheckingOut = true;
+  const checkoutBtnEl = document.getElementById('checkout-btn');
+  if (checkoutBtnEl) checkoutBtnEl.disabled = true;
+
+  try {
+    const subtotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
+    const discountInput = document.getElementById('pos-discount-amount');
+    const paidInput = document.getElementById('pos-paid-amount');
+
+    const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput && discountInput.value ? discountInput.value : 0) || 0));
+    const discountVal = (subtotal * discountPercent) / 100;
+    const grandTotal = Math.max(0, subtotal - discountVal);
+
+    let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
+    if (paidVal === 0) {
+      paidVal = grandTotal;
+    }
+
+    const balanceVal = paidVal - grandTotal;
+    const printedCart = [...currentCart];
+    const nowStr = new Date().toLocaleString();
+
+    if (msg) {
+      msg.style.color = '#475569';
+      msg.innerText = 'Processing sale...';
+    }
+
+    const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
+
+    if (res && res.success) {
+      const invoiceLabel = res.data.invoiceNo ? `#${res.data.invoiceNo}` : `#${res.data.saleId}`;
+      if (msg) {
+        msg.style.color = '#16a34a';
+        msg.innerText = `✓ Sale completed! Invoice ${invoiceLabel}${shouldPrint ? ' (Printing...)' : ' (Saved)'}`;
+      }
+
+      currentCart = [];
+      if (discountInput) discountInput.value = '';
+      if (paidInput) paidInput.value = '';
+      renderCart();
+      await loadPosStock();
+      await refreshAlertBadges();
+      await checkActiveShiftStatus();
+
+      const pBarInput = document.getElementById('pos_barcode_input');
+      if (pBarInput) {
+        pBarInput.focus();
+        pBarInput.select();
+      }
+
+      if (shouldPrint) {
+        printThermalReceipt(
+          res.data.saleId, 
+          nowStr, 
+          printedCart, 
+          grandTotal, 
+          paidVal, 
+          balanceVal, 
+          discountVal, 
+          subtotal,
+          res.data.invoiceNo,
+          res.data.shiftId
+        ).catch(err => console.warn('Printer notice:', err));
+      }
+
+      setTimeout(() => {
+        if (msg) msg.innerText = '';
+      }, 3000);
+    } else {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + (res?.error || 'Failed to complete checkout');
+      }
+    }
+  } catch (err) {
+    console.error('Checkout error:', err);
+    if (msg) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    }
+  } finally {
+    isCheckingOut = false;
+    if (checkoutBtnEl) checkoutBtnEl.disabled = false;
+  }
+}
+
+const checkoutBtn = document.getElementById('checkout-btn');
+if (checkoutBtn) {
+  checkoutBtn.addEventListener('click', () => {
+    processCheckout({ shouldPrint: true });
+  });
+}
 
 // ==================== SALES HISTORY MODULE ====================
 let rawSalesData = [];
@@ -1146,8 +1204,8 @@ function renderSalesTable() {
   const searchInput = document.getElementById('sales-invoice-search');
   if (!tableBody) return;
 
-  const selectedDate = dateInput ? dateInput.value : '';
-  const searchInvoiceId = searchInput ? searchInput.value.trim() : '';
+  const selectedDate = dateInput && dateInput.value ? dateInput.value.trim() : '';
+  const searchInvoiceId = searchInput && searchInput.value ? searchInput.value.trim() : '';
 
   if (!rawSalesData || rawSalesData.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No sales recorded yet.</td></tr>`;
@@ -1156,10 +1214,10 @@ function renderSalesTable() {
   }
 
   const filteredSales = rawSalesData.filter((sale) => {
-    const saleIdStr = String(sale.sale_id || sale.id);
-    const invoiceNoStr = String(sale.invoice_no || '');
+    const saleIdStr = String(sale.sale_id ?? sale.id ?? '');
+    const invoiceNoStr = String(sale.invoice_no ?? '');
     const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || invoiceNoStr === searchInvoiceId;
-    const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.startsWith(selectedDate));
+    const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.includes(selectedDate));
     return matchesSearch && matchesDate;
   });
 
@@ -1173,14 +1231,14 @@ function renderSalesTable() {
   let cumulativeRevenue = 0;
 
   filteredSales.forEach((sale) => {
-    cumulativeRevenue += sale.total_amount;
+    cumulativeRevenue += Number(sale.total_amount) || 0;
     const tr = document.createElement('tr');
     const shiftTag = sale.shift_id ? `<small style="color: #64748b; margin-left: 4px;">(Till #${sale.shift_id})</small>` : '';
 
     tr.innerHTML = `
-      <td><strong>#${sale.invoice_no}</strong> ${shiftTag}</td>
-      <td>${sale.sale_date}</td>
-      <td>${sale.item_count} items</td>
+      <td><strong>#${sale.invoice_no || sale.sale_id}</strong> ${shiftTag}</td>
+      <td>${sale.sale_date || '-'}</td>
+      <td>${sale.item_count || 0} items</td>
       <td><strong>LKR ${Number(sale.total_amount).toFixed(2)}</strong></td>
       <td>
         <button onclick="viewReceipt(${sale.sale_id})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-right: 4px;">View Details</button>
@@ -1196,10 +1254,14 @@ function renderSalesTable() {
 }
 
 async function loadSalesHistory() {
-  const res = await window.api.getAllSales();
-  if (res.success) {
-    rawSalesData = res.data;
-    renderSalesTable();
+  try {
+    const res = await window.api.getAllSales();
+    if (res && res.success) {
+      rawSalesData = res.data || [];
+      renderSalesTable();
+    }
+  } catch (err) {
+    console.error('Error loading sales history:', err);
   }
 }
 
@@ -1244,7 +1306,7 @@ window.viewReceipt = async (saleId) => {
   modal.style.display = 'flex';
 
   const res = await window.api.getSaleDetails(saleId);
-  if (res.success) {
+  if (res && res.success) {
     const firstItem = res.data[0] || {};
     const invoiceNo = firstItem.invoice_no !== undefined ? firstItem.invoice_no : saleId;
     const shiftTag = firstItem.shift_id ? ` (Till #${firstItem.shift_id})` : '';
@@ -1319,24 +1381,35 @@ if (refreshSalesBtn) refreshSalesBtn.addEventListener('click', loadSalesHistory)
 
 // ==================== REVENUES & CHARTS MODULE ====================
 async function loadAnalyticsDashboard() {
-  const res = await window.api.getAnalytics();
-  if (!res.success) return;
+  try {
+    const res = await window.api.getAnalytics();
+    if (!res || !res.success) return;
 
-  analyticsCache = res.data;
+    analyticsCache = res.data;
 
-  document.getElementById('kpi-today-rev').innerText = `LKR ${analyticsCache.kpis.today.today_revenue.toFixed(2)}`;
-  document.getElementById('kpi-today-orders').innerText = `${analyticsCache.kpis.today.today_orders} transactions`;
+    const todayRev = analyticsCache?.kpis?.today?.today_revenue ?? 0;
+    const todayOrders = analyticsCache?.kpis?.today?.today_orders ?? 0;
+    const monthRev = analyticsCache?.kpis?.month?.month_revenue ?? 0;
+    const monthOrders = analyticsCache?.kpis?.month?.month_orders ?? 0;
+    const totalRev = analyticsCache?.kpis?.total?.all_time_revenue ?? 0;
+    const totalOrders = analyticsCache?.kpis?.total?.all_time_orders ?? 0;
 
-  document.getElementById('kpi-month-rev').innerText = `LKR ${analyticsCache.kpis.month.month_revenue.toFixed(2)}`;
-  document.getElementById('kpi-month-orders').innerText = `${analyticsCache.kpis.month.month_orders} transactions`;
+    document.getElementById('kpi-today-rev').innerText = `LKR ${Number(todayRev).toFixed(2)}`;
+    document.getElementById('kpi-today-orders').innerText = `${todayOrders} transactions`;
 
-  document.getElementById('kpi-total-rev').innerText = `LKR ${analyticsCache.kpis.total.all_time_revenue.toFixed(2)}`;
-  document.getElementById('kpi-total-orders').innerText = `${analyticsCache.kpis.total.all_time_orders} transactions`;
+    document.getElementById('kpi-month-rev').innerText = `LKR ${Number(monthRev).toFixed(2)}`;
+    document.getElementById('kpi-month-orders').innerText = `${monthOrders} transactions`;
 
-  renderSalesChart('daily');
+    document.getElementById('kpi-total-rev').innerText = `LKR ${Number(totalRev).toFixed(2)}`;
+    document.getElementById('kpi-total-orders').innerText = `${totalOrders} transactions`;
+
+    renderSalesChart('daily');
+  } catch (err) {
+    console.error('Error loading revenue dashboard:', err);
+  }
 }
 
-function renderSalesChart(periodType) {
+function renderSalesChart(periodType = 'daily') {
   const canvas = document.getElementById('salesChart');
   if (!canvas || !analyticsCache) return;
 
@@ -1344,13 +1417,13 @@ function renderSalesChart(periodType) {
   let labelText = 'Daily Sales (LKR)';
 
   if (periodType === 'daily') {
-    dataset = analyticsCache.daily;
+    dataset = analyticsCache.daily || [];
     labelText = 'Daily Sales (LKR)';
   } else if (periodType === 'weekly') {
-    dataset = analyticsCache.weekly;
+    dataset = analyticsCache.weekly || [];
     labelText = 'Weekly Sales (LKR)';
   } else if (periodType === 'monthly') {
-    dataset = analyticsCache.monthly;
+    dataset = analyticsCache.monthly || [];
     labelText = 'Monthly Sales (LKR)';
   }
 
@@ -1403,32 +1476,36 @@ filterButtons.forEach((btn) => {
 
 // ==================== PROFIT ANALYTICS MODULE ====================
 async function loadProfitAnalyticsDashboard() {
-  const res = await window.api.getProfitAnalytics();
-  if (!res || !res.success) return;
+  try {
+    const res = await window.api.getProfitAnalytics();
+    if (!res || !res.success) return;
 
-  profitAnalyticsCache = res.data;
+    profitAnalyticsCache = res.data;
 
-  const today = profitAnalyticsCache.kpis.today || { profit: 0, orders: 0 };
-  const month = profitAnalyticsCache.kpis.month || { profit: 0, orders: 0 };
-  const total = profitAnalyticsCache.kpis.total || { profit: 0, orders: 0 };
+    const today = profitAnalyticsCache?.kpis?.today || { profit: 0, orders: 0 };
+    const month = profitAnalyticsCache?.kpis?.month || { profit: 0, orders: 0 };
+    const total = profitAnalyticsCache?.kpis?.total || { profit: 0, orders: 0 };
 
-  const todayEl = document.getElementById('kpi-today-profit');
-  const todayOrdersEl = document.getElementById('kpi-today-profit-orders');
-  const monthEl = document.getElementById('kpi-month-profit');
-  const monthOrdersEl = document.getElementById('kpi-month-profit-orders');
-  const totalEl = document.getElementById('kpi-total-profit');
-  const totalOrdersEl = document.getElementById('kpi-total-profit-orders');
+    const todayEl = document.getElementById('kpi-today-profit');
+    const todayOrdersEl = document.getElementById('kpi-today-profit-orders');
+    const monthEl = document.getElementById('kpi-month-profit');
+    const monthOrdersEl = document.getElementById('kpi-month-profit-orders');
+    const totalEl = document.getElementById('kpi-total-profit');
+    const totalOrdersEl = document.getElementById('kpi-total-profit-orders');
 
-  if (todayEl) todayEl.innerText = `LKR ${Number(today.profit).toFixed(2)}`;
-  if (todayOrdersEl) todayOrdersEl.innerText = `${today.orders} transactions`;
+    if (todayEl) todayEl.innerText = `LKR ${Number(today.profit || 0).toFixed(2)}`;
+    if (todayOrdersEl) todayOrdersEl.innerText = `${today.orders || 0} transactions`;
 
-  if (monthEl) monthEl.innerText = `LKR ${Number(month.profit).toFixed(2)}`;
-  if (monthOrdersEl) monthOrdersEl.innerText = `${month.orders} transactions`;
+    if (monthEl) monthEl.innerText = `LKR ${Number(month.profit || 0).toFixed(2)}`;
+    if (monthOrdersEl) monthOrdersEl.innerText = `${month.orders || 0} transactions`;
 
-  if (totalEl) totalEl.innerText = `LKR ${Number(total.profit).toFixed(2)}`;
-  if (totalOrdersEl) totalOrdersEl.innerText = `${total.orders} transactions`;
+    if (totalEl) totalEl.innerText = `LKR ${Number(total.profit || 0).toFixed(2)}`;
+    if (totalOrdersEl) totalOrdersEl.innerText = `${total.orders || 0} transactions`;
 
-  renderProfitChart('daily');
+    renderProfitChart('daily');
+  } catch (err) {
+    console.error('Error loading profit dashboard:', err);
+  }
 }
 
 function renderProfitChart(periodType = 'daily') {
@@ -1496,512 +1573,7 @@ profitFilterButtons.forEach((btn) => {
   });
 });
 
-// ==================== ALERTS BADGE MODULE ====================
-async function refreshAlertBadges() {
-  const badge = document.getElementById('sidebar-alert-badge');
-  if (!badge) return;
-
-  const res = await window.api.getAlertsSummary();
-  if (res && res.success) {
-    const totalAlerts = res.data.lowStockCount + res.data.expiringCount;
-    if (totalAlerts > 0) {
-      badge.style.display = 'inline-block';
-      badge.innerText = String(totalAlerts);
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-}
-
-// CSV Export Handler
-const exportCsvBtn = document.getElementById('export-csv-btn');
-if (exportCsvBtn) {
-  exportCsvBtn.addEventListener('click', async () => {
-    const res = await window.api.exportCSV();
-    if (res.success) {
-      alert('✓ Inventory exported to CSV successfully!');
-    } else if (!res.canceled) {
-      alert('✗ Failed to export CSV: ' + res.error);
-    }
-  });
-}
-
-// Database Backup Handler
-const backupDbBtn = document.getElementById('backup-db-btn');
-if (backupDbBtn) {
-  backupDbBtn.addEventListener('click', async () => {
-    const res = await window.api.backupDatabase();
-    if (res.success) {
-      alert('✓ SQLite database backup saved successfully!');
-    } else if (!res.canceled) {
-      alert('✗ Failed to create backup: ' + res.error);
-    }
-  });
-}
-
-// ==================== RESET SYSTEM & INVENTORY DELETION ====================
-let deleteDropIndex = 0;
-let deleteDropMatches = [];
-
-async function loadDeleteDrugDropdown() {
-  const res = await window.api.getAllDrugs();
-  if (res && res.success) {
-    registeredDrugsList = res.data;
-  }
-}
-
-function showDeleteDrugList(q = '') {
-  const menu = document.getElementById('delete-drug-dropdown');
-  if (!menu) return;
-
-  const term = q.toLowerCase().trim();
-  if (!term) {
-    menu.style.display = 'none';
-    return;
-  }
-
-  deleteDropMatches = registeredDrugsList.filter((d) =>
-    d.brand_name.toLowerCase().includes(term) ||
-    (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
-    (d.category && d.category.toLowerCase().includes(term))
-  );
-
-  if (deleteDropMatches.length === 0) {
-    menu.style.display = 'none';
-    return;
-  }
-
-  deleteDropIndex = 0;
-  menu.innerHTML = deleteDropMatches.map((d, i) => `
-    <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
-      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
-    </div>
-  `).join('');
-
-  menu.querySelectorAll('.pos-option').forEach((el) => {
-    el.addEventListener('click', () => pickDeleteDrug(deleteDropMatches[el.dataset.idx]));
-  });
-
-  menu.style.display = 'block';
-}
-
-function pickDeleteDrug(drug) {
-  const input = document.getElementById('delete_drug_input');
-  const hiddenId = document.getElementById('selected_delete_drug_id');
-  const menu = document.getElementById('delete-drug-dropdown');
-
-  if (input) input.value = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
-  if (hiddenId) hiddenId.value = drug.id;
-  if (menu) menu.style.display = 'none';
-}
-
-const deleteDrugInputEl = document.getElementById('delete_drug_input');
-if (deleteDrugInputEl) {
-  deleteDrugInputEl.addEventListener('input', () => {
-    const hiddenId = document.getElementById('selected_delete_drug_id');
-    if (hiddenId) hiddenId.value = '';
-    showDeleteDrugList(deleteDrugInputEl.value);
-  });
-
-  deleteDrugInputEl.addEventListener('keydown', (e) => {
-    const menu = document.getElementById('delete-drug-dropdown');
-    const items = menu ? menu.querySelectorAll('.pos-option') : [];
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (items.length) {
-        deleteDropIndex = (deleteDropIndex + 1) % items.length;
-        items.forEach((el, i) => el.classList.toggle('selected', i === deleteDropIndex));
-        items[deleteDropIndex].scrollIntoView({ block: 'nearest' });
-      }
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (items.length) {
-        deleteDropIndex = (deleteDropIndex - 1 + items.length) % items.length;
-        items.forEach((el, i) => el.classList.toggle('selected', i === deleteDropIndex));
-        items[deleteDropIndex].scrollIntoView({ block: 'nearest' });
-      }
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (menu && menu.style.display !== 'none' && deleteDropMatches[deleteDropIndex]) {
-        pickDeleteDrug(deleteDropMatches[deleteDropIndex]);
-      }
-    } else if (e.key === 'Escape') {
-      if (menu) menu.style.display = 'none';
-    }
-  });
-}
-
-document.addEventListener('click', (e) => {
-  const menu = document.getElementById('delete-drug-dropdown');
-  if (menu && !menu.contains(e.target) && e.target !== deleteDrugInputEl) {
-    menu.style.display = 'none';
-  }
-});
-
-// Delete Selected Medicine Action
-const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
-if (deleteSelectedDrugBtn) {
-  deleteSelectedDrugBtn.addEventListener('click', async () => {
-    const hiddenId = document.getElementById('selected_delete_drug_id');
-    const input = document.getElementById('delete_drug_input');
-    const msg = document.getElementById('delete-drug-status-msg');
-    const drugId = parseInt(hiddenId ? hiddenId.value : '', 10);
-
-    if (!drugId || isNaN(drugId)) {
-      msg.style.color = '#dc2626';
-      msg.innerText = 'Please search and select a medicine from the list.';
-      if (input) input.focus();
-      return;
-    }
-
-    deleteSelectedDrugBtn.disabled = true;
-    msg.style.color = '#475569';
-    msg.innerText = 'Deleting medicine...';
-
-    try {
-      const res = await window.api.deleteMedicineKeepSales(drugId);
-      if (res && res.success) {
-        msg.style.color = '#16a34a';
-        msg.innerText = '✓ Medicine removed from database!';
-        if (input) input.value = '';
-        if (hiddenId) hiddenId.value = '';
-        await loadDeleteDrugDropdown();
-        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
-        await refreshAlertBadges();
-      } else {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to delete');
-      }
-    } catch (err) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + err.message;
-    } finally {
-      deleteSelectedDrugBtn.disabled = false;
-      setTimeout(() => { msg.innerText = ''; }, 3000);
-    }
-  });
-}
-
-// 2. Delete Selected Sale (By Invoice ID)
-const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
-if (deleteSelectedSaleBtn) {
-  deleteSelectedSaleBtn.addEventListener('click', async () => {
-    const saleInput = document.getElementById('delete_sale_input');
-    const pinInput = document.getElementById('admin-pin-delete-sale');
-    const msg = document.getElementById('delete-sale-status-msg');
-
-    if (!saleInput || !pinInput || !msg) return;
-
-    const saleId = parseInt(saleInput.value.trim(), 10);
-
-    if (!saleId || isNaN(saleId)) {
-      msg.style.color = '#dc2626';
-      msg.innerText = 'Please enter a valid Invoice Number.';
-      saleInput.focus();
-      return;
-    }
-
-    if (pinInput.value.trim() !== '1234') {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
-      pinInput.value = '';
-      pinInput.focus();
-      return;
-    }
-
-    deleteSelectedSaleBtn.disabled = true;
-    msg.style.color = '#475569';
-    msg.innerText = 'Deleting sale record...';
-
-    try {
-      const res = await window.api.deleteSingleSale(saleId);
-      if (res && res.success) {
-        msg.style.color = '#16a34a';
-        msg.innerText = `✓ Invoice #${saleId} deleted successfully!`;
-      } else {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invoice not found');
-      }
-    } catch (err) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + err.message;
-    } finally {
-      saleInput.value = '';
-      pinInput.value = '';
-      deleteSelectedSaleBtn.disabled = false;
-      setTimeout(() => { msg.innerText = ''; }, 3000);
-    }
-  });
-}
-
-// 3. Clear All Medicines Only
-const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
-if (deleteAllDrugsBtn) {
-  deleteAllDrugsBtn.addEventListener('click', async () => {
-    const pinInput = document.getElementById('admin-pin-clear-medicines');
-    const msg = document.getElementById('delete-all-drugs-msg');
-
-    if (!pinInput || !msg) return;
-
-    if (pinInput.value.trim() !== '1234') {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
-      pinInput.value = '';
-      pinInput.focus();
-      return;
-    }
-
-    deleteAllDrugsBtn.disabled = true;
-    msg.style.color = '#475569';
-    msg.innerText = 'Clearing all medicines...';
-
-    try {
-      const res = await window.api.deleteAllMedicinesKeepSales();
-      if (res && res.success) {
-        msg.style.color = '#16a34a';
-        msg.innerText = '✓ All medicines and stocks cleared!';
-        await loadDeleteDrugDropdown();
-        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
-        await refreshAlertBadges();
-      } else {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed');
-      }
-    } catch (err) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + err.message;
-    } finally {
-      pinInput.value = '';
-      deleteAllDrugsBtn.disabled = false;
-      setTimeout(() => { msg.innerText = ''; }, 3000);
-    }
-  });
-}
-
-// 4. Clear All Sales Only
-const clearAllSalesBtn = document.getElementById('clear-all-sales-btn');
-if (clearAllSalesBtn) {
-  clearAllSalesBtn.addEventListener('click', async () => {
-    const pinInput = document.getElementById('admin-pin-clear-sales');
-    const msg = document.getElementById('clear-all-sales-msg');
-
-    if (!pinInput || !msg) return;
-
-    if (pinInput.value.trim() !== '1234') {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
-      pinInput.value = '';
-      pinInput.focus();
-      return;
-    }
-
-    clearAllSalesBtn.disabled = true;
-    msg.style.color = '#475569';
-    msg.innerText = 'Clearing sales history...';
-
-    try {
-      const res = await window.api.deleteAllSales();
-      if (res && res.success) {
-        msg.style.color = '#16a34a';
-        msg.innerText = '✓ All sales history & charts cleared!';
-      } else {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed');
-      }
-    } catch (err) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + err.message;
-    } finally {
-      pinInput.value = '';
-      clearAllSalesBtn.disabled = false;
-      setTimeout(() => { msg.innerText = ''; }, 3000);
-    }
-  });
-}
-
-// 5. Full Factory Reset
-const wipeDatabaseBtn = document.getElementById('wipe-database-btn');
-if (wipeDatabaseBtn) {
-  wipeDatabaseBtn.addEventListener('click', async () => {
-    const pinInput = document.getElementById('admin-pin-confirm');
-    const msg = document.getElementById('wipe-status-msg');
-
-    if (!pinInput || !msg) return;
-
-    if (pinInput.value.trim() !== '1234') {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
-      pinInput.value = '';
-      pinInput.focus();
-      return;
-    }
-
-    wipeDatabaseBtn.disabled = true;
-    msg.style.color = '#475569';
-    msg.innerText = 'Wiping complete database...';
-
-    try {
-      const res = await window.api.clearInventory();
-      if (res && res.success) {
-        msg.style.color = '#16a34a';
-        msg.innerText = '✓ Complete system wiped successfully!';
-        await loadDeleteDrugDropdown();
-        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
-        await refreshAlertBadges();
-      } else {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed');
-      }
-    } catch (err) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + err.message;
-    } finally {
-      pinInput.value = '';
-      wipeDatabaseBtn.disabled = false;
-      setTimeout(() => { msg.innerText = ''; }, 3000);
-    }
-  });
-}
-
-// ==================== RECEIPT PRINTING MODULE ====================
-async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0, discount = 0, subtotal = null, invoiceNo = null, shiftId = null) {
-  if (!items || items.length === 0) return;
-
-  const payload = {
-    saleId,
-    invoiceNo: invoiceNo !== null ? invoiceNo : saleId,
-    shiftId: shiftId,
-    dateStr,
-    items,
-    grandTotal,
-    paidAmount,
-    balanceAmount,
-    discount: parseFloat(discount) || 0,
-    subtotal: subtotal !== null ? subtotal : grandTotal + (parseFloat(discount) || 0),
-    pharmacyName: currentSettings.pharmacy_name,
-    pharmacyAddress: currentSettings.pharmacy_address,
-    pharmacyPhone: currentSettings.pharmacy_phone
-  };
-
-  if (window.api && typeof window.api.printReceipt === 'function') {
-    const res = await window.api.printReceipt(payload);
-    if (!res.success && res.error) {
-      console.warn('Print action notice:', res.error);
-    }
-  }
-}
-
-// ==================== CHECKOUT & PRINT ACTION ====================
-let isCheckingOut = false;
-
-async function processCheckout({ shouldPrint = true } = {}) {
-  const msg = document.getElementById('checkout-status-msg');
-
-  if (isCheckingOut) return;
-
-  if (!currentActiveShift) {
-    navigateToTab('till-view', '⚠️ Till is closed. Please open a shift before completing transactions.');
-    return;
-  }
-
-  if (currentCart.length === 0) {
-    if (msg) {
-      msg.style.color = '#dc2626';
-      msg.innerText = 'Cart is empty. Add items first.';
-    }
-    return;
-  }
-
-  isCheckingOut = true;
-  if (checkoutBtn) checkoutBtn.disabled = true;
-
-  try {
-    const subtotal = currentCart.reduce((sum, item) => sum + item.total_price, 0);
-    const discountInput = document.getElementById('pos-discount-amount');
-    const paidInput = document.getElementById('pos-paid-amount');
-
-    const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput && discountInput.value ? discountInput.value : 0) || 0));
-    const discountVal = (subtotal * discountPercent) / 100;
-    const grandTotal = Math.max(0, subtotal - discountVal);
-
-    let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
-    if (paidVal === 0) {
-      paidVal = grandTotal;
-    }
-
-    const balanceVal = paidVal - grandTotal;
-    const printedCart = [...currentCart];
-    const nowStr = new Date().toLocaleString();
-
-    if (msg) {
-      msg.style.color = '#475569';
-      msg.innerText = 'Processing sale...';
-    }
-
-    const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
-
-    if (res.success) {
-      const invoiceLabel = res.data.invoiceNo ? `#${res.data.invoiceNo}` : `#${res.data.saleId}`;
-      if (msg) {
-        msg.style.color = '#16a34a';
-        msg.innerText = `✓ Sale completed! Invoice ${invoiceLabel}${shouldPrint ? ' (Printing...)' : ' (Saved)'}`;
-      }
-
-      currentCart = [];
-      if (discountInput) discountInput.value = '';
-      if (paidInput) paidInput.value = '';
-      renderCart();
-      await loadPosStock();
-      await refreshAlertBadges();
-      await checkActiveShiftStatus();
-
-      const pBarInput = document.getElementById('pos_barcode_input');
-      if (pBarInput) {
-        pBarInput.focus();
-        pBarInput.select();
-      }
-
-      if (shouldPrint) {
-        await printThermalReceipt(
-          res.data.saleId, 
-          nowStr, 
-          printedCart, 
-          grandTotal, 
-          paidVal, 
-          balanceVal, 
-          discountVal, 
-          subtotal,
-          res.data.invoiceNo,
-          res.data.shiftId
-        );
-      }
-
-      setTimeout(() => {
-        if (msg) msg.innerText = '';
-      }, 3000);
-    } else {
-      if (msg) {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ Error: ' + res.error;
-      }
-    }
-  } catch (err) {
-    console.error('Checkout error:', err);
-  } finally {
-    isCheckingOut = false;
-    if (checkoutBtn) checkoutBtn.disabled = false;
-  }
-}
-
-const checkoutBtn = document.getElementById('checkout-btn');
-if (checkoutBtn) {
-  checkoutBtn.addEventListener('click', () => {
-    processCheckout({ shouldPrint: true });
-  });
-}
-
-// ==================== SALES SEARCH & INVOICE EXCHANGE MODULE ====================
+// ==================== INVOICE EDIT / EXCHANGE MODULE ====================
 let editingSaleId = null;
 let editingSaleItems = [];
 let editDropIndex = 0;
@@ -2021,7 +1593,7 @@ window.openEditSaleModal = async (saleId) => {
   await loadPosStock();
 
   const res = await window.api.getSaleDetails(saleId);
-  if (res.success) {
+  if (res && res.success) {
     const firstItem = res.data[0] || {};
     const invoiceNo = firstItem.invoice_no !== undefined ? firstItem.invoice_no : saleId;
     title.innerText = `Edit / Exchange Invoice #${invoiceNo}`;
@@ -2295,7 +1867,7 @@ if (saveEditSaleBtn) {
         discount: discountVal
       });
 
-      if (res.success) {
+      if (res && res.success) {
         msg.style.color = '#16a34a';
         msg.innerText = '✓ Invoice updated & stock synced successfully!';
 
@@ -2303,7 +1875,7 @@ if (saveEditSaleBtn) {
         await loadPosStock();
         await refreshAlertBadges();
 
-        await printThermalReceipt(
+        printThermalReceipt(
           editingSaleId,
           new Date().toLocaleString() + ' (MODIFIED)',
           editingSaleItems,
@@ -2312,14 +1884,14 @@ if (saveEditSaleBtn) {
           0,
           discountVal,
           subtotal
-        );
+        ).catch(err => console.warn('Printer notice:', err));
 
         setTimeout(() => {
           document.getElementById('edit-sale-modal').style.display = 'none';
         }, 1000);
       } else {
         msg.style.color = '#dc2626';
-        msg.innerText = '✗ Error: ' + res.error;
+        msg.innerText = '✗ Error: ' + (res?.error || 'Failed to update sale');
       }
     } catch (err) {
       msg.style.color = '#dc2626';
@@ -2330,9 +1902,405 @@ if (saveEditSaleBtn) {
   });
 }
 
-// ==================== GLOBAL FUNCTION KEY TAB SHORTCUTS (F1 - F7) ====================
+// ==================== SYSTEM RESET & ADMIN PIN VERIFICATION ====================
+let deleteDropIndex = 0;
+let deleteDropMatches = [];
+
+async function loadDeleteDrugDropdown() {
+  const res = await window.api.getAllDrugs();
+  if (res && res.success) {
+    registeredDrugsList = res.data;
+  }
+}
+
+function showDeleteDrugList(q = '') {
+  const menu = document.getElementById('delete-drug-dropdown');
+  if (!menu) return;
+
+  const term = q.toLowerCase().trim();
+  if (!term) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  deleteDropMatches = registeredDrugsList.filter((d) =>
+    d.brand_name.toLowerCase().includes(term) ||
+    (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
+    (d.category && d.category.toLowerCase().includes(term))
+  );
+
+  if (deleteDropMatches.length === 0) {
+    menu.style.display = 'none';
+    return;
+  }
+
+  deleteDropIndex = 0;
+  menu.innerHTML = deleteDropMatches.map((d, i) => `
+    <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
+      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
+    </div>
+  `).join('');
+
+  menu.querySelectorAll('.pos-option').forEach((el) => {
+    el.addEventListener('click', () => pickDeleteDrug(deleteDropMatches[el.dataset.idx]));
+  });
+
+  menu.style.display = 'block';
+}
+
+function pickDeleteDrug(drug) {
+  const input = document.getElementById('delete_drug_input');
+  const hiddenId = document.getElementById('selected_delete_drug_id');
+  const menu = document.getElementById('delete-drug-dropdown');
+
+  if (input) input.value = `${drug.brand_name} (${drug.generic_name || 'N/A'})`;
+  if (hiddenId) hiddenId.value = drug.id;
+  if (menu) menu.style.display = 'none';
+}
+
+const deleteDrugInputEl = document.getElementById('delete_drug_input');
+if (deleteDrugInputEl) {
+  deleteDrugInputEl.addEventListener('input', () => {
+    const hiddenId = document.getElementById('selected_delete_drug_id');
+    if (hiddenId) hiddenId.value = '';
+    showDeleteDrugList(deleteDrugInputEl.value);
+  });
+}
+
+// 1. Delete Selected Medicine
+const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
+if (deleteSelectedDrugBtn) {
+  deleteSelectedDrugBtn.addEventListener('click', async () => {
+    const hiddenId = document.getElementById('selected_delete_drug_id');
+    const input = document.getElementById('delete_drug_input');
+    const msg = document.getElementById('delete-drug-status-msg');
+    const drugId = parseInt(hiddenId ? hiddenId.value : '', 10);
+
+    if (!drugId || isNaN(drugId)) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Please search and select a medicine from the list.';
+      if (input) input.focus();
+      return;
+    }
+
+    deleteSelectedDrugBtn.disabled = true;
+    msg.style.color = '#475569';
+    msg.innerText = 'Deleting medicine...';
+
+    try {
+      const res = await window.api.deleteMedicineKeepSales(drugId);
+      if (res && res.success) {
+        msg.style.color = '#16a34a';
+        msg.innerText = '✓ Medicine removed from database!';
+        if (input) input.value = '';
+        if (hiddenId) hiddenId.value = '';
+        await loadDeleteDrugDropdown();
+        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+        await refreshAlertBadges();
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to delete');
+      }
+    } catch (err) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    } finally {
+      deleteSelectedDrugBtn.disabled = false;
+      setTimeout(() => { msg.innerText = ''; }, 3000);
+    }
+  });
+}
+
+// 2. Delete Selected Sale (By Invoice ID with Backend PIN Verification)
+const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
+if (deleteSelectedSaleBtn) {
+  deleteSelectedSaleBtn.addEventListener('click', async () => {
+    const saleInput = document.getElementById('delete_sale_input');
+    const pinInput = document.getElementById('admin-pin-delete-sale');
+    const msg = document.getElementById('delete-sale-status-msg');
+
+    if (!saleInput || !pinInput || !msg) return;
+
+    const saleId = parseInt(saleInput.value.trim(), 10);
+
+    if (!saleId || isNaN(saleId)) {
+      msg.style.color = '#dc2626';
+      msg.innerText = 'Please enter a valid Invoice Number.';
+      saleInput.focus();
+      return;
+    }
+
+    const authRes = await window.api.verifyPin(pinInput.value);
+    if (!authRes || !authRes.success) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN.';
+      pinInput.value = '';
+      pinInput.focus();
+      return;
+    }
+
+    deleteSelectedSaleBtn.disabled = true;
+    msg.style.color = '#475569';
+    msg.innerText = 'Deleting sale record...';
+
+    try {
+      const res = await window.api.deleteSingleSale(saleId);
+      if (res && res.success) {
+        msg.style.color = '#16a34a';
+        msg.innerText = `✓ Invoice #${saleId} deleted successfully!`;
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invoice not found');
+      }
+    } catch (err) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    } finally {
+      saleInput.value = '';
+      pinInput.value = '';
+      deleteSelectedSaleBtn.disabled = false;
+      setTimeout(() => { msg.innerText = ''; }, 3000);
+    }
+  });
+}
+
+// 3. Clear All Medicines
+const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
+if (deleteAllDrugsBtn) {
+  deleteAllDrugsBtn.addEventListener('click', async () => {
+    const pinInput = document.getElementById('admin-pin-clear-medicines');
+    const msg = document.getElementById('delete-all-drugs-msg');
+
+    if (!pinInput || !msg) return;
+
+    const authRes = await window.api.verifyPin(pinInput.value);
+    if (!authRes || !authRes.success) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN.';
+      pinInput.value = '';
+      pinInput.focus();
+      return;
+    }
+
+    deleteAllDrugsBtn.disabled = true;
+    msg.style.color = '#475569';
+    msg.innerText = 'Clearing all medicines...';
+
+    try {
+      const res = await window.api.deleteAllMedicinesKeepSales();
+      if (res && res.success) {
+        msg.style.color = '#16a34a';
+        msg.innerText = '✓ All medicines and stocks cleared!';
+        await loadDeleteDrugDropdown();
+        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+        await refreshAlertBadges();
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed');
+      }
+    } catch (err) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    } finally {
+      pinInput.value = '';
+      deleteAllDrugsBtn.disabled = false;
+      setTimeout(() => { msg.innerText = ''; }, 3000);
+    }
+  });
+}
+
+// 4. Clear All Sales
+const clearAllSalesBtn = document.getElementById('clear-all-sales-btn');
+if (clearAllSalesBtn) {
+  clearAllSalesBtn.addEventListener('click', async () => {
+    const pinInput = document.getElementById('admin-pin-clear-sales');
+    const msg = document.getElementById('clear-all-sales-msg');
+
+    if (!pinInput || !msg) return;
+
+    const authRes = await window.api.verifyPin(pinInput.value);
+    if (!authRes || !authRes.success) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN.';
+      pinInput.value = '';
+      pinInput.focus();
+      return;
+    }
+
+    clearAllSalesBtn.disabled = true;
+    msg.style.color = '#475569';
+    msg.innerText = 'Clearing sales history...';
+
+    try {
+      const res = await window.api.deleteAllSales();
+      if (res && res.success) {
+        msg.style.color = '#16a34a';
+        msg.innerText = '✓ All sales history & charts cleared!';
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed');
+      }
+    } catch (err) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    } finally {
+      pinInput.value = '';
+      clearAllSalesBtn.disabled = false;
+      setTimeout(() => { msg.innerText = ''; }, 3000);
+    }
+  });
+}
+
+// 5. Full Factory Reset
+const wipeDatabaseBtn = document.getElementById('wipe-database-btn');
+if (wipeDatabaseBtn) {
+  wipeDatabaseBtn.addEventListener('click', async () => {
+    const pinInput = document.getElementById('admin-pin-confirm');
+    const msg = document.getElementById('wipe-status-msg');
+
+    if (!pinInput || !msg) return;
+
+    const authRes = await window.api.verifyPin(pinInput.value);
+    if (!authRes || !authRes.success) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid PIN.';
+      pinInput.value = '';
+      pinInput.focus();
+      return;
+    }
+
+    wipeDatabaseBtn.disabled = true;
+    msg.style.color = '#475569';
+    msg.innerText = 'Wiping complete database...';
+
+    try {
+      const res = await window.api.clearInventory();
+      if (res && res.success) {
+        msg.style.color = '#16a34a';
+        msg.innerText = '✓ Complete system wiped successfully!';
+        await loadDeleteDrugDropdown();
+        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+        await refreshAlertBadges();
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed');
+      }
+    } catch (err) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + err.message;
+    } finally {
+      pinInput.value = '';
+      wipeDatabaseBtn.disabled = false;
+      setTimeout(() => { msg.innerText = ''; }, 3000);
+    }
+  });
+}
+
+// ==================== RECEIPT PRINTING ====================
+async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmount = 0, balanceAmount = 0, discount = 0, subtotal = null, invoiceNo = null, shiftId = null) {
+  if (!items || items.length === 0) return;
+
+  const payload = {
+    saleId,
+    invoiceNo: invoiceNo !== null ? invoiceNo : saleId,
+    shiftId: shiftId,
+    dateStr,
+    items,
+    grandTotal,
+    paidAmount,
+    balanceAmount,
+    discount: parseFloat(discount) || 0,
+    subtotal: subtotal !== null ? subtotal : grandTotal + (parseFloat(discount) || 0),
+    pharmacyName: currentSettings.pharmacy_name,
+    pharmacyAddress: currentSettings.pharmacy_address,
+    pharmacyPhone: currentSettings.pharmacy_phone
+  };
+
+  if (window.api && typeof window.api.printReceipt === 'function') {
+    const res = await window.api.printReceipt(payload);
+    if (!res.success && res.error) {
+      console.warn('Print action notice:', res.error);
+    }
+  }
+}
+
+// ==================== CSV IMPORT ====================
+const importCsvBtn = document.getElementById('import-csv-btn');
+if (importCsvBtn) {
+  importCsvBtn.addEventListener('click', async () => {
+    const msg = document.getElementById('inward-status-msg');
+    if (msg) {
+      msg.style.color = '#475569';
+      msg.innerText = 'Selecting file for import...';
+    }
+
+    const res = await window.api.importCSV();
+    if (res && res.success) {
+      if (msg) {
+        msg.style.color = '#16a34a';
+        msg.innerText = `✓ Successfully imported ${res.count} items/batches!`;
+      }
+      await displayDrugDropdown();
+      await refreshAlertBadges();
+      setTimeout(() => { if (msg) msg.innerText = ''; }, 3000);
+    } else if (res && !res.canceled) {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Import failed: ' + res.error;
+      }
+    } else {
+      if (msg) msg.innerText = '';
+    }
+  });
+}
+
+// CSV Export Handler
+const exportCsvBtn = document.getElementById('export-csv-btn');
+if (exportCsvBtn) {
+  exportCsvBtn.addEventListener('click', async () => {
+    const res = await window.api.exportCSV();
+    if (res.success) {
+      alert('✓ Inventory exported to CSV successfully!');
+    } else if (!res.canceled) {
+      alert('✗ Failed to export CSV: ' + res.error);
+    }
+  });
+}
+
+// Database Backup Handler
+const backupDbBtn = document.getElementById('backup-db-btn');
+if (backupDbBtn) {
+  backupDbBtn.addEventListener('click', async () => {
+    const res = await window.api.backupDatabase();
+    if (res.success) {
+      alert('✓ SQLite database backup saved successfully!');
+    } else if (!res.canceled) {
+      alert('✗ Failed to create backup: ' + res.error);
+    }
+  });
+}
+
+// ==================== ALERTS BADGE MODULE ====================
+async function refreshAlertBadges() {
+  const badge = document.getElementById('sidebar-alert-badge');
+  if (!badge) return;
+
+  const res = await window.api.getAlertsSummary();
+  if (res && res.success) {
+    const totalAlerts = res.data.lowStockCount + res.data.expiringCount;
+    if (totalAlerts > 0) {
+      badge.style.display = 'inline-block';
+      badge.innerText = String(totalAlerts);
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+// ==================== GLOBAL FUNCTION KEY TAB SHORTCUTS (F1 - F8) ====================
 const functionKeyTabMap = {
   F1: 'stock-inward-view',
+  F2: 'inventory-view',
   F3: 'inventory-view',
   F4: 'pos-view',
   F5: 'sales-view',
@@ -2340,15 +2308,17 @@ const functionKeyTabMap = {
   F7: 'profits-view'
 };
 
-window.addEventListener('keydown', async (e) => {
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
-    if (e.key !== 'Escape' && !e.key.startsWith('F')) {
-      return;
-    }
-  }
-
+document.addEventListener('keydown', async (e) => {
+  // 1. Handle F1 - F7 Tab Navigation
   if (functionKeyTabMap[e.key]) {
     e.preventDefault();
+    e.stopPropagation();
+
+    // Blur active input so shortcuts always switch smoothly
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+
     const targetViewId = functionKeyTabMap[e.key];
 
     if (targetViewId === 'pos-view') {
@@ -2360,35 +2330,34 @@ window.addEventListener('keydown', async (e) => {
     }
 
     navigateToTab(targetViewId);
+    return;
   }
-});
 
-// ==================== CSV IMPORT MODULE ====================
-const importCsvBtn = document.getElementById('import-csv-btn');
-if (importCsvBtn) {
-  importCsvBtn.addEventListener('click', async () => {
-    const msg = document.getElementById('inward-status-msg');
-    if (msg) {
-      msg.style.color = '#475569';
-      msg.innerText = 'Selecting CSV file for import...';
+  // 2. Handle F8 Quick Checkout from Billing (POS)
+  if (e.key === 'F8') {
+    const isPosView = document.getElementById('pos-view')?.classList.contains('active');
+    if (isPosView) {
+      e.preventDefault();
+      e.stopPropagation();
+      processCheckout({ shouldPrint: true });
+      return;
     }
+  }
 
-    const res = await window.api.importCSV();
-    if (res.success) {
-      if (msg) {
-        msg.style.color = '#16a34a';
-        msg.innerText = `✓ Successfully imported ${res.count} items/batches from CSV!`;
+  // 3. Handle '+' or Numpad Add to jump to Discount / Cash Paid
+  if (e.key === '+' || e.code === 'NumpadAdd') {
+    const isPosView = document.getElementById('pos-view')?.classList.contains('active');
+    if (isPosView) {
+      const discountInput = document.getElementById('pos-discount-amount');
+      const paidInput = document.getElementById('pos-paid-amount');
+
+      if (document.activeElement !== discountInput && document.activeElement !== paidInput) {
+        e.preventDefault();
+        if (discountInput) { discountInput.focus(); discountInput.select(); }
+      } else if (document.activeElement === discountInput) {
+        e.preventDefault();
+        if (paidInput) { paidInput.focus(); paidInput.select(); }
       }
-      await displayDrugDropdown();
-      await refreshAlertBadges();
-      setTimeout(() => { if (msg) msg.innerText = ''; }, 3000);
-    } else if (!res.canceled) {
-      if (msg) {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ Import failed: ' + res.error;
-      }
-    } else {
-      if (msg) msg.innerText = '';
     }
-  });
-}
+  }
+}, true);
