@@ -19,7 +19,6 @@ class BatchRepository {
         d.generic_name,
         d.category,
         d.min_stock_alert,
-        d.barcode,
         COALESCE(SUM(b.quantity), 0) AS total_stock,
         b.id AS batch_id,
         b.batch_number,
@@ -46,8 +45,7 @@ class BatchRepository {
         b.quantity AS available_qty,
         d.id AS drug_id,
         d.brand_name,
-        d.generic_name,
-        d.barcode
+        d.generic_name
       FROM batches b
       JOIN drugs d ON b.drug_id = d.id
       WHERE b.quantity > 0
