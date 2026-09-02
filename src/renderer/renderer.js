@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
-    const bInput = document.getElementById('inward_barcode');
-    if (bInput) bInput.focus();
+    const dInput = document.getElementById('inward_drug_input');
+    if (dInput) dInput.focus();
   } catch (err) {
     console.error('Failed to initialize app on startup:', err);
   }
@@ -58,11 +58,6 @@ function forceFocusInput(inputId) {
     el.focus(); 
     el.select(); 
   }, 50);
-  
-  setTimeout(() => { 
-    el.focus(); 
-    el.select(); 
-  }, 200);
 }
 
 function navigateToTab(targetViewId, customMessage = '') {
@@ -84,10 +79,10 @@ function navigateToTab(targetViewId, customMessage = '') {
 
   if (targetViewId === 'stock-inward-view') {
     displayDrugDropdown();
-    forceFocusInput('inward_barcode');
+    forceFocusInput('inward_drug_input');
   } else if (targetViewId === 'pos-view') {
     loadPosStock();
-    forceFocusInput('pos_barcode_input');
+    forceFocusInput('pos_drug_input');
   } else if (targetViewId === 'till-view') {
     loadTillManagementView(customMessage);
   } else if (targetViewId === 'inventory-view') {
@@ -350,92 +345,6 @@ if (settingsForm) {
   });
 }
 
-// ==================== UNIVERSAL BARCODE & 2D GS1 / TEXT PARSER ====================
-function parsePharmaceuticalBarcode(rawText) {
-  const result = {
-    is2D: false,
-    cleanBarcode: '',
-    drugName: '',
-    batchNo: '',
-    expiryDate: ''
-  };
-
-  if (!rawText) return result;
-  
-  // Sanity check: Ignore accidental finger shadows or micro-glitches (too short to be valid)
-  const text = rawText.trim().replace(/^[,;\s]+|[,;\s]+$/g, '');
-  if (text.length < 3) {
-    return result; 
-  }
-
-  const gs1Gtin = text.match(/(?:01|\(01\))(\d{14})/);
-  const gs1Exp = text.match(/(?:17|\(17\))(\d{6})/);
-  const gs1Batch = text.match(/(?:10|\(10\))([A-Za-z0-9_-]+)/);
-
-  if (gs1Gtin || gs1Exp || gs1Batch) {
-    result.is2D = true;
-    if (gs1Gtin) result.cleanBarcode = gs1Gtin[1];
-    if (gs1Batch) result.batchNo = gs1Batch[1];
-    if (gs1Exp) {
-      const yymmdd = gs1Exp[1];
-      const yy = '20' + yymmdd.substring(0, 2);
-      const mm = yymmdd.substring(2, 4);
-      let dd = yymmdd.substring(4, 6);
-      if (dd === '00') dd = '28';
-      result.expiryDate = `${yy}-${mm}-${dd}`;
-    }
-    return result;
-  }
-
-  const is2DComposite = /B\.?\s*No|LOT|EXP|MFG|,/i.test(text);
-
-  if (is2DComposite) {
-    result.is2D = true;
-
-    const batchMatch = text.match(/(?:B\.?\s*No\.?|Batch|LOT|B\/N)[\s.:]*([A-Za-z0-9_-]+)/i);
-    if (batchMatch) {
-      result.batchNo = batchMatch[1].trim();
-    }
-
-    const expMatch = text.match(/(?:EXP\.?\s*(?:Date)?|Expiry)[\s.:]*([0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{4}[-/.][0-9]{1,2}|[0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4})/i);
-    if (expMatch) {
-      const expStr = expMatch[1].replace(/[/.]/g, '-');
-      const parts = expStr.split('-');
-      if (parts.length === 2) {
-        let [p1, p2] = parts;
-        if (p2.length === 2) p2 = '20' + p2;
-        if (p1.length === 4) {
-          result.expiryDate = `${p1}-${p2.padStart(2, '0')}-28`;
-        } else {
-          result.expiryDate = `${p2}-${p1.padStart(2, '0')}-28`;
-        }
-      } else if (parts.length === 3) {
-        const [p1, p2, p3] = parts;
-        if (p3.length === 4) {
-          result.expiryDate = `${p3}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
-        } else if (p1.length === 4) {
-          result.expiryDate = `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
-        }
-      }
-    }
-
-    const segments = text.split(/[,;\n\r]|B\.?\s*No|LOT|MFG|EXP/i).map(s => s.trim()).filter(Boolean);
-    for (const seg of segments) {
-      if (/[a-zA-Z]{3,}/.test(seg) && !/^(B\.?No|LOT|MFG|EXP)/i.test(seg)) {
-        result.drugName = seg;
-        break;
-      }
-    }
-
-    result.cleanBarcode = result.batchNo || text.slice(0, 20);
-  } else {
-    result.is2D = false;
-    result.cleanBarcode = text;
-  }
-
-  return result;
-}
-
 // ==================== STOCK INWARD MODULE ====================
 let inwardDropIndex = 0;
 let inwardDropMatches = [];
@@ -447,87 +356,12 @@ async function displayDrugDropdown() {
   }
 }
 
-const inwardBarcodeInput = document.getElementById('inward_barcode');
 const inwardDrugInput = document.getElementById('inward_drug_input');
 const inwardSelectedDrugId = document.getElementById('inward_selected_drug_id');
 const inwardDropdown = document.getElementById('inward-drug-dropdown');
 const newDrugFieldsContainer = document.getElementById('new-drug-fields-container');
 const stockInwardForm = document.getElementById('stock-inward-form');
 const inwardStatusMsg = document.getElementById('inward-status-msg');
-
-let inwardScanTimer = null;
-
-async function processInwardScan(rawText) {
-  if (!rawText) return;
-  const parsed = parsePharmaceuticalBarcode(rawText);
-  if (!parsed.cleanBarcode) return;
-
-  if (parsed.is2D) {
-    if (inwardBarcodeInput) inwardBarcodeInput.value = parsed.cleanBarcode;
-    if (parsed.batchNo) {
-      const bInput = document.getElementById('inward_batch_number');
-      if (bInput) bInput.value = parsed.batchNo;
-    }
-    if (parsed.expiryDate) {
-      const eInput = document.getElementById('inward_expiry_date');
-      if (eInput) eInput.value = parsed.expiryDate;
-    }
-
-    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
-    if (res && res.success && res.data) {
-      pickInwardDrug(res.data);
-      inwardStatusMsg.style.color = '#16a34a';
-      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
-    } else {
-      if (parsed.drugName && inwardDrugInput) {
-        inwardDrugInput.value = parsed.drugName;
-        showInwardDrugList(parsed.drugName);
-      }
-      inwardStatusMsg.style.color = '#0284c7';
-      inwardStatusMsg.innerText = `✓ 2D Barcode processed: Batch & Expiry extracted.`;
-      const buyPrice = document.getElementById('inward_buy_price');
-      if (buyPrice) buyPrice.focus();
-    }
-  } else {
-    inwardStatusMsg.style.color = '#475569';
-    inwardStatusMsg.innerText = 'Checking barcode...';
-
-    const res = await window.api.getDrugByBarcode(parsed.cleanBarcode);
-    if (res && res.success && res.data) {
-      pickInwardDrug(res.data);
-      inwardStatusMsg.style.color = '#16a34a';
-      inwardStatusMsg.innerText = `✓ Barcode matched: ${res.data.brand_name}`;
-    } else {
-      inwardStatusMsg.style.color = '#0284c7';
-      inwardStatusMsg.innerText = `ℹ️ New barcode scanned. Select or create medicine below to bind it.`;
-      if (inwardDrugInput) {
-        inwardDrugInput.focus();
-        inwardDrugInput.select();
-      }
-    }
-  }
-}
-
-if (inwardBarcodeInput) {
-  inwardBarcodeInput.addEventListener('keydown', async (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-      clearTimeout(inwardScanTimer);
-      await processInwardScan(inwardBarcodeInput.value.trim());
-    }
-  });
-
-  inwardBarcodeInput.addEventListener('input', () => {
-    const val = inwardBarcodeInput.value.trim();
-    if (val.length > 20 || val.includes(',') || val.includes('B.No')) {
-      clearTimeout(inwardScanTimer);
-      inwardScanTimer = setTimeout(async () => {
-        await processInwardScan(inwardBarcodeInput.value.trim());
-      }, 100);
-    }
-  });
-}
 
 function showInwardDrugList(q = '') {
   if (!inwardDropdown) return;
@@ -577,10 +411,7 @@ function pickInwardDrug(drug) {
   }
 
   const batchNoInput = document.getElementById('inward_batch_number');
-  if (batchNoInput && !batchNoInput.value) { 
-    batchNoInput.focus(); 
-    batchNoInput.select(); 
-  }
+  if (batchNoInput) { batchNoInput.focus(); batchNoInput.select(); }
 }
 
 if (inwardDrugInput) {
@@ -631,7 +462,6 @@ if (stockInwardForm) {
     e.preventDefault();
     let drugId = parseInt(inwardSelectedDrugId.value, 10);
     const brandName = inwardDrugInput.value.trim();
-    const barcodeVal = inwardBarcodeInput ? inwardBarcodeInput.value.trim() : '';
     const minStockVal = parseInt(document.getElementById('inward_min_stock').value, 10) || 10;
 
     inwardStatusMsg.style.color = '#475569';
@@ -643,8 +473,7 @@ if (stockInwardForm) {
           brand_name: brandName,
           generic_name: document.getElementById('inward_generic_name') ? document.getElementById('inward_generic_name').value.trim() : '',
           category: document.getElementById('inward_category') ? document.getElementById('inward_category').value.trim() : '',
-          min_stock_alert: minStockVal,
-          barcode: barcodeVal || null
+          min_stock_alert: minStockVal
         };
 
         const drugRes = await window.api.addDrug(newDrugPayload);
@@ -653,9 +482,6 @@ if (stockInwardForm) {
         }
         drugId = drugRes.data.lastInsertRowid;
       } else {
-        if (barcodeVal) {
-          await window.api.bindBarcode({ drugId, barcode: barcodeVal });
-        }
         await window.api.updateInventoryItem({
           drug_id: drugId,
           brand_name: brandName,
@@ -678,7 +504,7 @@ if (stockInwardForm) {
       }
 
       inwardStatusMsg.style.color = '#16a34a';
-      inwardStatusMsg.innerText = '✓ Stock received, barcode bound, & batch logged successfully!';
+      inwardStatusMsg.innerText = '✓ Stock received & batch logged successfully!';
       stockInwardForm.reset();
       inwardSelectedDrugId.value = '';
       if (document.getElementById('inward_min_stock')) {
@@ -690,7 +516,7 @@ if (stockInwardForm) {
       await refreshAlertBadges();
 
       setTimeout(() => { inwardStatusMsg.innerText = ''; }, 2500);
-      if (inwardBarcodeInput) { inwardBarcodeInput.focus(); inwardBarcodeInput.select(); }
+      if (inwardDrugInput) { inwardDrugInput.focus(); inwardDrugInput.select(); }
     } catch (err) {
       inwardStatusMsg.style.color = '#dc2626';
       inwardStatusMsg.innerText = '✗ Error: ' + err.message;
@@ -734,7 +560,7 @@ function renderInventoryTable() {
   const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   if (!rawInventoryData || rawInventoryData.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #64748b; padding: 20px;">No inventory records found.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No inventory records found.</td></tr>`;
     return;
   }
 
@@ -746,14 +572,13 @@ function renderInventoryTable() {
       (row.brand_name && String(row.brand_name).toLowerCase().includes(searchTerm)) ||
       (row.generic_name && String(row.generic_name).toLowerCase().includes(searchTerm)) ||
       (row.category && String(row.category).toLowerCase().includes(searchTerm)) ||
-      (row.batch_number && String(row.batch_number).toLowerCase().includes(searchTerm)) ||
-      (row.barcode && String(row.barcode).toLowerCase().includes(searchTerm));
+      (row.batch_number && String(row.batch_number).toLowerCase().includes(searchTerm));
 
     return matchesFilter && matchesSearch;
   });
 
   if (filteredData.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #64748b; padding: 20px;">No medicines match your search / filter criteria.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No medicines match your search / filter criteria.</td></tr>`;
     return;
   }
 
@@ -765,7 +590,6 @@ function renderInventoryTable() {
       <td><strong>${row.brand_name}</strong></td>
       <td>${row.generic_name || '-'}</td>
       <td>${row.category || '-'}</td>
-      <td>${row.barcode ? `<code>${row.barcode}</code>` : '<span style="color: #94a3b8;">None</span>'}</td>
       <td>${row.batch_number ? `<code>${row.batch_number}</code>` : '<span style="color: #94a3b8;">No Batches</span>'}</td>
       <td>${row.expiry_date || '-'}</td>
       <td>${row.sell_price ? Number(row.sell_price).toFixed(2) : '-'}</td>
@@ -807,7 +631,6 @@ window.openEditItemModal = (drugId, batchId) => {
   document.getElementById('edit_generic_name').value = item.generic_name || '';
   document.getElementById('edit_category').value = item.category || '';
   document.getElementById('edit_min_stock_alert').value = item.min_stock_alert || 10;
-  document.getElementById('edit_barcode').value = item.barcode || '';
 
   const batchSection = document.getElementById('edit-batch-section');
   if (item.batch_id) {
@@ -853,7 +676,6 @@ if (editItemForm) {
       generic_name: document.getElementById('edit_generic_name').value.trim(),
       category: document.getElementById('edit_category').value.trim(),
       min_stock_alert: parseInt(document.getElementById('edit_min_stock_alert').value, 10) || 10,
-      barcode: document.getElementById('edit_barcode').value.trim() || null,
       batch_id: batchIdVal ? parseInt(batchIdVal, 10) : null,
       batch_number: document.getElementById('edit_batch_number').value.trim(),
       expiry_date: document.getElementById('edit_expiry_date').value,
@@ -894,91 +716,6 @@ async function loadPosStock() {
   }
 }
 
-// ==================== POS BARCODE HANDLER ====================
-let posScanTimer = null;
-
-async function handlePosScannedBarcode(rawCode) {
-  if (!rawCode) return;
-
-  const msg = document.getElementById('pos-input-msg');
-  const drugInput = document.getElementById('pos_drug_input');
-  const qtyInput = document.getElementById('pos_qty');
-  const pBarInput = document.getElementById('pos_barcode_input');
-
-  const parsed = parsePharmaceuticalBarcode(rawCode);
-  if (!parsed.cleanBarcode) return;
-
-  const searchCode = parsed.cleanBarcode.trim().toLowerCase();
-  const searchBatch = (parsed.batchNo || '').trim().toLowerCase();
-  const searchName = (parsed.drugName || '').trim().toLowerCase();
-
-  let foundItem = availablePosStock.find((item) => {
-    const itemBarcode = (item.barcode || '').toLowerCase();
-    const itemBatch = (item.batch_number || '').toLowerCase();
-    const itemBrand = (item.brand_name || '').toLowerCase();
-    const itemGeneric = (item.generic_name || '').toLowerCase();
-
-    if (itemBarcode && (itemBarcode === searchCode || itemBarcode === rawCode.toLowerCase())) return true;
-    if (searchBatch && itemBatch === searchBatch) return true;
-    if (searchName && (itemBrand.includes(searchName) || itemGeneric.includes(searchName))) return true;
-
-    return false;
-  });
-
-  if (!foundItem) {
-    if (msg) {
-      msg.style.color = '#dc2626';
-      msg.innerText = `✗ No stock found for barcode / batch: ${parsed.batchNo || parsed.cleanBarcode}`;
-    }
-    if (pBarInput) {
-      pBarInput.value = '';
-      pBarInput.focus();
-    }
-    return;
-  }
-
-  if (drugInput) {
-    drugInput.value = `${foundItem.brand_name} | Batch: ${foundItem.batch_number} | Exp: ${foundItem.expiry_date} | Stock: ${foundItem.available_qty} | LKR ${foundItem.sell_price.toFixed(2)}`;
-  }
-
-  checkSelectedBatchExpiry();
-
-  if (msg) {
-    msg.style.color = '#16a34a';
-    msg.innerText = `✓ Item loaded: ${foundItem.brand_name} (Batch: ${foundItem.batch_number})`;
-    setTimeout(() => { msg.innerText = ''; }, 2000);
-  }
-
-  if (pBarInput) pBarInput.value = '';
-
-  if (qtyInput) {
-    qtyInput.focus();
-    qtyInput.select();
-  }
-}
-
-const posBarcodeInput = document.getElementById('pos_barcode_input');
-if (posBarcodeInput) {
-  posBarcodeInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-      clearTimeout(posScanTimer);
-      handlePosScannedBarcode(posBarcodeInput.value.trim());
-    }
-  });
-
-  posBarcodeInput.addEventListener('input', () => {
-    const val = posBarcodeInput.value.trim();
-    if (val.length > 20 || val.includes(',') || val.includes('B.No')) {
-      clearTimeout(posScanTimer);
-      posScanTimer = setTimeout(() => {
-        handlePosScannedBarcode(posBarcodeInput.value.trim());
-      }, 100);
-    }
-  });
-}
-
 function showList(q = '') {
   const menu = document.getElementById('pos-dropdown');
   if (!menu) return;
@@ -992,8 +729,7 @@ function showList(q = '') {
   dropMatches = availablePosStock.filter((d) =>
     d.brand_name.toLowerCase().includes(term) ||
     (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
-    d.batch_number.toLowerCase().includes(term) ||
-    (d.barcode && d.barcode.toLowerCase().includes(term))
+    d.batch_number.toLowerCase().includes(term)
   );
 
   if (dropMatches.length === 0) {
@@ -1352,10 +1088,10 @@ async function processCheckout({ shouldPrint = true } = {}) {
       await refreshAlertBadges();
       await checkActiveShiftStatus();
 
-      const pBarInput = document.getElementById('pos_barcode_input');
-      if (pBarInput) {
-        pBarInput.focus();
-        pBarInput.select();
+      const pInputFocus = document.getElementById('pos_drug_input');
+      if (pInputFocus) {
+        pInputFocus.focus();
+        pInputFocus.select();
       }
 
       if (shouldPrint) {
@@ -2218,7 +1954,7 @@ if (deleteSelectedDrugBtn) {
   });
 }
 
-// 2. Delete Selected Sale (By Invoice ID with Backend PIN Verification)
+// 2. Delete Selected Sale
 const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
 if (deleteSelectedSaleBtn) {
   deleteSelectedSaleBtn.addEventListener('click', async () => {
@@ -2461,7 +2197,6 @@ if (importCsvBtn) {
   });
 }
 
-// CSV Export Handler
 const exportCsvBtn = document.getElementById('export-csv-btn');
 if (exportCsvBtn) {
   exportCsvBtn.addEventListener('click', async () => {
@@ -2474,7 +2209,6 @@ if (exportCsvBtn) {
   });
 }
 
-// Database Backup Handler
 const backupDbBtn = document.getElementById('backup-db-btn');
 if (backupDbBtn) {
   backupDbBtn.addEventListener('click', async () => {
@@ -2516,7 +2250,6 @@ const functionKeyTabMap = {
 };
 
 document.addEventListener('keydown', async (e) => {
-  // 1. Handle F1 - F7 Tab Navigation
   if (functionKeyTabMap[e.key]) {
     e.preventDefault();
     e.stopPropagation();
@@ -2539,7 +2272,6 @@ document.addEventListener('keydown', async (e) => {
     return;
   }
 
-  // 2. Handle F8 Quick Checkout from Billing (POS)
   if (e.key === 'F8') {
     const isPosView = document.getElementById('pos-view')?.classList.contains('active');
     if (isPosView) {
@@ -2550,7 +2282,6 @@ document.addEventListener('keydown', async (e) => {
     }
   }
 
-  // 3. Handle '+' or Numpad Add to jump to Discount / Cash Paid
   if (e.key === '+' || e.code === 'NumpadAdd') {
     const isPosView = document.getElementById('pos-view')?.classList.contains('active');
     if (isPosView) {
