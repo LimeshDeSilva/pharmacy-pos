@@ -8,7 +8,7 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
   // Drugs
   ipcMain.handle('drugs:add', async (event, drugData) => {
     try {
-      const result = drugRepo.addDrug(drugData.brand_name, drugData.generic_name, drugData.category, drugData.min_stock_alert, drugData.barcode);
+      const result = drugRepo.addDrug(drugData.brand_name, drugData.generic_name, drugData.category, drugData.min_stock_alert);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -18,23 +18,6 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
   ipcMain.handle('drugs:getAll', async () => {
     try {
       return { success: true, data: drugRepo.getAllDrugs() };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle('drugs:getByBarcode', async (event, barcode) => {
-    try {
-      return { success: true, data: drugRepo.getDrugByBarcode(barcode) };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle('drugs:bindBarcode', async (event, { drugId, barcode }) => {
-    try {
-      drugRepo.bindBarcode(drugId, barcode);
-      return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -285,7 +268,7 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
-  // Inventory Import Handler (Allows CSV, TSV, TXT, and all structured sheets)
+  // Inventory Import Handler
   ipcMain.handle('inventory:importCSV', async () => {
     try {
       const { filePaths } = await dialog.showOpenDialog({
