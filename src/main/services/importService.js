@@ -1,9 +1,6 @@
 const fs = require('fs');
 
 class ImportService {
-  /**
-   * Helper to parse CSV lines taking into account quoted strings and commas inside quotes
-   */
   static parseCSVLine(line) {
     const result = [];
     let curVal = '';
@@ -16,7 +13,7 @@ class ImportService {
       if (char === '"') {
         if (insideQuotes && nextChar === '"') {
           curVal += '"';
-          i++; // Skip the escaped quote
+          i++;
         } else {
           insideQuotes = !insideQuotes;
         }
@@ -60,7 +57,6 @@ class ImportService {
       const idxSellPrice = getColIdx(['sell_price', 'sell price', 'retail price']);
       const idxExpiry = getColIdx(['expiry_date', 'expiry date', 'exp date', 'expiry']);
       const idxBatch = getColIdx(['batch_number', 'batch number', 'batch no', 'batch']);
-      const idxBarcode = getColIdx(['barcode', 'gtin', 'upc']);
       const idxQuantity = getColIdx(['quantity', 'qty', 'stock']);
 
       if (idxBrand === -1) {
@@ -80,20 +76,14 @@ class ImportService {
           const genericName = idxGeneric !== -1 && cols[idxGeneric] && cols[idxGeneric].toLowerCase() !== 'nan' ? cols[idxGeneric] : '';
           const category = idxCategory !== -1 && cols[idxCategory] && cols[idxCategory].toLowerCase() !== 'nan' ? cols[idxCategory] : 'General';
           const minStock = idxMinStock !== -1 && !isNaN(cols[idxMinStock]) ? parseInt(cols[idxMinStock], 10) || 10 : 10;
-          const barcode = idxBarcode !== -1 && cols[idxBarcode] && cols[idxBarcode].toLowerCase() !== 'nan' && cols[idxBarcode] !== '' ? String(cols[idxBarcode]) : null;
 
           let drug = db.prepare('SELECT id FROM drugs WHERE brand_name = ?').get(brandName);
           let drugId;
 
           if (drug) {
             drugId = drug.id;
-            if (barcode) {
-              try {
-                db.prepare('UPDATE drugs SET barcode = COALESCE(?, barcode) WHERE id = ?').run(barcode, drugId);
-              } catch (e) {}
-            }
           } else {
-            const res = drugRepo.addDrug(brandName, genericName, category, minStock, barcode);
+            const res = drugRepo.addDrug(brandName, genericName, category, minStock);
             drugId = res.lastInsertRowid;
           }
 
@@ -108,7 +98,6 @@ class ImportService {
             try {
               batchRepo.addBatch(drugId, batchNo, expiry, buyPrice, sellPrice, qty);
             } catch (err) {
-              // Update existing batch quantity if duplicate batch
               db.prepare('UPDATE batches SET quantity = quantity + ?, buy_price = ?, sell_price = ?, expiry_date = ? WHERE drug_id = ? AND batch_number = ?')
                 .run(qty, buyPrice, sellPrice, expiry, drugId, batchNo);
             }
