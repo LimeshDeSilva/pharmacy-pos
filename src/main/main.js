@@ -1,7 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
-// 1. Dependency Injection Configuration
 const db = require('./config/database');
 const DrugRepository = require('./repositories/drugRepository');
 const BatchRepository = require('./repositories/batchRepository');
