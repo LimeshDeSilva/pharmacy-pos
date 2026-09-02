@@ -1,6 +1,6 @@
 {
   "name": "pharmacy-pos",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pharmacy POS & Inventory Management System",
   "main": "src/main/main.js",
   "scripts": {
