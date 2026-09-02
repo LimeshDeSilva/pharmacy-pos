@@ -18,8 +18,7 @@ function initDatabase() {
       brand_name TEXT NOT NULL UNIQUE,
       generic_name TEXT,
       category TEXT,
-      min_stock_alert INTEGER DEFAULT 10,
-      barcode TEXT UNIQUE
+      min_stock_alert INTEGER DEFAULT 10
     );
 
     CREATE TABLE IF NOT EXISTS batches (
@@ -83,13 +82,12 @@ function initDatabase() {
       ('admin_pin', '1234');
   `);
 
-  try { db.exec(`ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0;`); } catch (e) {}
-  try { db.exec(`ALTER TABLE sales ADD COLUMN shift_id INTEGER;`); } catch (e) {}
-  try { db.exec(`ALTER TABLE sales ADD COLUMN shift_invoice_no INTEGER;`); } catch (e) {}
-  try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) {}
-  try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) {}
-  try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) {}
-  try { db.exec(`ALTER TABLE drugs ADD COLUMN barcode TEXT UNIQUE;`); } catch (e) {}
+  try { db.exec(`ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0;`); } catch (e) { }
+  try { db.exec(`ALTER TABLE sales ADD COLUMN shift_id INTEGER;`); } catch (e) { }
+  try { db.exec(`ALTER TABLE sales ADD COLUMN shift_invoice_no INTEGER;`); } catch (e) { }
+  try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) { }
+  try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) { }
+  try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) { }
 
   try {
     db.exec(`
@@ -97,7 +95,7 @@ function initDatabase() {
       SET buy_price = (SELECT buy_price FROM batches WHERE batches.id = sale_items.batch_id)
       WHERE (buy_price IS NULL OR buy_price = 0) AND batch_id IS NOT NULL;
     `);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function seedMedicinesIfEmpty() {
@@ -330,7 +328,6 @@ function seedMedicinesIfEmpty() {
   });
 
   seedTransaction(commonDrugs);
-  console.log('✓ Successfully seeded initial medicines.');
 }
 
 initDatabase();
