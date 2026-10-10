@@ -277,7 +277,13 @@ class SalesRepository {
       this.db.prepare('DELETE FROM batches').run();
       this.db.prepare('DELETE FROM drugs').run();
       this.db.prepare('DELETE FROM till_shifts').run();
-      this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches', 'sales', 'sale_items', 'till_shifts')").run();
+      this.db.prepare('DELETE FROM audit_logs').run();
+      this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches', 'sales', 'sale_items', 'till_shifts', 'audit_logs')").run();
+      
+      this.db.prepare(`INSERT INTO audit_logs (action, details) VALUES (?, ?)`).run(
+        'SYSTEM_RESET',
+        'Entire system inventory and sales were wiped via factory reset.'
+      );
       return true;
     });
 
@@ -287,10 +293,14 @@ class SalesRepository {
   deleteSaleById(saleId) {
     const deleteSaleItems = this.db.prepare('DELETE FROM sale_items WHERE sale_id = ?');
     const deleteSale = this.db.prepare('DELETE FROM sales WHERE id = ?');
+    const logAudit = this.db.prepare('INSERT INTO audit_logs (action, details) VALUES (?, ?)');
 
     const transaction = this.db.transaction(() => {
       deleteSaleItems.run(saleId);
       const res = deleteSale.run(saleId);
+      if (res.changes > 0) {
+        logAudit.run('DELETE_SALE', `Deleted sale ID: ${saleId}`);
+      }
       return res.changes > 0;
     });
 
@@ -298,11 +308,13 @@ class SalesRepository {
   }
 
   deleteAllSales() {
+    const logAudit = this.db.prepare('INSERT INTO audit_logs (action, details) VALUES (?, ?)');
     const transaction = this.db.transaction(() => {
       this.db.prepare('DELETE FROM sale_items').run();
       this.db.prepare('DELETE FROM sales').run();
       this.db.prepare('DELETE FROM till_shifts').run();
       this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('sales', 'sale_items', 'till_shifts')").run();
+      logAudit.run('CLEAR_ALL_SALES', 'All sales history and till shifts were deleted.');
       return true;
     });
 
@@ -374,6 +386,11 @@ class SalesRepository {
           item.total_price || (qty * sellPrice)
         );
       }
+
+      this.db.prepare(`INSERT INTO audit_logs (action, details) VALUES (?, ?)`).run(
+        'EDIT_SALE',
+        `Modified/Exchanged items for sale ID: ${saleId}`
+      );
 
       return { saleId, totalAmount, discount: discountVal };
     });
