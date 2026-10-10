@@ -1,7 +1,9 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { dialog } = require('electron');
+const { dialog, app } = require('electron');
+const os = require('os');
+const crypto = require('crypto');
 
 class SystemService {
   static setupThermalPrinterSharing() {
@@ -31,12 +33,51 @@ class SystemService {
 
       if (!filePath) return { success: false, canceled: true };
 
-      const dbPath = path.join(__dirname, '../../../pharmacy.db');
+      const dbPath = app.isPackaged
+        ? path.join(app.getPath('userData'), 'pharmacy.db')
+        : path.join(__dirname, '../../../pharmacy.db');
+      
       fs.copyFileSync(dbPath, filePath);
 
       return { success: true, filePath };
     } catch (err) {
       return { success: false, error: err.message };
+    }
+  }
+
+  // Generate a unique hardware fingerprint for licensing
+  static getHardwareId() {
+    const cpus = os.cpus();
+    const cpuModel = cpus && cpus.length > 0 ? cpus[0].model : 'UnknownCPU';
+    const totalMem = os.totalmem();
+    const platform = os.platform();
+    const hostname = os.hostname();
+
+    const rawId = `${cpuModel}-${totalMem}-${platform}-${hostname}`;
+    return crypto.createHash('sha256').update(rawId).digest('hex').toUpperCase();
+  }
+
+  // Verify license key file against hardware ID
+  static verifyLicense() {
+    try {
+      const licensePath = app.isPackaged
+        ? path.join(app.getPath('userData'), 'license.key')
+        : path.join(__dirname, '../../../license.key');
+
+      if (!fs.existsSync(licensePath)) {
+        return { valid: false, hardwareId: SystemService.getHardwareId(), error: 'License file not found.' };
+      }
+
+      const licenseContent = fs.readFileSync(licensePath, 'utf-8').trim();
+      const expectedKey = crypto.createHash('sha256').update(SystemService.getHardwareId() + 'MEDICARE_POS_SECRET').digest('hex').toUpperCase();
+
+      if (licenseContent === expectedKey) {
+        return { valid: true };
+      } else {
+        return { valid: false, hardwareId: SystemService.getHardwareId(), error: 'Invalid license key for this PC.' };
+      }
+    } catch (err) {
+      return { valid: false, hardwareId: SystemService.getHardwareId(), error: err.message };
     }
   }
 }
