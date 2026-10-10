@@ -4,6 +4,10 @@ contextBridge.exposeInMainWorld('api', {
   getHardwareId: () => ipcRenderer.invoke('license:getHardwareId'),
   activateLicense: (key) => ipcRenderer.invoke('license:activate', key),
 
+  getSuppliers: () => ipcRenderer.invoke('suppliers:getAll'),
+  addSupplier: (data) => ipcRenderer.invoke('suppliers:add', data),
+  deleteSupplier: (id) => ipcRenderer.invoke('suppliers:delete', id),
+
   addDrug: (drugData) => ipcRenderer.invoke('drugs:add', drugData),
   getAllDrugs: () => ipcRenderer.invoke('drugs:getAll'),
   addBatch: (batchData) => ipcRenderer.invoke('batches:add', batchData),
