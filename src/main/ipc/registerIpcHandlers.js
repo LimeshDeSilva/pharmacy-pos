@@ -1,8 +1,41 @@
 const { ipcMain, dialog } = require('electron');
+const { z } = require('zod');
 const PrinterService = require('../services/printerService');
 const SystemService = require('../services/systemService');
 const ExportService = require('../services/exportService');
 const ImportService = require('../services/importService');
+
+// --- ZOD VALIDATION SCHEMAS ---
+const drugSchema = z.object({
+  brand_name: z.string().min(1, 'Brand name is required'),
+  generic_name: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  min_stock_alert: z.number().int().min(0).default(10)
+});
+
+const batchSchema = z.object({
+  drug_id: z.number().int().positive(),
+  batch_number: z.string().min(1, 'Batch number is required'),
+  expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid expiry date format (YYYY-MM-DD)'),
+  buy_price: z.number().nonnegative(),
+  sell_price: z.number().nonnegative(),
+  quantity: z.number().int().positive('Quantity must be greater than 0')
+});
+
+const cartItemSchema = z.object({
+  batch_id: z.number().int().positive(),
+  brand_name: z.string(),
+  batch_number: z.string(),
+  sell_price: z.number().nonnegative(),
+  quantity: z.number().int().positive(),
+  total_price: z.number().nonnegative()
+});
+
+const checkoutSchema = z.object({
+  cart: z.array(cartItemSchema).min(1, 'Cart cannot be empty'),
+  total: z.number().nonnegative(),
+  discount: z.number().nonnegative().default(0)
+});
 
 function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo) {
   // Licensing Handlers
@@ -17,7 +50,8 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
   // Drugs
   ipcMain.handle('drugs:add', async (event, drugData) => {
     try {
-      const result = drugRepo.addDrug(drugData.brand_name, drugData.generic_name, drugData.category, drugData.min_stock_alert);
+      const validated = drugSchema.parse(drugData);
+      const result = drugRepo.addDrug(validated.brand_name, validated.generic_name, validated.category, validated.min_stock_alert);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -35,7 +69,15 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
   // Batches
   ipcMain.handle('batches:add', async (event, batchData) => {
     try {
-      const result = batchRepo.addBatch(batchData.drug_id, batchData.batch_number, batchData.expiry_date, batchData.buy_price, batchData.sell_price, batchData.quantity);
+      const validated = batchSchema.parse(batchData);
+      const result = batchRepo.addBatch(
+        validated.drug_id, 
+        validated.batch_number, 
+        validated.expiry_date, 
+        validated.buy_price, 
+        validated.sell_price, 
+        validated.quantity
+      );
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -106,9 +148,10 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
-  ipcMain.handle('pos:checkout', async (event, { cart, total, discount }) => {
+  ipcMain.handle('pos:checkout', async (event, salePayload) => {
     try {
-      const result = salesRepo.processSale(cart, total, discount);
+      const validated = checkoutSchema.parse(salePayload);
+      const result = salesRepo.processSale(validated.cart, validated.total, validated.discount);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -130,7 +173,8 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
 
   ipcMain.handle('till:openShift', async (event, openingFloat) => {
     try {
-      const result = salesRepo.openShift(openingFloat);
+      const floatVal = z.number().nonnegative().parse(parseFloat(openingFloat));
+      const result = salesRepo.openShift(floatVal);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
@@ -147,7 +191,8 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
 
   ipcMain.handle('till:closeShift', async (event, { shiftId, actualCash, note }) => {
     try {
-      const result = salesRepo.closeShift(shiftId, actualCash, note);
+      const validatedCash = z.number().nonnegative().parse(parseFloat(actualCash));
+      const result = salesRepo.closeShift(shiftId, validatedCash, note);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, error: error.message };
