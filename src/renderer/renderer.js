@@ -358,8 +358,7 @@ async function displayDrugDropdown() {
 
 const inwardDrugInput = document.getElementById('inward_drug_input');
 const inwardSelectedDrugId = document.getElementById('inward_selected_drug_id');
-const inwardDropdown = document.getElementById('inward-drug-dropdown');
-const newDrugFieldsContainer = document.getElementById('new-drug-fields-container');
+const inwardDropdown = document.getElementById('inward-dropdown');
 const stockInwardForm = document.getElementById('stock-inward-form');
 const inwardStatusMsg = document.getElementById('inward-status-msg');
 
@@ -379,16 +378,14 @@ function showInwardDrugList(q = '') {
 
   if (inwardDropMatches.length === 0) {
     inwardDropdown.style.display = 'none';
-    newDrugFieldsContainer.style.display = 'block';
-    inwardSelectedDrugId.value = '';
+    if (inwardSelectedDrugId) inwardSelectedDrugId.value = '';
     return;
   }
 
-  newDrugFieldsContainer.style.display = 'none';
   inwardDropIndex = 0;
   inwardDropdown.innerHTML = inwardDropMatches.map((d, i) => `
     <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
-      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span>
+      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
     </div>
   `).join('');
 
@@ -403,8 +400,12 @@ function pickInwardDrug(drug) {
   if (inwardDrugInput) inwardDrugInput.value = drug.brand_name;
   if (inwardSelectedDrugId) inwardSelectedDrugId.value = drug.id;
   if (inwardDropdown) inwardDropdown.style.display = 'none';
-  if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
   
+  const genInput = document.getElementById('inward_generic_name');
+  const catInput = document.getElementById('inward_category');
+  if (genInput) genInput.value = drug.generic_name || '';
+  if (catInput) catInput.value = drug.category || '';
+
   const minStockInput = document.getElementById('inward_min_stock');
   if (minStockInput && drug.min_stock_alert !== undefined) {
     minStockInput.value = drug.min_stock_alert;
@@ -416,7 +417,7 @@ function pickInwardDrug(drug) {
 
 if (inwardDrugInput) {
   inwardDrugInput.addEventListener('input', () => {
-    inwardSelectedDrugId.value = '';
+    if (inwardSelectedDrugId) inwardSelectedDrugId.value = '';
     showInwardDrugList(inwardDrugInput.value);
   });
 
@@ -460,19 +461,42 @@ document.addEventListener('click', (e) => {
 if (stockInwardForm) {
   stockInwardForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    let drugId = parseInt(inwardSelectedDrugId.value, 10);
+    let drugId = parseInt(inwardSelectedDrugId ? inwardSelectedDrugId.value : '', 10);
     const brandName = inwardDrugInput.value.trim();
+    const genericName = document.getElementById('inward_generic_name').value.trim();
+    const category = document.getElementById('inward_category').value.trim() || 'General';
     const minStockVal = parseInt(document.getElementById('inward_min_stock').value, 10) || 10;
 
-    inwardStatusMsg.style.color = '#475569';
-    inwardStatusMsg.innerText = 'Processing stock inward...';
+    if (inwardStatusMsg) {
+      inwardStatusMsg.style.color = '#475569';
+      inwardStatusMsg.innerText = 'Processing stock inward...';
+    }
 
     try {
       if (!drugId || isNaN(drugId)) {
+        const existingMatch = registeredDrugsList.find(
+          d => d.brand_name.toLowerCase() === brandName.toLowerCase()
+        );
+        if (existingMatch) {
+          drugId = existingMatch.id;
+        }
+      }
+
+      if (drugId && !isNaN(drugId)) {
+        // Update existing drug metadata to ensure generic name and category are saved/synced
+        await window.api.updateInventoryItem({
+          drug_id: drugId,
+          brand_name: brandName,
+          generic_name: genericName,
+          category: category,
+          min_stock_alert: minStockVal
+        });
+      } else {
+        // Create new drug catalog entry
         const newDrugPayload = {
           brand_name: brandName,
-          generic_name: document.getElementById('inward_generic_name') ? document.getElementById('inward_generic_name').value.trim() : '',
-          category: document.getElementById('inward_category') ? document.getElementById('inward_category').value.trim() : '',
+          generic_name: genericName,
+          category: category,
           min_stock_alert: minStockVal
         };
 
@@ -481,12 +505,6 @@ if (stockInwardForm) {
           throw new Error(drugRes.error);
         }
         drugId = drugRes.data.lastInsertRowid;
-      } else {
-        await window.api.updateInventoryItem({
-          drug_id: drugId,
-          brand_name: brandName,
-          min_stock_alert: minStockVal
-        });
       }
 
       const batchPayload = {
@@ -503,27 +521,29 @@ if (stockInwardForm) {
         throw new Error(batchRes.error);
       }
 
-      inwardStatusMsg.style.color = '#16a34a';
-      inwardStatusMsg.innerText = '✓ Stock received & batch logged successfully!';
+      if (inwardStatusMsg) {
+        inwardStatusMsg.style.color = '#16a34a';
+        inwardStatusMsg.innerText = '✓ Stock received & batch logged successfully!';
+      }
       stockInwardForm.reset();
-      inwardSelectedDrugId.value = '';
+      if (inwardSelectedDrugId) inwardSelectedDrugId.value = '';
       if (document.getElementById('inward_min_stock')) {
         document.getElementById('inward_min_stock').value = '10';
       }
-      if (newDrugFieldsContainer) newDrugFieldsContainer.style.display = 'none';
       
       await displayDrugDropdown();
       await refreshAlertBadges();
 
-      setTimeout(() => { inwardStatusMsg.innerText = ''; }, 2500);
+      setTimeout(() => { if (inwardStatusMsg) inwardStatusMsg.innerText = ''; }, 2500);
       if (inwardDrugInput) { inwardDrugInput.focus(); inwardDrugInput.select(); }
     } catch (err) {
-      inwardStatusMsg.style.color = '#dc2626';
-      inwardStatusMsg.innerText = '✗ Error: ' + err.message;
+      if (inwardStatusMsg) {
+        inwardStatusMsg.style.color = '#dc2626';
+        inwardStatusMsg.innerText = '✗ Error: ' + err.message;
+      }
     }
   });
 }
-
 // ==================== INVENTORY OVERVIEW MODULE ====================
 function calculateItemStatus(row) {
   const today = new Date();
@@ -1955,57 +1975,57 @@ if (deleteSelectedDrugBtn) {
 }
 
 // 2. Delete Selected Sale
-const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
-if (deleteSelectedSaleBtn) {
-  deleteSelectedSaleBtn.addEventListener('click', async () => {
-    const saleInput = document.getElementById('delete_sale_input');
-    const pinInput = document.getElementById('admin-pin-delete-sale');
-    const msg = document.getElementById('delete-sale-status-msg');
+// const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
+// if (deleteSelectedSaleBtn) {
+//   deleteSelectedSaleBtn.addEventListener('click', async () => {
+//     const saleInput = document.getElementById('delete_sale_input');
+//     const pinInput = document.getElementById('admin-pin-delete-sale');
+//     const msg = document.getElementById('delete-sale-status-msg');
 
-    if (!saleInput || !pinInput || !msg) return;
+//     if (!saleInput || !pinInput || !msg) return;
 
-    const saleId = parseInt(saleInput.value.trim(), 10);
+//     const saleId = parseInt(saleInput.value.trim(), 10);
 
-    if (!saleId || isNaN(saleId)) {
-      msg.style.color = '#dc2626';
-      msg.innerText = 'Please enter a valid Invoice Number.';
-      saleInput.focus();
-      return;
-    }
+//     if (!saleId || isNaN(saleId)) {
+//       msg.style.color = '#dc2626';
+//       msg.innerText = 'Please enter a valid Invoice Number.';
+//       saleInput.focus();
+//       return;
+//     }
 
-    const authRes = await window.api.verifyPin(pinInput.value);
-    if (!authRes || !authRes.success) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
-      pinInput.value = '';
-      pinInput.focus();
-      return;
-    }
+//     const authRes = await window.api.verifyPin(pinInput.value);
+//     if (!authRes || !authRes.success) {
+//       msg.style.color = '#dc2626';
+//       msg.innerText = '✗ Invalid PIN.';
+//       pinInput.value = '';
+//       pinInput.focus();
+//       return;
+//     }
 
-    deleteSelectedSaleBtn.disabled = true;
-    msg.style.color = '#475569';
-    msg.innerText = 'Deleting sale record...';
+//     deleteSelectedSaleBtn.disabled = true;
+//     msg.style.color = '#475569';
+//     msg.innerText = 'Deleting sale record...';
 
-    try {
-      const res = await window.api.deleteSingleSale(saleId);
-      if (res && res.success) {
-        msg.style.color = '#16a34a';
-        msg.innerText = `✓ Invoice #${saleId} deleted successfully!`;
-      } else {
-        msg.style.color = '#dc2626';
-        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invoice not found');
-      }
-    } catch (err) {
-      msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + err.message;
-    } finally {
-      saleInput.value = '';
-      pinInput.value = '';
-      deleteSelectedSaleBtn.disabled = false;
-      setTimeout(() => { msg.innerText = ''; }, 3000);
-    }
-  });
-}
+//     try {
+//       const res = await window.api.deleteSingleSale(saleId);
+//       if (res && res.success) {
+//         msg.style.color = '#16a34a';
+//         msg.innerText = `✓ Invoice #${saleId} deleted successfully!`;
+//       } else {
+//         msg.style.color = '#dc2626';
+//         msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invoice not found');
+//       }
+//     } catch (err) {
+//       msg.style.color = '#dc2626';
+//       msg.innerText = '✗ Error: ' + err.message;
+//     } finally {
+//       saleInput.value = '';
+//       pinInput.value = '';
+//       deleteSelectedSaleBtn.disabled = false;
+//       setTimeout(() => { msg.innerText = ''; }, 3000);
+//     }
+//   });
+// }
 
 // 3. Clear All Medicines
 const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
