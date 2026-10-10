@@ -34,6 +34,7 @@ class BatchRepository {
     return query.all();
   }
 
+  // Enforces FEFO (First-Expired, First-Out) by sorting by expiry_date ASC
   getAvailableStock() {
     const query = this.db.prepare(`
       SELECT 
