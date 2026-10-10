@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 const db = require('./config/database');
@@ -18,8 +18,10 @@ const settingsRepo = new SettingsRepository(db);
 
 registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo);
 
-function createWindow() {
-  const win = new BrowserWindow({
+let mainWindow = null;
+
+function createMainWindow() {
+  mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
     minWidth: 900,
@@ -33,23 +35,35 @@ function createWindow() {
     }
   });
 
-  win.loadFile(path.join(__dirname, '../renderer/index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+}
+
+function createActivationWindow() {
+  const activationWin = new BrowserWindow({
+    width: 500,
+    height: 420,
+    resizable: false,
+    minimizable: false,
+    title: 'Software Activation - MediCare POS',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, '../preload/preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  activationWin.loadFile(path.join(__dirname, '../renderer/activate.html'));
 }
 
 app.whenReady().then(() => {
-  // Check Hardware-Locked License
   const licenseCheck = SystemService.verifyLicense();
   if (!licenseCheck.valid) {
-    dialog.showErrorBox(
-      'License Activation Required',
-      `This computer is not licensed to run MediCare POS.\n\nYour Hardware ID is:\n${licenseCheck.hardwareId}\n\nPlease provide this ID to the software vendor to obtain your license key.`
-    );
-    app.quit();
-    return;
+    createActivationWindow();
+  } else {
+    SystemService.setupThermalPrinterSharing();
+    createMainWindow();
   }
-
-  SystemService.setupThermalPrinterSharing();
-  createWindow();
 });
 
 app.on('window-all-closed', () => {
