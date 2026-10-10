@@ -75,6 +75,13 @@ function initDatabase() {
       status TEXT DEFAULT 'OPEN'
     );
 
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      action TEXT NOT NULL,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     INSERT OR IGNORE INTO settings (key, value) VALUES 
       ('pharmacy_name', 'NEW SAHASNA PHARMACY'),
       ('pharmacy_address', 'No.514, Walagedara, Balapitiya'),
@@ -236,7 +243,6 @@ function seedMedicinesIfEmpty() {
     { brand: 'Hyzaar 50/12.5mg', generic: 'Losartan + Hydrochlorothiazide', category: 'Antihypertensive Combo' },
     { brand: 'Micardis 40mg', generic: 'Telmisartan', category: 'ARB' },
     { brand: 'Micardis 80mg', generic: 'Telmisartan', category: 'ARB' },
-    { brand: 'Telma 40mg', generic: 'Telmisartan', category: 'ARB' },
     { brand: 'Diovan 80mg', generic: 'Valsartan', category: 'ARB' },
     { brand: 'Diovan 160mg', generic: 'Valsartan', category: 'ARB' },
     { brand: 'Zestril 5mg', generic: 'Lisinopril', category: 'ACE Inhibitor' },
