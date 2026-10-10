@@ -1,6 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  getHardwareId: () => ipcRenderer.invoke('license:getHardwareId'),
+  activateLicense: (key) => ipcRenderer.invoke('license:activate', key),
+
   addDrug: (drugData) => ipcRenderer.invoke('drugs:add', drugData),
   getAllDrugs: () => ipcRenderer.invoke('drugs:getAll'),
   addBatch: (batchData) => ipcRenderer.invoke('batches:add', batchData),
