@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Activate MediCare POS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+    }
+    .activation-card {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 12px;
+      width: 440px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid #334155;
+      text-align: center;
+    }
+    .activation-card h2 {
+      margin-bottom: 8px;
+      color: #38bdf8;
+    }
+    .activation-card p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 20px;
+    }
+    .hw-box {
+      background: #0f172a;
+      border: 1px dashed #475569;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 11px;
+      word-break: break-all;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      user-select: all;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .btn-activate {
+      width: 100%;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-activate:hover {
+      background: #0369a1;
+    }
+    #activation-msg {
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="activation-card">
+    <h2>🏥 Software Activation</h2>
+    <p>Please provide your Hardware ID to your vendor to receive your activation key.</p>
+
+    <div id="hw-id-display" class="hw-box">Loading Hardware ID...</div>
+
+    <div class="form-group" style="text-align: left;">
+      <label for="license_key_input" style="color: #cbd5e1;">Paste Activation Key *</label>
+      <input type="text" id="license_key_input" placeholder="Paste license key here..." autocomplete="off" autofocus />
+    </div>
+
+    <button id="activate-btn" class="btn-activate">Activate Software</button>
+    <div id="activation-msg"></div>
+  </div>
+
+  <script>
+    async function init() {
+      const hwId = await window.api.getHardwareId();
+      document.getElementById('hw-id-display').innerText = hwId;
+    }
+    init();
+
+    document.getElementById('activate-btn').addEventListener('click', async () => {
+      const key = document.getElementById('license_key_input').value.trim();
+      const msg = document.getElementById('activation-msg');
+
+      if (!key) {
+        msg.style.color = '#f87171';
+        msg.innerText = 'Please enter a license key.';
+        return;
+      }
+
+      msg.style.color = '#94a3b8';
+      msg.innerText = 'Validating key...';
+
+      const res = await window.api.activateLicense(key);
+      if (res && res.success) {
+        msg.style.color = '#4ade80';
+        msg.innerText = '✓ Activated successfully! Restarting...';
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        msg.style.color = '#f87171';
+        msg.innerText = '✗ ' + (res?.error || 'Activation failed.');
+      }
+    });
+  </script>
+</body>
+</html>
