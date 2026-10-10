@@ -746,6 +746,7 @@ function showList(q = '') {
     return;
   }
 
+  // Filter available stock and keep FEFO order
   dropMatches = availablePosStock.filter((d) =>
     d.brand_name.toLowerCase().includes(term) ||
     (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
@@ -757,12 +758,17 @@ function showList(q = '') {
     return;
   }
 
-  dropIndex = 0;
-  menu.innerHTML = dropMatches.map((d, i) => `
-    <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
-      ${d.brand_name} | Batch: <code>${d.batch_number}</code> | Stock: ${d.available_qty} | <strong>LKR ${d.sell_price.toFixed(2)}</strong>
-    </div>
-  `).join('');
+  dropIndex = 0; // Automatically defaults to index 0 (the nearest expiring batch via FEFO)
+  menu.innerHTML = dropMatches.map((d, i) => {
+    const isClosestExpiry = i === 0;
+    const fefoBadge = isClosestExpiry ? '<span style="background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">FEFO RECOMMENDED</span>' : '';
+    
+    return `
+      <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
+        ${d.brand_name} | Batch: <code>${d.batch_number}</code> | Exp: ${d.expiry_date} ${fefoBadge} | Stock: ${d.available_qty} | <strong>LKR ${d.sell_price.toFixed(2)}</strong>
+      </div>
+    `;
+  }).join('');
 
   menu.querySelectorAll('.pos-option').forEach((el) => {
     el.addEventListener('click', () => pickItem(dropMatches[el.dataset.idx]));
