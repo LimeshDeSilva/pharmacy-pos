@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@point-of-sale/receipt-printer-encoder": "latest",
-    "better-sqlite3": "^11.8.0"
+    "better-sqlite3": "^11.8.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "electron": "^33.2.0",
