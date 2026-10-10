@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
 
 const db = require('./config/database');
@@ -37,6 +37,17 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Check Hardware-Locked License
+  const licenseCheck = SystemService.verifyLicense();
+  if (!licenseCheck.valid) {
+    dialog.showErrorBox(
+      'License Activation Required',
+      `This computer is not licensed to run MediCare POS.\n\nYour Hardware ID is:\n${licenseCheck.hardwareId}\n\nPlease provide this ID to the software vendor to obtain your license key.`
+    );
+    app.quit();
+    return;
+  }
+
   SystemService.setupThermalPrinterSharing();
   createWindow();
 });
