@@ -289,7 +289,7 @@ function seedMedicinesIfEmpty() {
     { brand: 'Neurobion Forte', generic: 'Vitamin B-Complex', category: 'Vitamin Supplement' },
     { brand: 'Becozyme C Forte', generic: 'Vitamin B-Complex + C', category: 'Vitamin Supplement' },
     { brand: 'Cebion 500mg Chewable', generic: 'Ascorbic Acid (Vit C)', category: 'Vitamin C' },
-    { brand: 'Redoxon Effervescent Orange', generic: 'Vitamin C + Zinc', category: 'Immune Supplement' },
+    { brand: 'Redoxon Effervescent Orange', generic: 'VitaminC + Zinc', category: 'Immune Supplement' },
     { brand: 'Caltrate 600+D3', generic: 'Calcium Carbonate + Vit D3', category: 'Bone Health' },
     { brand: 'Shelcal 500mg', generic: 'Calcium + Vitamin D3', category: 'Bone Health' },
     { brand: 'Fefol Spansule', generic: 'Ferrous Sulfate + Folic Acid', category: 'Iron Supplement' },
@@ -317,9 +317,12 @@ function seedMedicinesIfEmpty() {
   ];
 
   const insertDrug = db.prepare(`
-    INSERT OR IGNORE INTO drugs (brand_name, generic_name, category, min_stock_alert)
-    VALUES (?, ?, ?, 10)
-  `);
+  INSERT INTO drugs (brand_name, generic_name, category, min_stock_alert)
+  VALUES (?, ?, ?, 10)
+  ON CONFLICT(brand_name) DO UPDATE SET 
+    generic_name = excluded.generic_name,
+    category = excluded.category
+`);
 
   const seedTransaction = db.transaction((drugs) => {
     for (const drug of drugs) {
@@ -329,7 +332,6 @@ function seedMedicinesIfEmpty() {
 
   seedTransaction(commonDrugs);
 }
-
 initDatabase();
 seedMedicinesIfEmpty();
 
