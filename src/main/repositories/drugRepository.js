@@ -12,7 +12,7 @@ class DrugRepository {
   }
 
   getAllDrugs() {
-    const query = this.db.prepare(`SELECT id, brand_name, generic_name FROM drugs ORDER BY brand_name ASC`);
+    const query = this.db.prepare(`SELECT id, brand_name, generic_name, category, min_stock_alert FROM drugs ORDER BY brand_name ASC`);
     return query.all();
   }
 
