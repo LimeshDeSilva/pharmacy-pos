@@ -13,6 +13,15 @@ db.pragma('foreign_keys = ON');
 
 function initDatabase() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS suppliers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      supplier_name TEXT NOT NULL UNIQUE,
+      contact_person TEXT,
+      phone TEXT,
+      email TEXT,
+      address TEXT
+    );
+
     CREATE TABLE IF NOT EXISTS drugs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       brand_name TEXT NOT NULL UNIQUE,
@@ -24,13 +33,24 @@ function initDatabase() {
     CREATE TABLE IF NOT EXISTS batches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       drug_id INTEGER NOT NULL,
+      supplier_id INTEGER,
       batch_number TEXT NOT NULL,
       expiry_date TEXT NOT NULL,
       buy_price REAL NOT NULL,
       sell_price REAL NOT NULL,
       quantity INTEGER NOT NULL,
       FOREIGN KEY (drug_id) REFERENCES drugs(id) ON DELETE CASCADE,
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
       UNIQUE(drug_id, batch_number)
+    );
+
+    CREATE TABLE IF NOT EXISTS purchase_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      supplier_id INTEGER NOT NULL,
+      order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'PENDING',
+      total_cost REAL NOT NULL,
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS sales (
@@ -95,6 +115,7 @@ function initDatabase() {
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN drug_name TEXT;`); } catch (e) { }
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) { }
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) { }
+  try { db.exec(`ALTER TABLE batches ADD COLUMN supplier_id INTEGER;`); } catch (e) { }
 
   try {
     db.exec(`
@@ -323,12 +344,12 @@ function seedMedicinesIfEmpty() {
   ];
 
   const insertDrug = db.prepare(`
-  INSERT INTO drugs (brand_name, generic_name, category, min_stock_alert)
-  VALUES (?, ?, ?, 10)
-  ON CONFLICT(brand_name) DO UPDATE SET 
-    generic_name = excluded.generic_name,
-    category = excluded.category
-`);
+    INSERT INTO drugs (brand_name, generic_name, category, min_stock_alert)
+    VALUES (?, ?, ?, 10)
+    ON CONFLICT(brand_name) DO UPDATE SET 
+      generic_name = excluded.generic_name,
+      category = excluded.category
+  `);
 
   const seedTransaction = db.transaction((drugs) => {
     for (const drug of drugs) {
@@ -338,6 +359,7 @@ function seedMedicinesIfEmpty() {
 
   seedTransaction(commonDrugs);
 }
+
 initDatabase();
 seedMedicinesIfEmpty();
 

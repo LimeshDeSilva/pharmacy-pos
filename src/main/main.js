@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 const db = require('./config/database');
@@ -6,6 +6,7 @@ const DrugRepository = require('./repositories/drugRepository');
 const BatchRepository = require('./repositories/batchRepository');
 const SalesRepository = require('./repositories/salesRepository');
 const AnalyticsRepository = require('./repositories/analyticsRepository');
+const SupplierRepository = require('./repositories/supplierRepository');
 const SystemService = require('./services/systemService');
 const SettingsRepository = require('./repositories/settingsRepository');
 const registerIpcHandlers = require('./ipc/registerIpcHandlers');
@@ -15,8 +16,9 @@ const batchRepo = new BatchRepository(db);
 const salesRepo = new SalesRepository(db);
 const analyticsRepo = new AnalyticsRepository(db);
 const settingsRepo = new SettingsRepository(db);
+const supplierRepo = new SupplierRepository(db);
 
-registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo);
+registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo, supplierRepo);
 
 let mainWindow = null;
 
