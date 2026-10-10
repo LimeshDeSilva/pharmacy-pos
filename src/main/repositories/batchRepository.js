@@ -3,12 +3,12 @@ class BatchRepository {
     this.db = db;
   }
 
-  addBatch(drugId, batchNumber, expiryDate, buyPrice, sellPrice, quantity) {
+  addBatch(drugId, batchNumber, expiryDate, buyPrice, sellPrice, quantity, supplierId = null) {
     const query = this.db.prepare(`
-      INSERT INTO batches (drug_id, batch_number, expiry_date, buy_price, sell_price, quantity)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO batches (drug_id, supplier_id, batch_number, expiry_date, buy_price, sell_price, quantity)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
-    return query.run(drugId, batchNumber, expiryDate, buyPrice, sellPrice, quantity);
+    return query.run(drugId, supplierId, batchNumber, expiryDate, buyPrice, sellPrice, quantity);
   }
 
   getInventoryOverview() {
@@ -25,16 +25,17 @@ class BatchRepository {
         b.expiry_date,
         b.buy_price,
         b.sell_price,
-        b.quantity AS batch_quantity
+        b.quantity AS batch_quantity,
+        s.supplier_name
       FROM drugs d
       JOIN batches b ON d.id = b.drug_id
+      LEFT JOIN suppliers s ON b.supplier_id = s.id
       GROUP BY d.id, b.id
       ORDER BY d.brand_name ASC, b.expiry_date ASC
     `);
     return query.all();
   }
 
-  // Enforces FEFO (First-Expired, First-Out) by sorting by expiry_date ASC
   getAvailableStock() {
     const query = this.db.prepare(`
       SELECT 
