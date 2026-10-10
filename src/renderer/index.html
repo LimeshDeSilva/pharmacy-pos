@@ -41,6 +41,9 @@
       <li class="nav-item" data-view="profits-view">
         <span>📊 Profits & Charts</span> <small style="opacity: 0.6; font-size: 11px;">(F7)</small>
       </li>
+      <li class="nav-item" data-view="suppliers-view">
+        <span>📦 Suppliers Directory</span>
+      </li>
       <li class="nav-item" data-view="settings-view">⚙️ Store Settings</li>
       <li class="nav-item nav-item-reset" data-view="clear-inventory-view">⚠️ Reset System</li>
     </ul>
@@ -71,8 +74,8 @@
 
             <div class="form-group pos-relative">
               <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
-              <input type="text" id="inward_drug_input"
-                placeholder="Type to search master drugs or enter new name..." autocomplete="off" required autofocus />
+              <input type="text" id="inward_drug_input" placeholder="Type to search master drugs or enter new name..."
+                autocomplete="off" required autofocus />
               <input type="hidden" id="inward_selected_drug_id" />
               <div id="inward-dropdown" class="pos-dropdown" style="display: none;"></div>
             </div>
@@ -91,6 +94,12 @@
 
             <h4 class="edit-batch-heading" style="margin-top: 0;">Shipment Batch Details</h4>
             <div class="grid-2-col">
+              <div class="form-group">
+                <label for="inward_supplier_select">Supplier / Vendor</label>
+                <select id="inward_supplier_select">
+                  <option value="">-- Select Supplier (Optional) --</option>
+                </select>
+              </div>
               <div class="form-group">
                 <label for="inward_batch_number">Batch / Lot Number *</label>
                 <input type="text" id="inward_batch_number" placeholder="e.g. BATCH-2026A" required />
@@ -233,7 +242,8 @@
 
           <div class="form-group pos-relative">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
-            <input type="text" id="pos_drug_input" placeholder="Type brand/generic name..." autocomplete="off" autofocus />
+            <input type="text" id="pos_drug_input" placeholder="Type brand/generic name..." autocomplete="off"
+              autofocus />
             <div id="pos-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
 
@@ -607,6 +617,64 @@
         <div class="chart-canvas-wrapper">
           <canvas id="profitChart"></canvas>
         </div>
+      </div>
+    </section>
+
+    <!-- Suppliers Directory View -->
+    <section id="suppliers-view" class="view-panel">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+
+        <!-- Add Supplier Form Card -->
+        <div class="card">
+          <h3 class="card-title-spaced">Add New Supplier</h3>
+          <form id="supplier-form">
+            <div class="form-group">
+              <label for="sup_name">Supplier / Company Name *</label>
+              <input type="text" id="sup_name" placeholder="e.g. PharmaCorp Distributors" required autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="sup_contact">Contact Person</label>
+              <input type="text" id="sup_contact" placeholder="e.g. Mr. John Doe" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="sup_phone">Phone Number</label>
+              <input type="text" id="sup_phone" placeholder="e.g. 011-2345678" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="sup_email">Email Address</label>
+              <input type="email" id="sup_email" placeholder="e.g. info@pharmacorp.com" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="sup_address">Address</label>
+              <input type="text" id="sup_address" placeholder="e.g. Colombo 03" autocomplete="off" />
+            </div>
+            <button type="submit" class="btn" style="background: #059669;">💾 Save Supplier</button>
+          </form>
+          <div id="supplier-status-msg" class="status-msg"></div>
+        </div>
+
+        <!-- Suppliers List Table -->
+        <div class="card card-full-flex">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="no-margin">Registered Suppliers</h3>
+            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
+          </div>
+          <div class="table-scroll-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Company Name</th>
+                  <th>Contact Person</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="suppliers-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </section>
 
