@@ -45,7 +45,6 @@ class SystemService {
     }
   }
 
-  // Generate a unique hardware fingerprint for licensing
   static getHardwareId() {
     const cpus = os.cpus();
     const cpuModel = cpus && cpus.length > 0 ? cpus[0].model : 'UnknownCPU';
@@ -57,12 +56,15 @@ class SystemService {
     return crypto.createHash('sha256').update(rawId).digest('hex').toUpperCase();
   }
 
-  // Verify license key file against hardware ID
+  static getLicensePath() {
+    return app.isPackaged
+      ? path.join(app.getPath('userData'), 'license.key')
+      : path.join(__dirname, '../../../license.key');
+  }
+
   static verifyLicense() {
     try {
-      const licensePath = app.isPackaged
-        ? path.join(app.getPath('userData'), 'license.key')
-        : path.join(__dirname, '../../../license.key');
+      const licensePath = SystemService.getLicensePath();
 
       if (!fs.existsSync(licensePath)) {
         return { valid: false, hardwareId: SystemService.getHardwareId(), error: 'License file not found.' };
@@ -78,6 +80,23 @@ class SystemService {
       }
     } catch (err) {
       return { valid: false, hardwareId: SystemService.getHardwareId(), error: err.message };
+    }
+  }
+
+  static activateLicense(enteredKey) {
+    try {
+      const cleanKey = String(enteredKey).trim().toUpperCase();
+      const expectedKey = crypto.createHash('sha256').update(SystemService.getHardwareId() + 'MEDICARE_POS_SECRET').digest('hex').toUpperCase();
+
+      if (cleanKey === expectedKey) {
+        const licensePath = SystemService.getLicensePath();
+        fs.writeFileSync(licensePath, cleanKey, 'utf-8');
+        return { success: true };
+      } else {
+        return { success: false, error: 'The license key provided is invalid for this computer.' };
+      }
+    } catch (err) {
+      return { success: false, error: err.message };
     }
   }
 }
