@@ -23,6 +23,7 @@ const viewTitles = {
   'sales-view': 'Sales History',
   'reports-view': 'Reports & Charts',
   'profits-view': 'Profits & Charts',
+  'suppliers-view': 'Suppliers Directory',
   'settings-view': 'Pharmacy Details',
   'clear-inventory-view': 'System Reset & Wipe'
 };
@@ -79,6 +80,7 @@ function navigateToTab(targetViewId, customMessage = '') {
 
   if (targetViewId === 'stock-inward-view') {
     displayDrugDropdown();
+    loadSuppliersManagement(); // Refresh supplier dropdown options
     forceFocusInput('inward_drug_input');
   } else if (targetViewId === 'pos-view') {
     loadPosStock();
@@ -93,6 +95,8 @@ function navigateToTab(targetViewId, customMessage = '') {
     loadAnalyticsDashboard();
   } else if (targetViewId === 'profits-view') {
     loadProfitAnalyticsDashboard();
+  } else if (targetViewId === 'suppliers-view') {
+    loadSuppliersManagement();
   } else if (targetViewId === 'settings-view') {
     loadStoreSettings();
   } else if (targetViewId === 'clear-inventory-view') {
@@ -345,6 +349,99 @@ if (settingsForm) {
   });
 }
 
+// ==================== SUPPLIERS DIRECTORY MODULE ====================
+async function loadSuppliersManagement() {
+  const tbody = document.getElementById('suppliers-table-body');
+  const selectEl = document.getElementById('inward_supplier_select');
+  if (!tbody) return;
+
+  const res = await window.api.getSuppliers();
+  if (res && res.success) {
+    const suppliers = res.data;
+
+    if (selectEl) {
+      selectEl.innerHTML = '<option value="">-- Select Supplier (Optional) --</option>' + 
+        suppliers.map(s => `<option value="${s.id}">${s.supplier_name}</option>`).join('');
+    }
+
+    if (suppliers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="table-empty-cell">No suppliers registered yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = '';
+    suppliers.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${s.supplier_name}</strong></td>
+        <td>${s.contact_person || '-'}</td>
+        <td>${s.phone || '-'}</td>
+        <td>${s.email || '-'}</td>
+        <td>
+          <button onclick="deleteSupplierRecord(${s.id})" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+const supplierForm = document.getElementById('supplier-form');
+if (supplierForm) {
+  supplierForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('supplier-status-msg');
+
+    const payload = {
+      supplier_name: document.getElementById('sup_name').value.trim(),
+      contact_person: document.getElementById('sup_contact').value.trim(),
+      phone: document.getElementById('sup_phone').value.trim(),
+      email: document.getElementById('sup_email').value.trim(),
+      address: document.getElementById('sup_address').value.trim()
+    };
+
+    msg.style.color = '#475569';
+    msg.innerText = 'Saving supplier...';
+
+    const res = await window.api.addSupplier(payload);
+    if (res && res.success) {
+      msg.style.color = '#16a34a';
+      msg.innerText = '✓ Supplier added successfully!';
+      supplierForm.reset();
+      await loadSuppliersManagement();
+      setTimeout(() => { msg.innerText = ''; }, 2000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + res.error;
+    }
+  });
+}
+
+window.deleteSupplierRecord = async (id) => {
+  // Immediately blur active element to prevent focus trap on deleted DOM nodes
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
+
+  try {
+    const res = await window.api.deleteSupplier(id);
+    if (res && res.success) {
+      await loadSuppliersManagement();
+      const supNameInput = document.getElementById('sup_name');
+      if (supNameInput) supNameInput.focus();
+    } else {
+      alert('Failed to delete supplier: ' + (res?.error || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error('Delete supplier error:', err);
+  }
+};
+
+const refreshSuppliersBtn = document.getElementById('refresh-suppliers-btn');
+if (refreshSuppliersBtn) {
+  refreshSuppliersBtn.addEventListener('click', loadSuppliersManagement);
+}
+
 // ==================== STOCK INWARD MODULE ====================
 let inwardDropIndex = 0;
 let inwardDropMatches = [];
@@ -483,7 +580,6 @@ if (stockInwardForm) {
       }
 
       if (drugId && !isNaN(drugId)) {
-        // Update existing drug metadata to ensure generic name and category are saved/synced
         await window.api.updateInventoryItem({
           drug_id: drugId,
           brand_name: brandName,
@@ -492,7 +588,6 @@ if (stockInwardForm) {
           min_stock_alert: minStockVal
         });
       } else {
-        // Create new drug catalog entry
         const newDrugPayload = {
           brand_name: brandName,
           generic_name: genericName,
@@ -507,8 +602,12 @@ if (stockInwardForm) {
         drugId = drugRes.data.lastInsertRowid;
       }
 
+      const supplierSelect = document.getElementById('inward_supplier_select');
+      const supplierIdVal = supplierSelect && supplierSelect.value ? parseInt(supplierSelect.value, 10) : null;
+
       const batchPayload = {
         drug_id: drugId,
+        supplier_id: supplierIdVal,
         batch_number: document.getElementById('inward_batch_number').value.trim(),
         expiry_date: document.getElementById('inward_expiry_date').value,
         buy_price: parseFloat(document.getElementById('inward_buy_price').value),
@@ -544,6 +643,7 @@ if (stockInwardForm) {
     }
   });
 }
+
 // ==================== INVENTORY OVERVIEW MODULE ====================
 function calculateItemStatus(row) {
   const today = new Date();
@@ -592,7 +692,8 @@ function renderInventoryTable() {
       (row.brand_name && String(row.brand_name).toLowerCase().includes(searchTerm)) ||
       (row.generic_name && String(row.generic_name).toLowerCase().includes(searchTerm)) ||
       (row.category && String(row.category).toLowerCase().includes(searchTerm)) ||
-      (row.batch_number && String(row.batch_number).toLowerCase().includes(searchTerm));
+      (row.batch_number && String(row.batch_number).toLowerCase().includes(searchTerm)) ||
+      (row.supplier_name && String(row.supplier_name).toLowerCase().includes(searchTerm));
 
     return matchesFilter && matchesSearch;
   });
@@ -722,7 +823,7 @@ if (editItemForm) {
   });
 }
 
-// ==================== POS / BILLING MODULE ====================
+// ==================== POS / BILLING MODULE (FEFO ENABLED) ====================
 let dropIndex = 0;
 let dropMatches = [];
 
@@ -746,7 +847,6 @@ function showList(q = '') {
     return;
   }
 
-  // Filter available stock and keep FEFO order
   dropMatches = availablePosStock.filter((d) =>
     d.brand_name.toLowerCase().includes(term) ||
     (d.generic_name && d.generic_name.toLowerCase().includes(term)) ||
@@ -758,7 +858,7 @@ function showList(q = '') {
     return;
   }
 
-  dropIndex = 0; // Automatically defaults to index 0 (the nearest expiring batch via FEFO)
+  dropIndex = 0;
   menu.innerHTML = dropMatches.map((d, i) => {
     const isClosestExpiry = i === 0;
     const fefoBadge = isClosestExpiry ? '<span style="background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">FEFO RECOMMENDED</span>' : '';
@@ -1936,7 +2036,6 @@ if (deleteDrugInputEl) {
   });
 }
 
-// 1. Delete Selected Medicine
 const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
 if (deleteSelectedDrugBtn) {
   deleteSelectedDrugBtn.addEventListener('click', async () => {
@@ -1980,60 +2079,6 @@ if (deleteSelectedDrugBtn) {
   });
 }
 
-// 2. Delete Selected Sale
-// const deleteSelectedSaleBtn = document.getElementById('delete-selected-sale-btn');
-// if (deleteSelectedSaleBtn) {
-//   deleteSelectedSaleBtn.addEventListener('click', async () => {
-//     const saleInput = document.getElementById('delete_sale_input');
-//     const pinInput = document.getElementById('admin-pin-delete-sale');
-//     const msg = document.getElementById('delete-sale-status-msg');
-
-//     if (!saleInput || !pinInput || !msg) return;
-
-//     const saleId = parseInt(saleInput.value.trim(), 10);
-
-//     if (!saleId || isNaN(saleId)) {
-//       msg.style.color = '#dc2626';
-//       msg.innerText = 'Please enter a valid Invoice Number.';
-//       saleInput.focus();
-//       return;
-//     }
-
-//     const authRes = await window.api.verifyPin(pinInput.value);
-//     if (!authRes || !authRes.success) {
-//       msg.style.color = '#dc2626';
-//       msg.innerText = '✗ Invalid PIN.';
-//       pinInput.value = '';
-//       pinInput.focus();
-//       return;
-//     }
-
-//     deleteSelectedSaleBtn.disabled = true;
-//     msg.style.color = '#475569';
-//     msg.innerText = 'Deleting sale record...';
-
-//     try {
-//       const res = await window.api.deleteSingleSale(saleId);
-//       if (res && res.success) {
-//         msg.style.color = '#16a34a';
-//         msg.innerText = `✓ Invoice #${saleId} deleted successfully!`;
-//       } else {
-//         msg.style.color = '#dc2626';
-//         msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invoice not found');
-//       }
-//     } catch (err) {
-//       msg.style.color = '#dc2626';
-//       msg.innerText = '✗ Error: ' + err.message;
-//     } finally {
-//       saleInput.value = '';
-//       pinInput.value = '';
-//       deleteSelectedSaleBtn.disabled = false;
-//       setTimeout(() => { msg.innerText = ''; }, 3000);
-//     }
-//   });
-// }
-
-// 3. Clear All Medicines
 const deleteAllDrugsBtn = document.getElementById('delete-all-drugs-btn');
 if (deleteAllDrugsBtn) {
   deleteAllDrugsBtn.addEventListener('click', async () => {
@@ -2078,7 +2123,6 @@ if (deleteAllDrugsBtn) {
   });
 }
 
-// 4. Clear All Sales
 const clearAllSalesBtn = document.getElementById('clear-all-sales-btn');
 if (clearAllSalesBtn) {
   clearAllSalesBtn.addEventListener('click', async () => {
@@ -2120,7 +2164,6 @@ if (clearAllSalesBtn) {
   });
 }
 
-// 5. Full Factory Reset
 const wipeDatabaseBtn = document.getElementById('wipe-database-btn');
 if (wipeDatabaseBtn) {
   wipeDatabaseBtn.addEventListener('click', async () => {
