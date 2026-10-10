@@ -5,6 +5,15 @@ const ExportService = require('../services/exportService');
 const ImportService = require('../services/importService');
 
 function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo) {
+  // Licensing Handlers
+  ipcMain.handle('license:getHardwareId', () => {
+    return SystemService.getHardwareId();
+  });
+
+  ipcMain.handle('license:activate', (event, key) => {
+    return SystemService.activateLicense(key);
+  });
+
   // Drugs
   ipcMain.handle('drugs:add', async (event, drugData) => {
     try {
