@@ -129,6 +129,7 @@ function initDatabase() {
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) { }
   try { db.exec(`ALTER TABLE batches ADD COLUMN supplier_id INTEGER;`); } catch (e) { }
 
+  // FIX: Automatically backfill missing buy prices from batches table for past sales
   try {
     db.exec(`
       UPDATE sale_items 
