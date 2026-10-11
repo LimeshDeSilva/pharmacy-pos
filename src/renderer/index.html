@@ -281,6 +281,20 @@
             </table>
           </div>
 
+          <!-- Prescription Details for Controlled Drugs -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0284c7; cursor: pointer; margin-bottom: 6px;">
+              <input type="checkbox" id="enable-prescription-checkbox" style="width: auto;" /> 
+              📋 Attach Prescription (For Antibiotics / Controlled Drugs)
+            </label>
+            <div id="prescription-fields-container" style="display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+              <input type="text" id="rx_patient_name" placeholder="Patient Name *" autocomplete="off" />
+              <input type="text" id="rx_doctor_name" placeholder="Doctor Name *" autocomplete="off" />
+              <input type="text" id="rx_number" placeholder="Prescription / Ref No *" autocomplete="off" />
+              <input type="text" id="rx_phone" placeholder="Patient Phone" autocomplete="off" />
+            </div>
+          </div>
+
           <div class="pos-calculation-panel">
             <div class="pos-total-row">
               <span class="pos-total-label">Net Total:</span>
@@ -760,28 +774,6 @@
             Selected Medicine</button>
           <div id="delete-drug-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
         </div>
-
-        <!-- 2. Delete Selected Sale -->
-        <!-- <div class="card"
-          style="border-top: 4px solid #0284c7; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <h3 style="color: #0284c7; margin-top: 0;">🧾 Delete Selected Sale</h3>
-          <p style="font-size: 13px; color: #64748b;">Remove a specific invoice from sales history & reports. PIN
-            required.</p>
-          <div class="form-group" style="margin-top: 15px;">
-            <label for="delete_sale_input">Invoice Number (ID) *</label>
-            <input type="number" id="delete_sale_input" placeholder="e.g. 1" min="1"
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
-          </div>
-          <div class="form-group" style="margin-top: 10px;">
-            <label for="admin-pin-delete-sale">Enter PIN *</label>
-            <input type="password" id="admin-pin-delete-sale" placeholder="Enter PIN..."
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
-          </div>
-          <button id="delete-selected-sale-btn"
-            style="width: 100%; margin-top: 15px; padding: 10px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete
-            Selected Sale</button>
-          <div id="delete-sale-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
-        </div> -->
 
         <!-- 3. Clear All Medicines Only -->
         <div class="card"
