@@ -3,15 +3,13 @@ class SalesRepository {
     this.db = db;
   }
 
-  processSale(cartItems, totalAmount, discount = 0) {
+  processSale(cartItems, totalAmount, discount = 0, prescriptionData = null) {
     const executeSale = this.db.transaction(() => {
       const discountVal = parseFloat(discount) || 0;
 
-      // 1. Get current active shift
       const activeShift = this.db.prepare(`SELECT id FROM till_shifts WHERE status = 'OPEN' ORDER BY id DESC LIMIT 1`).get();
       const currentShiftId = activeShift ? activeShift.id : null;
 
-      // 2. Determine shift_invoice_no for this specific shift
       let nextShiftInvoiceNo = 1;
       if (currentShiftId) {
         const lastInvoice = this.db.prepare(`
@@ -31,6 +29,21 @@ class SalesRepository {
       `);
       const saleResult = saleInsert.run(currentShiftId, nextShiftInvoiceNo, totalAmount, discountVal);
       const saleId = saleResult.lastInsertRowid;
+
+      if (prescriptionData && prescriptionData.doctor_name) {
+        const presInsert = this.db.prepare(`
+          INSERT INTO prescriptions (sale_id, patient_name, patient_phone, doctor_name, prescription_no, notes)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        presInsert.run(
+          saleId,
+          prescriptionData.patient_name || 'Walk-in Patient',
+          prescriptionData.patient_phone || '',
+          prescriptionData.doctor_name,
+          prescriptionData.prescription_no || 'N/A',
+          prescriptionData.notes || ''
+        );
+      }
 
       const itemInsert = this.db.prepare(`
         INSERT INTO sale_items (sale_id, batch_id, drug_name, batch_number, buy_price, quantity, unit_price, total_price)
@@ -120,7 +133,6 @@ class SalesRepository {
     return this.db.prepare(query).all(saleId);
   }
 
-  // ==================== TILL / SHIFT MANAGEMENT ====================
   getActiveShift() {
     return this.db.prepare(`
       SELECT 
@@ -274,11 +286,12 @@ class SalesRepository {
     const resetAll = this.db.transaction(() => {
       this.db.prepare('DELETE FROM sale_items').run();
       this.db.prepare('DELETE FROM sales').run();
+      this.db.prepare('DELETE FROM prescriptions').run();
       this.db.prepare('DELETE FROM batches').run();
       this.db.prepare('DELETE FROM drugs').run();
       this.db.prepare('DELETE FROM till_shifts').run();
       this.db.prepare('DELETE FROM audit_logs').run();
-      this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches', 'sales', 'sale_items', 'till_shifts', 'audit_logs')").run();
+      this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('drugs', 'batches', 'sales', 'sale_items', 'prescriptions', 'till_shifts', 'audit_logs')").run();
       
       this.db.prepare(`INSERT INTO audit_logs (action, details) VALUES (?, ?)`).run(
         'SYSTEM_RESET',
@@ -291,11 +304,13 @@ class SalesRepository {
   }
 
   deleteSaleById(saleId) {
+    const deletePrescriptions = this.db.prepare('DELETE FROM prescriptions WHERE sale_id = ?');
     const deleteSaleItems = this.db.prepare('DELETE FROM sale_items WHERE sale_id = ?');
     const deleteSale = this.db.prepare('DELETE FROM sales WHERE id = ?');
     const logAudit = this.db.prepare('INSERT INTO audit_logs (action, details) VALUES (?, ?)');
 
     const transaction = this.db.transaction(() => {
+      deletePrescriptions.run(saleId);
       deleteSaleItems.run(saleId);
       const res = deleteSale.run(saleId);
       if (res.changes > 0) {
@@ -310,10 +325,11 @@ class SalesRepository {
   deleteAllSales() {
     const logAudit = this.db.prepare('INSERT INTO audit_logs (action, details) VALUES (?, ?)');
     const transaction = this.db.transaction(() => {
+      this.db.prepare('DELETE FROM prescriptions').run();
       this.db.prepare('DELETE FROM sale_items').run();
       this.db.prepare('DELETE FROM sales').run();
       this.db.prepare('DELETE FROM till_shifts').run();
-      this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('sales', 'sale_items', 'till_shifts')").run();
+      this.db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('sales', 'sale_items', 'prescriptions', 'till_shifts')").run();
       logAudit.run('CLEAR_ALL_SALES', 'All sales history and till shifts were deleted.');
       return true;
     });
@@ -325,7 +341,6 @@ class SalesRepository {
     const updateTx = this.db.transaction(() => {
       const discountVal = parseFloat(discount) || 0;
 
-      // 1. Restore previous stock for batches that still exist in the database
       const oldItems = this.db.prepare(`SELECT batch_id, quantity FROM sale_items WHERE sale_id = ?`).all(saleId);
       const checkBatchExists = this.db.prepare(`SELECT id FROM batches WHERE id = ?`);
       const restoreStock = this.db.prepare(`UPDATE batches SET quantity = quantity + ? WHERE id = ?`);
@@ -339,7 +354,6 @@ class SalesRepository {
         }
       }
 
-      // 2. Clear old line items and update sale headers
       this.db.prepare(`DELETE FROM sale_items WHERE sale_id = ?`).run(saleId);
       this.db.prepare(`UPDATE sales SET total_amount = ?, discount = ? WHERE id = ?`).run(totalAmount, discountVal, saleId);
 
@@ -354,7 +368,6 @@ class SalesRepository {
         WHERE id = ? AND quantity >= ?
       `);
 
-      // 3. Deduct updated stock and insert replacement items
       for (const item of newItems) {
         const buyPrice = parseFloat(item.buy_price) || 0;
         const sellPrice = parseFloat(item.sell_price) || 0;
