@@ -75,6 +75,18 @@ function initDatabase() {
       FOREIGN KEY (sale_id) REFERENCES sales(id)
     );
 
+    CREATE TABLE IF NOT EXISTS prescriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sale_id INTEGER NOT NULL,
+      patient_name TEXT NOT NULL,
+      patient_phone TEXT,
+      doctor_name TEXT NOT NULL,
+      prescription_no TEXT NOT NULL,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
