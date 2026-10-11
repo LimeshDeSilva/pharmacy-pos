@@ -80,7 +80,7 @@ function navigateToTab(targetViewId, customMessage = '') {
 
   if (targetViewId === 'stock-inward-view') {
     displayDrugDropdown();
-    loadSuppliersManagement(); // Refresh supplier dropdown options
+    loadSuppliersManagement();
     forceFocusInput('inward_drug_input');
   } else if (targetViewId === 'pos-view') {
     loadPosStock();
@@ -418,7 +418,6 @@ if (supplierForm) {
 }
 
 window.deleteSupplierRecord = async (id) => {
-  // Immediately blur active element to prevent focus trap on deleted DOM nodes
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
   }
@@ -944,6 +943,14 @@ function calculatePosBalance() {
   return { subtotal, discountPercent, discountVal, netTotal, paidVal, balance };
 }
 
+const rxCheckbox = document.getElementById('enable-prescription-checkbox');
+const rxContainer = document.getElementById('prescription-fields-container');
+if (rxCheckbox && rxContainer) {
+  rxCheckbox.addEventListener('change', () => {
+    rxContainer.style.display = rxCheckbox.checked ? 'grid' : 'none';
+  });
+}
+
 const posDiscountInput = document.getElementById('pos-discount-amount');
 if (posDiscountInput) {
   posDiscountInput.addEventListener('input', calculatePosBalance);
@@ -1197,7 +1204,38 @@ async function processCheckout({ shouldPrint = true } = {}) {
       msg.innerText = 'Processing sale...';
     }
 
-    const res = await window.api.checkout({ cart: currentCart, total: grandTotal, discount: discountVal });
+    const isRxEnabled = rxCheckbox ? rxCheckbox.checked : false;
+    let prescriptionPayload = null;
+
+    if (isRxEnabled) {
+      const patientName = document.getElementById('rx_patient_name').value.trim();
+      const doctorName = document.getElementById('rx_doctor_name').value.trim();
+      const rxNo = document.getElementById('rx_number').value.trim();
+      
+      if (!patientName || !doctorName || !rxNo) {
+        if (msg) {
+          msg.style.color = '#dc2626';
+          msg.innerText = 'Please fill out Patient Name, Doctor Name, and Prescription #.';
+        }
+        isCheckingOut = false;
+        if (checkoutBtnEl) checkoutBtnEl.disabled = false;
+        return;
+      }
+
+      prescriptionPayload = {
+        patient_name: patientName,
+        patient_phone: document.getElementById('rx_phone').value.trim(),
+        doctor_name: doctorName,
+        prescription_no: rxNo
+      };
+    }
+
+    const res = await window.api.checkout({ 
+      cart: currentCart, 
+      total: grandTotal, 
+      discount: discountVal,
+      prescription: prescriptionPayload 
+    });
 
     if (res && res.success) {
       const invoiceLabel = res.data.invoiceNo ? `#${res.data.invoiceNo}` : `#${res.data.saleId}`;
@@ -1209,6 +1247,14 @@ async function processCheckout({ shouldPrint = true } = {}) {
       currentCart = [];
       if (discountInput) discountInput.value = '';
       if (paidInput) paidInput.value = '';
+      if (rxCheckbox) {
+        rxCheckbox.checked = false;
+        if (rxContainer) rxContainer.style.display = 'none';
+        document.getElementById('rx_patient_name').value = '';
+        document.getElementById('rx_doctor_name').value = '';
+        document.getElementById('rx_number').value = '';
+        document.getElementById('rx_phone').value = '';
+      }
       renderCart();
       await loadPosStock();
       await refreshAlertBadges();
