@@ -2,91 +2,174 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Activate MediCare POS</title>
+  <title>MediCare POS - Terminal Activation</title>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      background: #0f172a;
+      background: #090d16;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      color: #fff;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      user-select: none;
     }
+
     .activation-card {
-      background: #1e293b;
-      padding: 30px;
+      background: #0f172a;
+      padding: 32px 36px;
       border-radius: 12px;
       width: 440px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      border: 1px solid #334155;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      border: 1px solid #1e293b;
       text-align: center;
     }
-    .activation-card h2 {
-      margin-bottom: 8px;
-      color: #38bdf8;
+
+    .activation-icon-badge {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 16px auto;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
     }
+
+    .activation-card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
     .activation-card p {
-      font-size: 13px;
+      font-size: 12.5px;
       color: #94a3b8;
       margin-bottom: 20px;
+      line-height: 1.5;
     }
+
+    .hw-container {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .hw-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 5px;
+      display: block;
+    }
+
     .hw-box {
-      background: #0f172a;
-      border: 1px dashed #475569;
-      padding: 10px;
+      background: #090d16;
+      border: 1px solid #334155;
+      padding: 10px 12px;
       border-radius: 6px;
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 11px;
       word-break: break-all;
-      color: #cbd5e1;
-      margin-bottom: 16px;
+      color: #38bdf8;
       user-select: all;
+      cursor: text;
     }
+
+    .form-group-act {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    .form-group-act label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      display: block;
+    }
+
     input[type="text"] {
       width: 100%;
-      padding: 10px;
-      background: #0f172a;
-      border: 1px solid #475569;
-      color: #fff;
+      padding: 10px 12px;
+      background: #090d16;
+      border: 1px solid #334155;
+      color: #ffffff;
       border-radius: 6px;
       font-size: 13px;
-      margin-bottom: 14px;
       text-align: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      outline: none;
+      transition: all 0.15s ease;
     }
+
+    input[type="text"]:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+    }
+
     .btn-activate {
       width: 100%;
       background: #0284c7;
-      color: #fff;
+      color: #ffffff;
       border: none;
-      padding: 10px;
+      padding: 11px 16px;
       border-radius: 6px;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 13.5px;
       cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
     }
+
     .btn-activate:hover {
       background: #0369a1;
     }
+
+    .btn-activate:active {
+      transform: translateY(1px);
+    }
+
     #activation-msg {
-      margin-top: 12px;
-      font-size: 13px;
+      margin-top: 14px;
+      font-size: 12.5px;
       font-weight: 600;
+      min-height: 18px;
     }
   </style>
 </head>
 <body>
   <div class="activation-card">
-    <h2>🏥 Software Activation</h2>
-    <p>Please provide your Hardware ID to your vendor to receive your activation key.</p>
+    <div class="activation-icon-badge">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
 
-    <div id="hw-id-display" class="hw-box">Loading Hardware ID...</div>
+    <h2>MediCare POS Activation</h2>
+    <p>Please share your terminal Hardware ID with your vendor to obtain your authorized activation license key.</p>
 
-    <div class="form-group" style="text-align: left;">
-      <label for="license_key_input" style="color: #cbd5e1;">Paste Activation Key *</label>
+    <div class="hw-container">
+      <span class="hw-label">Terminal Hardware ID</span>
+      <div id="hw-id-display" class="hw-box">Generating identifier...</div>
+    </div>
+
+    <div class="form-group-act">
+      <label for="license_key_input">Paste License Key *</label>
       <input type="text" id="license_key_input" placeholder="Paste license key here..." autocomplete="off" autofocus />
     </div>
 
-    <button id="activate-btn" class="btn-activate">Activate Software</button>
+    <button id="activate-btn" class="btn-activate">Verify & Activate License</button>
     <div id="activation-msg"></div>
   </div>
 
@@ -103,23 +186,23 @@
 
       if (!key) {
         msg.style.color = '#f87171';
-        msg.innerText = 'Please enter a license key.';
+        msg.innerText = 'Please enter an authorized license key.';
         return;
       }
 
       msg.style.color = '#94a3b8';
-      msg.innerText = 'Validating key...';
+      msg.innerText = 'Validating license credentials...';
 
       const res = await window.api.activateLicense(key);
       if (res && res.success) {
         msg.style.color = '#4ade80';
-        msg.innerText = '✓ Activated successfully! Restarting...';
+        msg.innerText = '✓ Terminal activated successfully! Launching...';
         setTimeout(() => {
           window.location.reload();
         }, 1200);
       } else {
         msg.style.color = '#f87171';
-        msg.innerText = '✗ ' + (res?.error || 'Activation failed.');
+        msg.innerText = '✗ ' + (res?.error || 'License activation failed.');
       }
     });
   </script>
