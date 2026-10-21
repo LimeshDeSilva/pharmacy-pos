@@ -30,6 +30,7 @@ const viewTitles = {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    initThemeController();
     await loadStoreSettings();
     await refreshAlertBadges();
     await checkActiveShiftStatus();
@@ -1568,7 +1569,7 @@ function renderSalesChart(periodType = 'daily') {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: { beginAtZero: true, ticks: { callback: (val) => `LKR ${val}` }, grid: { color: '#f1f5f9' } },
+        y: { beginAtZero: true, ticks: { callback: (val) => `LKR ${val}` }, grid: { color: document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9' } },
         x: { grid: { display: false } }
       },
       plugins: {
@@ -2413,3 +2414,87 @@ document.addEventListener('keydown', async (e) => {
     }
   }
 }, true);
+
+// ==================== MODERN SAAS CIRCULAR VIEW TRANSITIONS THEME CONTROLLER ====================
+let currentPeriodFilter = 'daily';
+let currentProfitPeriodFilter = 'daily';
+
+function initThemeController() {
+  const savedTheme = localStorage.getItem('pos_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcons(savedTheme);
+
+  const themeBtn = document.getElementById('theme-toggle-btn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', (e) => {
+      toggleThemeWithCircularWipe(e);
+    });
+  }
+}
+
+function updateThemeIcons(theme) {
+  const sunIcon = document.querySelector('#theme-toggle-btn .sun-icon');
+  const moonIcon = document.querySelector('#theme-toggle-btn .moon-icon');
+  if (sunIcon && moonIcon) {
+    if (theme === 'dark') {
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = 'inline-block';
+    } else {
+      sunIcon.style.display = 'inline-block';
+      moonIcon.style.display = 'none';
+    }
+  }
+}
+
+function toggleThemeWithCircularWipe(e) {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+  const x = e ? e.clientX : window.innerWidth - 60;
+  const y = e ? e.clientY : 30;
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+
+  const applyTheme = () => {
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('pos_theme', nextTheme);
+    updateThemeIcons(nextTheme);
+
+    // Refresh charts with updated theme palette if already loaded
+    if (salesChartInstance && analyticsCache) {
+      renderSalesChart(currentPeriodFilter || 'daily');
+    }
+    if (profitChartInstance && profitAnalyticsCache) {
+      renderProfitChart(currentProfitPeriodFilter || 'daily');
+    }
+  };
+
+  if (!document.startViewTransition) {
+    applyTheme();
+    return;
+  }
+
+  const transition = document.startViewTransition(() => {
+    applyTheme();
+  });
+
+  transition.ready.then(() => {
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`
+    ];
+    document.documentElement.animate(
+      {
+        clipPath: nextTheme === 'dark' ? clipPath : [...clipPath].reverse()
+      },
+      {
+        duration: 400,
+        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        pseudoElement: nextTheme === 'dark' ? '::view-transition-new(root)' : '::view-transition-old(root)'
+      }
+    );
+  });
+}
+
