@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediCare - Pharmacy Management System</title>
+  <title>MediCare - Pharmacy Management & Point of Sale</title>
   <link rel="stylesheet" href="style.css">
   <script src="chart.umd.js"></script>
 </head>
 
 <body>
 
-  <!-- ========================= SIDEBAR NAVIGATION ========================= -->
+  <!-- ========================= MODERN LIGHT SIDEBAR ========================= -->
   <nav id="sidebar">
     <div class="brand">
       <div class="brand-icon-wrapper">
@@ -26,6 +26,8 @@
     </div>
 
     <ul class="nav-links">
+      <li class="nav-section-title">Store Operations</li>
+
       <li class="nav-item active" data-view="stock-inward-view">
         <div class="nav-item-content">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -72,6 +74,8 @@
         </div>
       </li>
 
+      <li class="nav-section-title">Financial & Reports</li>
+
       <li class="nav-item" data-view="sales-view">
         <div class="nav-item-content">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -107,6 +111,8 @@
         </div>
         <kbd class="shortcut-tag">F7</kbd>
       </li>
+
+      <li class="nav-section-title">System & Settings</li>
 
       <li class="nav-item" data-view="suppliers-view">
         <div class="nav-item-content">
@@ -175,7 +181,7 @@
 
             <div class="form-group pos-relative">
               <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
-              <input type="text" id="inward_drug_input" placeholder="Type to search master drugs or enter a new name..."
+              <input type="text" id="inward_drug_input" placeholder="Type brand name or generic formula..."
                 autocomplete="off" required autofocus />
               <input type="hidden" id="inward_selected_drug_id" />
               <div id="inward-dropdown" class="pos-dropdown" style="display: none;"></div>
@@ -242,34 +248,29 @@
           <div id="inward-status-msg" class="status-msg"></div>
         </div>
 
-        <!-- Right: Decorative Clinical Showcase Panel -->
+        <!-- Right: Functional Telemetry & Operational Rules Panel -->
         <div class="hero-showcase-panel">
           <div class="hero-showcase-content">
-            <div class="hero-badge">Clinical Enterprise OS</div>
-            <h2>Inventory & Prescription Management</h2>
-            <p>Maintain accurate stock balances, configure FEFO batch expiry trackers, and handle point-of-sale invoicing seamlessly.</p>
-
-            <div class="hero-illustration">
-              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
-                <rect x="25" y="25" width="150" height="150" rx="20" fill="#f0f9ff" stroke="#bae6fd" stroke-width="2"/>
-                <rect x="45" y="55" width="110" height="90" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-                <line x1="58" y1="75" x2="100" y2="75" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
-                <line x1="58" y1="90" x2="142" y2="90" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-                <line x1="58" y1="102" x2="130" y2="102" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-                <line x1="58" y1="114" x2="115" y2="114" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="140" cy="55" r="22" fill="#0284c7" filter="drop-shadow(0 4px 6px rgba(2, 132, 199, 0.3))"/>
-                <path d="M140 45v20M130 55h20" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
-              </svg>
-            </div>
+            <div class="hero-badge">Standard Operating Procedures</div>
+            <h2>Inventory & Quality Compliance</h2>
+            <p>Every logged batch is automatically verified against pharmaceutical shelf-life standards and indexed into the billing terminal.</p>
 
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
-                <strong>Real-Time Tracking</strong>
-                <span>Automated FEFO Expiry Alerts</span>
+                <strong>FEFO Rotation Rule</strong>
+                <span>Batches nearing expiration are automatically suggested first to dispensing cashiers.</span>
               </div>
               <div class="hero-stat-card">
-                <strong>Offline-First Engine</strong>
-                <span>High-Speed Local POS Database</span>
+                <strong>Zero Latency Database</strong>
+                <span>Local SQLite storage delivers instant inventory lookups without cloud dependency.</span>
+              </div>
+              <div class="hero-stat-card">
+                <strong>Automated Margin Audit</strong>
+                <span>Tracks cost-to-retail ratios per lot to verify store profitability thresholds.</span>
+              </div>
+              <div class="hero-stat-card">
+                <strong>Lot Traceability</strong>
+                <span>Every dispensed unit is permanently linked to its batch number and invoice ID.</span>
               </div>
             </div>
           </div>
@@ -380,7 +381,7 @@
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            Add to Current Bill (Enter)
+            Add to Bill (Enter)
           </button>
           <div id="pos-input-msg" class="status-msg"></div>
         </div>
@@ -409,8 +410,8 @@
           </div>
 
           <!-- Prescription Details for Controlled Drugs -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0284c7; cursor: pointer; margin-bottom: 4px;">
+          <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); cursor: pointer; margin-bottom: 4px; text-transform: none; font-size: 12.5px;">
               <input type="checkbox" id="enable-prescription-checkbox" style="width: auto; cursor: pointer;" /> 
               Clinical Prescription Attachment (Controlled Drugs / Antibiotics)
             </label>
@@ -469,7 +470,7 @@
           <h3 id="till-action-title">Till Operations</h3>
 
           <div id="till-open-section">
-            <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float in the drawer.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float in the drawer.</p>
             <form id="till-open-form">
               <div class="form-group">
                 <label for="till_opening_float">Starting Cash Float (LKR) *</label>
@@ -486,16 +487,16 @@
           </div>
 
           <div id="till-close-section" style="display: none;">
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
-              <div style="font-weight: 700; color: #166534; font-size: 14.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span>
+            <div style="background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+              <div style="font-weight: 700; color: var(--success-text); font-size: 14.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
                 Active Cash Shift
               </div>
-              <div style="font-size: 12px; color: #4b5563;">Shift #<span id="active-shift-id">-</span> (Opened: <span id="active-shift-opened">-</span>)</div>
-              <div style="font-size: 13px; margin-top: 8px;">Opening Float: <strong id="active-shift-float" style="color: #0284c7; font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
-              <div style="font-size: 13px;">Shift Total Sales: <strong id="active-shift-sales" style="color: #16a34a; font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
-              <div style="font-size: 14px; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
-                Expected Physical Cash: <strong id="active-shift-expected" style="color: #0f172a; font-variant-numeric: tabular-nums;">LKR 0.00</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Shift #<span id="active-shift-id">-</span> (Opened: <span id="active-shift-opened">-</span>)</div>
+              <div style="font-size: 13px; margin-top: 8px;">Opening Float: <strong id="active-shift-float" style="color: var(--primary); font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
+              <div style="font-size: 13px;">Shift Total Sales: <strong id="active-shift-sales" style="color: var(--success); font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
+              <div style="font-size: 14px; margin-top: 8px; border-top: 1px dashed var(--border-subtle); padding-top: 6px;">
+                Expected Physical Cash: <strong id="active-shift-expected" style="color: var(--text-main); font-variant-numeric: tabular-nums;">LKR 0.00</strong>
               </div>
             </div>
 
@@ -509,7 +510,7 @@
                 <label for="till_close_note">Shift Notes (Optional)</label>
                 <input type="text" id="till_close_note" placeholder="e.g. End of day reconciliation" />
               </div>
-              <button type="submit" class="btn" style="background: #dc2626;">
+              <button type="submit" class="btn" style="background: var(--danger); color: #ffffff;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <line x1="9" y1="9" x2="15" y2="15"/>
@@ -571,7 +572,7 @@
           <div class="sales-filter-group">
             <input type="number" id="sales-invoice-search" placeholder="Search Invoice #..."
               class="date-input-field" style="width: 170px;" />
-            <label for="sales-date-filter" class="control-label">Date:</label>
+            <label for="sales-date-filter" class="control-label">Date</label>
             <input type="date" id="sales-date-filter" class="date-input-field" />
 
             <button id="sales-today-btn" type="button" class="btn btn-auto btn-today">Today</button>
@@ -626,7 +627,7 @@
         </table>
 
         <div id="modal-receipt-discount-row"
-          style="display: none; justify-content: space-between; padding: 6px 12px; font-size: 13px; color: #dc2626; background: #fef2f2; border-radius: 6px; margin-bottom: 8px;">
+          style="display: none; justify-content: space-between; padding: 6px 12px; font-size: 13px; color: var(--danger); background: var(--danger-bg); border-radius: 6px; margin-bottom: 8px;">
           <span>Discount Applied:</span>
           <span id="modal-receipt-discount-val">- LKR 0.00</span>
         </div>
@@ -652,8 +653,8 @@
           <button id="close-edit-sale-modal" class="close-icon-btn">✕</button>
         </div>
 
-        <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-          <h4 style="font-size: 13px; color: #0284c7; margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
+        <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle); margin-bottom: 15px;">
+          <h4 style="font-size: 13px; color: var(--primary); margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
           <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; position: relative;">
             <div class="form-group pos-relative" style="margin-bottom: 0;">
               <label for="edit_sale_drug_input">Search Medicine to Add *</label>
@@ -669,8 +670,8 @@
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: #475569; margin-bottom: 8px; font-weight: 700;">Current Invoice Items</h4>
-        <div style="max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px;">
+        <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Current Invoice Items</h4>
+        <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: 6px; margin-bottom: 12px;">
           <table class="data-table">
             <thead>
               <tr>
@@ -692,9 +693,9 @@
             placeholder="0%" autocomplete="off" />
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
           <div>
-            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #0284c7; font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
+            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: var(--primary); font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
           </div>
           <div style="display: flex; gap: 8px;">
             <button type="button" id="cancel-edit-sale-btn" class="btn btn-auto btn-cancel">Cancel</button>
@@ -732,7 +733,7 @@
         <div class="chart-header-row">
           <div>
             <h3 style="font-size: 15px; font-weight: 700;">Revenue Analytics</h3>
-            <p class="chart-subtitle">Store financial performance breakdown</p>
+            <p class="chart-subtitle">Store sales and turnover performance breakdown</p>
           </div>
 
           <div class="filter-btn-group">
@@ -818,7 +819,7 @@
               <label for="sup_address">Physical Address</label>
               <input type="text" id="sup_address" placeholder="e.g. Colombo 03" autocomplete="off" />
             </div>
-            <button type="submit" class="btn" style="background: #059669;">Save Supplier</button>
+            <button type="submit" class="btn" style="background: var(--success);">Save Supplier</button>
           </form>
           <div id="supplier-status-msg" class="status-msg"></div>
         </div>
@@ -881,27 +882,26 @@
 
         <div class="hero-showcase-panel">
           <div class="hero-showcase-content">
-            <div class="hero-badge">Receipt Branding</div>
-            <h2>Custom Thermal Header</h2>
-            <p>Changes saved here automatically update the business header and footer on every printed POS thermal receipt.</p>
-
-            <div class="hero-illustration">
-              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
-                <rect x="35" y="30" width="130" height="140" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-                <path d="M55 55h90M55 70h65M55 95h90M55 110h90M55 125h45" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
-                <circle cx="130" cy="125" r="14" fill="#0284c7"/>
-                <polyline points="125 125 129 129 136 121" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
+            <div class="hero-badge">Hardware Integration</div>
+            <h2>Thermal Printer Diagnostics</h2>
+            <p>Printed receipts are generated directly in ESC/POS raw command format for optimal print quality on 80mm and 58mm thermal rolls.</p>
 
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
-                <strong>Dynamic Bill Engine</strong>
-                <span>Instant Thermal Header Sync</span>
+                <strong>Standard Roll Width</strong>
+                <span>Formatted for standard 80mm thermal receipt paper roll</span>
               </div>
               <div class="hero-stat-card">
-                <strong>Offline Persistence</strong>
-                <span>Safely Stored in SQLite</span>
+                <strong>Dynamic Header Sync</strong>
+                <span>Store name and phone updates reflect on the next receipt</span>
+              </div>
+              <div class="hero-stat-card">
+                <strong>Local Persistence</strong>
+                <span>Settings are stored locally in the encrypted SQLite vault</span>
+              </div>
+              <div class="hero-stat-card">
+                <strong>Offline Printing</strong>
+                <span>Operates completely offline without cloud latency</span>
               </div>
             </div>
           </div>
@@ -915,9 +915,9 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
 
         <!-- 1. Delete Selected Medicine -->
-        <div class="card" style="border-top: 3px solid #d97706;">
-          <h3 style="color: #b45309; margin-top: 0; font-size: 15px; font-weight: 700;">Delete Single Medicine</h3>
-          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
+        <div class="card" style="border-top: 3px solid var(--warning);">
+          <h3 style="color: var(--warning); margin-top: 0; font-size: 15px; font-weight: 700;">Delete Single Medicine</h3>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
 
           <div class="form-group pos-relative" style="margin-top: 15px;">
             <label for="delete_drug_input">Search Medicine to Delete *</label>
@@ -926,7 +926,7 @@
             <div id="delete-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
 
-          <button id="delete-selected-drug-btn" class="btn" style="background: #d97706; margin-top: 10px;">
+          <button id="delete-selected-drug-btn" class="btn" style="background: var(--warning); color: #ffffff; margin-top: 10px;">
             Delete Selected Medicine
           </button>
           <div id="delete-drug-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
@@ -935,40 +935,40 @@
         <!-- 2. Clear All Medicines Only -->
         <div class="card" style="border-top: 3px solid #be123c;">
           <h3 style="color: #be123c; margin-top: 0; font-size: 15px; font-weight: 700;">Clear All Medicines Only</h3>
-          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
             <label for="admin-pin-clear-medicines">Enter Admin PIN *</label>
             <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN..." />
           </div>
-          <button id="delete-all-drugs-btn" class="btn" style="background: #be123c; margin-top: 10px;">
+          <button id="delete-all-drugs-btn" class="btn" style="background: #be123c; color: #ffffff; margin-top: 10px;">
             Clear All Active Medicines
           </button>
           <div id="delete-all-drugs-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
         <!-- 3. Clear All Sales Only -->
-        <div class="card" style="border-top: 3px solid #7c3aed;">
-          <h3 style="color: #7c3aed; margin-top: 0; font-size: 15px; font-weight: 700;">Clear Sales & Reports</h3>
-          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
+        <div class="card" style="border-top: 3px solid var(--purple);">
+          <h3 style="color: var(--purple); margin-top: 0; font-size: 15px; font-weight: 700;">Clear Sales & Reports</h3>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
             <label for="admin-pin-clear-sales">Enter Admin PIN *</label>
             <input type="password" id="admin-pin-clear-sales" placeholder="Enter PIN..." />
           </div>
-          <button id="clear-all-sales-btn" class="btn" style="background: #7c3aed; margin-top: 10px;">
+          <button id="clear-all-sales-btn" class="btn" style="background: var(--purple); color: #ffffff; margin-top: 10px;">
             Clear All Sales History
           </button>
           <div id="clear-all-sales-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
         <!-- 4. Full Factory Reset -->
-        <div class="card" style="border-top: 3px solid #dc2626;">
-          <h3 style="color: #dc2626; margin-top: 0; font-size: 15px; font-weight: 700;">Full System Reset</h3>
-          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
+        <div class="card" style="border-top: 3px solid var(--danger);">
+          <h3 style="color: var(--danger); margin-top: 0; font-size: 15px; font-weight: 700;">Full System Reset</h3>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
             <label for="admin-pin-confirm">Enter Admin PIN *</label>
             <input type="password" id="admin-pin-confirm" placeholder="Enter PIN..." />
           </div>
-          <button id="wipe-database-btn" class="btn" style="background: #dc2626; margin-top: 10px;">
+          <button id="wipe-database-btn" class="btn" style="background: var(--danger); color: #ffffff; margin-top: 10px;">
             Wipe Entire System
           </button>
           <div id="wipe-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
