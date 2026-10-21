@@ -11,11 +11,11 @@
 
 <body>
 
-  <!-- ========================= VIBRANT COLOR-CODED SIDEBAR ========================= -->
+  <!-- ========================= MIDNIGHT SLATE SIDEBAR ========================= -->
   <nav id="sidebar">
     <div class="brand">
       <div class="brand-icon-wrapper">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 6v12M6 12h12"/>
         </svg>
       </div>
@@ -152,7 +152,7 @@
   <!-- ========================= MAIN CONTENT WRAPPER ========================= -->
   <main id="main-content">
 
-    <!-- Clean, Fast Header -->
+    <!-- Clean Header -->
     <header>
       <h1 id="page-title">Stock Inward (Goods Receiving)</h1>
 
@@ -182,9 +182,9 @@
 
     <!-- 1. Stock Inward View -->
     <section id="stock-inward-view" class="view-panel active">
-      <div class="card" style="max-width: 950px; margin: 0 auto;">
+      <div class="card" style="max-width: 960px; margin: 0 auto;">
         <div class="card-title-spaced">
-          <span style="font-size: 16px; font-weight: 800; color: #4f46e5;">Goods Receiving & Inward Entry</span>
+          <span style="font-size: 16px; font-weight: 800; color: #38bdf8;">Goods Receiving & Inward Entry</span>
           <button type="button" id="import-csv-btn" class="btn btn-auto btn-sm btn-export">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -254,7 +254,7 @@
             </div>
           </div>
 
-          <button type="submit" class="btn" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); font-size: 14.5px; padding: 12px; margin-top: 8px;">
+          <button type="submit" class="btn" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #06141B; font-size: 14.5px; padding: 12px; margin-top: 8px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
               <polyline points="17 21 17 13 7 13 7 21"/>
@@ -308,7 +308,7 @@
               </svg>
               Backup DB
             </button>
-            <button id="refresh-inventory-btn" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
+            <button id="refresh-inventory-btn" class="btn btn-auto btn-sm" style="background: var(--c-3); color: var(--c-6); border: 1px solid var(--c-4);">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -348,7 +348,7 @@
 
         <!-- Left: Item Selector Card -->
         <div class="card card-sticky-top">
-          <h3 class="card-title-spaced" style="color: #2563eb;">Select Medicine</h3>
+          <h3 class="card-title-spaced" style="color: #38bdf8;">Select Medicine</h3>
 
           <div class="form-group pos-relative">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
@@ -398,8 +398,8 @@
           </div>
 
           <!-- Prescription Details for Controlled Drugs -->
-          <div style="background: var(--bg-sidebar-hover); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #2563eb; cursor: pointer; margin-bottom: 4px; text-transform: none; font-size: 12.5px;">
+          <div style="background: var(--c-3); border: 1px solid var(--c-4); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #38bdf8; cursor: pointer; margin-bottom: 4px; text-transform: none; font-size: 12.5px;">
               <input type="checkbox" id="enable-prescription-checkbox" style="width: auto; cursor: pointer;" /> 
               Clinical Prescription Attachment (Controlled Drugs / Antibiotics)
             </label>
@@ -455,17 +455,17 @@
 
         <!-- Shift Action Panel -->
         <div class="card">
-          <h3 id="till-action-title" style="color: #f59e0b;">Till Operations</h3>
+          <h3 id="till-action-title" style="color: #fbbf24;">Till Operations</h3>
 
           <div id="till-open-section">
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float in the drawer.</p>
+            <p style="font-size: 13px; color: var(--c-5); margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float in the drawer.</p>
             <form id="till-open-form">
               <div class="form-group">
                 <label for="till_opening_float">Starting Cash Float (LKR) *</label>
                 <input type="text" inputmode="decimal" id="till_opening_float" placeholder="0.00" required
                   autocomplete="off" />
               </div>
-              <button type="submit" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); margin-top: 8px;">
+              <button type="submit" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #06141B; margin-top: 8px;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
@@ -475,16 +475,16 @@
           </div>
 
           <div id="till-close-section" style="display: none;">
-            <div style="background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-              <div style="font-weight: 700; color: var(--success-text); font-size: 14.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+              <div style="font-weight: 700; color: #34d399; font-size: 14.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
                 Active Cash Shift
               </div>
-              <div style="font-size: 12px; color: var(--text-muted);">Shift #<span id="active-shift-id">-</span> (Opened: <span id="active-shift-opened">-</span>)</div>
-              <div style="font-size: 13px; margin-top: 8px;">Opening Float: <strong id="active-shift-float" style="color: var(--primary); font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
-              <div style="font-size: 13px;">Shift Total Sales: <strong id="active-shift-sales" style="color: var(--success); font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
-              <div style="font-size: 14px; margin-top: 8px; border-top: 1px dashed var(--border-subtle); padding-top: 6px;">
-                Expected Physical Cash: <strong id="active-shift-expected" style="color: var(--text-main); font-variant-numeric: tabular-nums;">LKR 0.00</strong>
+              <div style="font-size: 12px; color: var(--c-5);">Shift #<span id="active-shift-id">-</span> (Opened: <span id="active-shift-opened">-</span>)</div>
+              <div style="font-size: 13px; margin-top: 8px;">Opening Float: <strong id="active-shift-float" style="color: #38bdf8; font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
+              <div style="font-size: 13px;">Shift Total Sales: <strong id="active-shift-sales" style="color: #34d399; font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
+              <div style="font-size: 14px; margin-top: 8px; border-top: 1px dashed var(--c-3); padding-top: 6px;">
+                Expected Physical Cash: <strong id="active-shift-expected" style="color: var(--c-6); font-variant-numeric: tabular-nums;">LKR 0.00</strong>
               </div>
             </div>
 
@@ -516,7 +516,7 @@
         <div class="card card-full-flex">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
             <h3 class="no-margin" style="font-size: 15px; font-weight: 700;">Shift & Register Audit History</h3>
-            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
+            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--c-3); color: var(--c-6); border: 1px solid var(--c-4);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -553,7 +553,7 @@
       <div class="card card-full-width">
         <div class="sales-top-bar">
           <div>
-            <h3 class="title-compact" style="color: #8b5cf6;">Sales & Transaction History</h3>
+            <h3 class="title-compact" style="color: #38bdf8;">Sales & Transaction History</h3>
             <p id="total-revenue-banner" class="revenue-banner-text">Total Revenue: LKR 0.00</p>
           </div>
 
@@ -565,7 +565,7 @@
 
             <button id="sales-today-btn" type="button" class="btn btn-auto btn-today">Today</button>
             <button id="sales-clear-filter-btn" type="button" class="btn btn-auto btn-all-time">All Time</button>
-            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
+            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--c-3); color: var(--c-6); border: 1px solid var(--c-4);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -641,8 +641,8 @@
           <button id="close-edit-sale-modal" class="close-icon-btn">✕</button>
         </div>
 
-        <div style="background: var(--bg-sidebar-hover); padding: 14px; border-radius: 12px; border: 1px solid var(--border-subtle); margin-bottom: 15px;">
-          <h4 style="font-size: 13px; color: #2563eb; margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
+        <div style="background: var(--c-3); padding: 14px; border-radius: 12px; border: 1px solid var(--c-4); margin-bottom: 15px;">
+          <h4 style="font-size: 13px; color: #38bdf8; margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
           <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; position: relative;">
             <div class="form-group pos-relative" style="margin-bottom: 0;">
               <label for="edit_sale_drug_input">Search Medicine to Add *</label>
@@ -654,12 +654,12 @@
               <input type="number" id="edit_sale_qty" min="1" value="1" />
             </div>
             <button type="button" id="edit-sale-add-item-btn" class="btn btn-auto"
-              style="height: 38px; padding: 0 16px; background: #2563eb;">+ Add Item</button>
+              style="height: 38px; padding: 0 16px; background: #38bdf8; color: #06141B;">+ Add Item</button>
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Current Invoice Items</h4>
-        <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: 6px; margin-bottom: 12px;">
+        <h4 style="font-size: 13px; color: var(--c-5); margin-bottom: 8px; font-weight: 700;">Current Invoice Items</h4>
+        <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--c-3); border-radius: 6px; margin-bottom: 12px;">
           <table class="data-table">
             <thead>
               <tr>
@@ -681,9 +681,9 @@
             placeholder="0%" autocomplete="off" />
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--c-3); padding-top: 12px;">
           <div>
-            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #2563eb; font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
+            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #38bdf8; font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
           </div>
           <div style="display: flex; gap: 8px;">
             <button type="button" id="cancel-edit-sale-btn" class="btn btn-auto btn-cancel">Cancel</button>
@@ -697,21 +697,21 @@
 
     <!-- 6. Visual Revenues & Reports View -->
     <section id="reports-view" class="view-panel">
-      <!-- Vibrant Gradient KPI Cards -->
+      <!-- Bento-Box Metric Cards in Midnight Slate Palette -->
       <div class="kpi-grid">
-        <div class="card card-full-width kpi-card kpi-card-blue">
+        <div class="card card-full-width kpi-card">
           <small class="kpi-label">Today's Revenue</small>
           <h2 id="kpi-today-rev" class="kpi-value-blue">LKR 0.00</h2>
           <small id="kpi-today-orders" class="kpi-sub-blue">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card kpi-card-green">
+        <div class="card card-full-width kpi-card">
           <small class="kpi-label">This Month</small>
           <h2 id="kpi-month-rev" class="kpi-value-green">LKR 0.00</h2>
           <small id="kpi-month-orders" class="kpi-sub-green">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card kpi-card-purple">
+        <div class="card card-full-width kpi-card">
           <small class="kpi-label">All Time Revenue</small>
           <h2 id="kpi-total-rev" class="kpi-value-purple">LKR 0.00</h2>
           <small id="kpi-total-orders" class="kpi-sub-purple">0 transactions</small>
@@ -721,7 +721,7 @@
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #2563eb;">Revenue Analytics</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: #38bdf8;">Revenue Analytics</h3>
             <p class="chart-subtitle">Store sales and turnover performance breakdown</p>
           </div>
 
@@ -740,21 +740,20 @@
 
     <!-- 7. Visual Profit Analytics & Charts View -->
     <section id="profits-view" class="view-panel">
-      <!-- Vibrant Gradient KPI Cards for Profits -->
       <div class="kpi-grid">
-        <div class="card card-full-width kpi-card kpi-profit-teal">
+        <div class="card card-full-width kpi-card">
           <small class="kpi-label">Today's Profit</small>
-          <h2 id="kpi-today-profit" class="kpi-value-blue">LKR 0.00</h2>
+          <h2 id="kpi-today-profit" class="kpi-value-green">LKR 0.00</h2>
           <small id="kpi-today-profit-orders" class="kpi-sub-green-light">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card kpi-profit-amber">
+        <div class="card card-full-width kpi-card">
           <small class="kpi-label">This Month Profit</small>
           <h2 id="kpi-month-profit" class="kpi-value-green">LKR 0.00</h2>
           <small id="kpi-month-profit-orders" class="kpi-sub-emerald">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card kpi-profit-indigo">
+        <div class="card card-full-width kpi-card">
           <small class="kpi-label">All Time Net Profit</small>
           <h2 id="kpi-total-profit" class="kpi-value-purple">LKR 0.00</h2>
           <small id="kpi-total-profit-orders" class="kpi-sub-violet">0 transactions</small>
@@ -764,7 +763,7 @@
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #0d9488;">Profit Analytics</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: #34d399;">Profit Analytics</h3>
             <p class="chart-subtitle">Gross profit breakdown (Selling Price - Buy Price)</p>
           </div>
 
@@ -787,7 +786,7 @@
 
         <!-- Add Supplier Form Card -->
         <div class="card">
-          <h3 class="card-title-spaced" style="color: #ec4899;">Register New Supplier</h3>
+          <h3 class="card-title-spaced" style="color: #38bdf8;">Register New Supplier</h3>
           <form id="supplier-form">
             <div class="form-group">
               <label for="sup_name">Company / Distributor Name *</label>
@@ -809,7 +808,7 @@
               <label for="sup_address">Physical Address</label>
               <input type="text" id="sup_address" placeholder="e.g. Colombo 03" autocomplete="off" />
             </div>
-            <button type="submit" class="btn" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">Save Supplier</button>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #06141B;">Save Supplier</button>
           </form>
           <div id="supplier-status-msg" class="status-msg"></div>
         </div>
@@ -818,7 +817,7 @@
         <div class="card card-full-flex">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
             <h3 class="no-margin" style="font-size: 15px; font-weight: 700;">Registered Suppliers</h3>
-            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
+            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--c-3); color: var(--c-6); border: 1px solid var(--c-4);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -849,7 +848,7 @@
     <!-- 9. Store Settings View -->
     <section id="settings-view" class="view-panel">
       <div class="card" style="max-width: 650px; margin: 0 auto;">
-        <h3 class="card-title-spaced" style="color: #06b6d4;">Pharmacy Information & Settings</h3>
+        <h3 class="card-title-spaced" style="color: #38bdf8;">Pharmacy Information & Settings</h3>
         <form id="settings-form">
           <div class="form-group">
             <label for="setting_pharmacy_name">Pharmacy Name *</label>
@@ -864,7 +863,7 @@
             <label for="setting_pharmacy_phone">Phone / Contact Number *</label>
             <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
           </div>
-          <button type="submit" class="btn" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">Save Pharmacy Details</button>
+          <button type="submit" class="btn" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #06141B;">Save Pharmacy Details</button>
         </form>
         <div id="settings-status-msg" class="status-msg"></div>
       </div>
@@ -877,7 +876,7 @@
         <!-- 1. Delete Selected Medicine -->
         <div class="card" style="border-top: 4px solid var(--warning);">
           <h3 style="color: var(--warning); margin-top: 0; font-size: 15px; font-weight: 700;">Delete Single Medicine</h3>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
+          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
 
           <div class="form-group pos-relative" style="margin-top: 15px;">
             <label for="delete_drug_input">Search Medicine to Delete *</label>
@@ -886,7 +885,7 @@
             <div id="delete-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
 
-          <button id="delete-selected-drug-btn" class="btn" style="background: var(--warning); color: #ffffff; margin-top: 10px;">
+          <button id="delete-selected-drug-btn" class="btn" style="background: var(--warning); color: #06141B; margin-top: 10px;">
             Delete Selected Medicine
           </button>
           <div id="delete-drug-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
@@ -895,7 +894,7 @@
         <!-- 2. Clear All Medicines Only -->
         <div class="card" style="border-top: 4px solid #be123c;">
           <h3 style="color: #be123c; margin-top: 0; font-size: 15px; font-weight: 700;">Clear All Medicines Only</h3>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
+          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
             <label for="admin-pin-clear-medicines">Enter Admin PIN *</label>
             <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN..." />
@@ -909,7 +908,7 @@
         <!-- 3. Clear All Sales Only -->
         <div class="card" style="border-top: 4px solid var(--purple);">
           <h3 style="color: var(--purple); margin-top: 0; font-size: 15px; font-weight: 700;">Clear Sales & Reports</h3>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
+          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
             <label for="admin-pin-clear-sales">Enter Admin PIN *</label>
             <input type="password" id="admin-pin-clear-sales" placeholder="Enter PIN..." />
@@ -923,7 +922,7 @@
         <!-- 4. Full Factory Reset -->
         <div class="card" style="border-top: 4px solid var(--danger);">
           <h3 style="color: var(--danger); margin-top: 0; font-size: 15px; font-weight: 700;">Full System Reset</h3>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
+          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
             <label for="admin-pin-confirm">Enter Admin PIN *</label>
             <input type="password" id="admin-pin-confirm" placeholder="Enter PIN..." />
@@ -1062,7 +1061,7 @@
 
         <div class="modal-footer-actions">
           <button type="button" id="cancel-edit-drug-btn" class="btn btn-auto btn-cancel">Cancel</button>
-          <button type="submit" class="btn btn-auto" style="background: #2563eb; color: #ffffff;">Save Changes</button>
+          <button type="submit" class="btn btn-auto" style="background: #38bdf8; color: #06141B;">Save Changes</button>
         </div>
         <div id="edit-drug-status-msg" class="status-msg"></div>
       </form>
