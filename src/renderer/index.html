@@ -11,11 +11,11 @@
 
 <body>
 
-  <!-- ========================= MODERN LIGHT SIDEBAR ========================= -->
+  <!-- ========================= VIBRANT COLOR-CODED SIDEBAR ========================= -->
   <nav id="sidebar">
     <div class="brand">
       <div class="brand-icon-wrapper">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 6v12M6 12h12"/>
         </svg>
       </div>
@@ -152,134 +152,122 @@
   <!-- ========================= MAIN CONTENT WRAPPER ========================= -->
   <main id="main-content">
 
+    <!-- Clean, Fast Header -->
     <header>
       <h1 id="page-title">Stock Inward (Goods Receiving)</h1>
-      <div id="header-shift-indicator">
-        Till: Closed
+
+      <div class="header-right">
+        <div id="header-shift-indicator">
+          Till: Closed
+        </div>
+
+        <button id="theme-toggle-btn" class="header-icon-btn" title="Toggle Light / Dark Mode">
+          <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
       </div>
     </header>
 
-    <!-- Unified Stock Inward Panel -->
+    <!-- 1. Stock Inward View -->
     <section id="stock-inward-view" class="view-panel active">
-      <div class="form-hero-layout">
-
-        <!-- Left: Form Card -->
-        <div class="card" style="max-width: 720px;">
-          <div class="card-title-spaced">
-            <span>Goods Receiving & Inward Entry</span>
-            <button type="button" id="import-csv-btn" class="btn btn-auto btn-sm btn-export">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Import CSV
-            </button>
-          </div>
-
-          <form id="stock-inward-form">
-
-            <div class="form-group pos-relative">
-              <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
-              <input type="text" id="inward_drug_input" placeholder="Type brand name or generic formula..."
-                autocomplete="off" required autofocus />
-              <input type="hidden" id="inward_selected_drug_id" />
-              <div id="inward-dropdown" class="pos-dropdown" style="display: none;"></div>
-            </div>
-
-            <!-- Generic Name and Category fields -->
-            <div class="grid-2-col">
-              <div class="form-group">
-                <label for="inward_generic_name">Generic Name</label>
-                <input type="text" id="inward_generic_name" placeholder="e.g. Paracetamol" autocomplete="off" />
-              </div>
-              <div class="form-group">
-                <label for="inward_category">Category</label>
-                <input type="text" id="inward_category" placeholder="e.g. Analgesic" autocomplete="off" />
-              </div>
-            </div>
-
-            <h4 class="edit-batch-heading">Shipment Batch & Pricing Details</h4>
-            <div class="grid-2-col">
-              <div class="form-group">
-                <label for="inward_supplier_select">Supplier / Vendor</label>
-                <select id="inward_supplier_select">
-                  <option value="">-- Select Supplier (Optional) --</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="inward_batch_number">Batch / Lot Number *</label>
-                <input type="text" id="inward_batch_number" placeholder="e.g. BATCH-2026A" required />
-              </div>
-              <div class="form-group">
-                <label for="inward_expiry_date">Expiry Date *</label>
-                <input type="date" id="inward_expiry_date" required />
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1.1fr; gap: 10px;">
-              <div class="form-group">
-                <label for="inward_buy_price">Buy Price (LKR) *</label>
-                <input type="number" step="any" min="0" id="inward_buy_price" placeholder="0.00" required />
-              </div>
-              <div class="form-group">
-                <label for="inward_sell_price">Sell Price (LKR) *</label>
-                <input type="number" step="any" min="0" id="inward_sell_price" placeholder="0.00" required />
-              </div>
-              <div class="form-group">
-                <label for="inward_quantity">Quantity (Units) *</label>
-                <input type="number" min="1" id="inward_quantity" placeholder="0" required />
-              </div>
-              <div class="form-group">
-                <label for="inward_min_stock">Low Stock Alert *</label>
-                <input type="number" min="1" id="inward_min_stock" value="10" placeholder="10" required />
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-checkout">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-              </svg>
-              Save & Receive Inward Stock
-            </button>
-          </form>
-          <div id="inward-status-msg" class="status-msg"></div>
+      <div class="card" style="max-width: 950px; margin: 0 auto;">
+        <div class="card-title-spaced">
+          <span style="font-size: 16px; font-weight: 800; color: #4f46e5;">Goods Receiving & Inward Entry</span>
+          <button type="button" id="import-csv-btn" class="btn btn-auto btn-sm btn-export">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Import CSV
+          </button>
         </div>
 
-        <!-- Right: Functional Telemetry & Operational Rules Panel -->
-        <div class="hero-showcase-panel">
-          <div class="hero-showcase-content">
-            <div class="hero-badge">Standard Operating Procedures</div>
-            <h2>Inventory & Quality Compliance</h2>
-            <p>Every logged batch is automatically verified against pharmaceutical shelf-life standards and indexed into the billing terminal.</p>
+        <form id="stock-inward-form">
 
-            <div class="hero-stats-grid">
-              <div class="hero-stat-card">
-                <strong>FEFO Rotation Rule</strong>
-                <span>Batches nearing expiration are automatically suggested first to dispensing cashiers.</span>
-              </div>
-              <div class="hero-stat-card">
-                <strong>Zero Latency Database</strong>
-                <span>Local SQLite storage delivers instant inventory lookups without cloud dependency.</span>
-              </div>
-              <div class="hero-stat-card">
-                <strong>Automated Margin Audit</strong>
-                <span>Tracks cost-to-retail ratios per lot to verify store profitability thresholds.</span>
-              </div>
-              <div class="hero-stat-card">
-                <strong>Lot Traceability</strong>
-                <span>Every dispensed unit is permanently linked to its batch number and invoice ID.</span>
-              </div>
+          <div class="form-group pos-relative">
+            <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
+            <input type="text" id="inward_drug_input" placeholder="Type brand name or generic formula..."
+              autocomplete="off" required autofocus />
+            <input type="hidden" id="inward_selected_drug_id" />
+            <div id="inward-dropdown" class="pos-dropdown" style="display: none;"></div>
+          </div>
+
+          <!-- Generic Name and Category fields -->
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label for="inward_generic_name">Generic Name</label>
+              <input type="text" id="inward_generic_name" placeholder="e.g. Paracetamol" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="inward_category">Category</label>
+              <input type="text" id="inward_category" placeholder="e.g. Analgesic" autocomplete="off" />
             </div>
           </div>
-        </div>
 
+          <h4 class="edit-batch-heading">Shipment Batch & Pricing Details</h4>
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label for="inward_supplier_select">Supplier / Vendor</label>
+              <select id="inward_supplier_select">
+                <option value="">-- Select Supplier (Optional) --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inward_batch_number">Batch / Lot Number *</label>
+              <input type="text" id="inward_batch_number" placeholder="e.g. BATCH-2026A" required />
+            </div>
+            <div class="form-group">
+              <label for="inward_expiry_date">Expiry Date *</label>
+              <input type="date" id="inward_expiry_date" required />
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1.1fr; gap: 12px;">
+            <div class="form-group">
+              <label for="inward_buy_price">Buy Price (LKR) *</label>
+              <input type="number" step="any" min="0" id="inward_buy_price" placeholder="0.00" required />
+            </div>
+            <div class="form-group">
+              <label for="inward_sell_price">Sell Price (LKR) *</label>
+              <input type="number" step="any" min="0" id="inward_sell_price" placeholder="0.00" required />
+            </div>
+            <div class="form-group">
+              <label for="inward_quantity">Quantity (Units) *</label>
+              <input type="number" min="1" id="inward_quantity" placeholder="0" required />
+            </div>
+            <div class="form-group">
+              <label for="inward_min_stock">Low Stock Alert *</label>
+              <input type="number" min="1" id="inward_min_stock" value="10" placeholder="10" required />
+            </div>
+          </div>
+
+          <button type="submit" class="btn" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); font-size: 14.5px; padding: 12px; margin-top: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save & Receive Inward Stock
+          </button>
+        </form>
+        <div id="inward-status-msg" class="status-msg"></div>
       </div>
     </section>
 
-    <!-- Inventory View -->
+    <!-- 2. Inventory View -->
     <section id="inventory-view" class="view-panel">
       <div class="card card-full-flex">
         <div class="inventory-top-bar">
@@ -320,7 +308,7 @@
               </svg>
               Backup DB
             </button>
-            <button id="refresh-inventory-btn" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+            <button id="refresh-inventory-btn" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -354,13 +342,13 @@
       </div>
     </section>
 
-    <!-- POS Billing View -->
+    <!-- 3. POS Billing View -->
     <section id="pos-view" class="view-panel">
       <div class="pos-grid">
 
         <!-- Left: Item Selector Card -->
         <div class="card card-sticky-top">
-          <h3 class="card-title-spaced">Select Medicine</h3>
+          <h3 class="card-title-spaced" style="color: #2563eb;">Select Medicine</h3>
 
           <div class="form-group pos-relative">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
@@ -410,8 +398,8 @@
           </div>
 
           <!-- Prescription Details for Controlled Drugs -->
-          <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); cursor: pointer; margin-bottom: 4px; text-transform: none; font-size: 12.5px;">
+          <div style="background: var(--bg-sidebar-hover); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #2563eb; cursor: pointer; margin-bottom: 4px; text-transform: none; font-size: 12.5px;">
               <input type="checkbox" id="enable-prescription-checkbox" style="width: auto; cursor: pointer;" /> 
               Clinical Prescription Attachment (Controlled Drugs / Antibiotics)
             </label>
@@ -461,13 +449,13 @@
       </div>
     </section>
 
-    <!-- TILL / SHIFT MANAGEMENT VIEW -->
+    <!-- 4. Till / Shift Management View -->
     <section id="till-view" class="view-panel">
       <div style="display: grid; grid-template-columns: minmax(360px, 1fr) 1.5fr; gap: 20px;">
 
         <!-- Shift Action Panel -->
         <div class="card">
-          <h3 id="till-action-title">Till Operations</h3>
+          <h3 id="till-action-title" style="color: #f59e0b;">Till Operations</h3>
 
           <div id="till-open-section">
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float in the drawer.</p>
@@ -477,7 +465,7 @@
                 <input type="text" inputmode="decimal" id="till_opening_float" placeholder="0.00" required
                   autocomplete="off" />
               </div>
-              <button type="submit" class="btn btn-checkout" style="margin-top: 8px;">
+              <button type="submit" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); margin-top: 8px;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
@@ -487,7 +475,7 @@
           </div>
 
           <div id="till-close-section" style="display: none;">
-            <div style="background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+            <div style="background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
               <div style="font-weight: 700; color: var(--success-text); font-size: 14.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
                 <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
                 Active Cash Shift
@@ -528,7 +516,7 @@
         <div class="card card-full-flex">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
             <h3 class="no-margin" style="font-size: 15px; font-weight: 700;">Shift & Register Audit History</h3>
-            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -560,12 +548,12 @@
       </div>
     </section>
 
-    <!-- Sales History View -->
+    <!-- 5. Sales History View -->
     <section id="sales-view" class="view-panel">
       <div class="card card-full-width">
         <div class="sales-top-bar">
           <div>
-            <h3 class="title-compact">Sales & Transaction History</h3>
+            <h3 class="title-compact" style="color: #8b5cf6;">Sales & Transaction History</h3>
             <p id="total-revenue-banner" class="revenue-banner-text">Total Revenue: LKR 0.00</p>
           </div>
 
@@ -577,7 +565,7 @@
 
             <button id="sales-today-btn" type="button" class="btn btn-auto btn-today">Today</button>
             <button id="sales-clear-filter-btn" type="button" class="btn btn-auto btn-all-time">All Time</button>
-            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -653,8 +641,8 @@
           <button id="close-edit-sale-modal" class="close-icon-btn">✕</button>
         </div>
 
-        <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle); margin-bottom: 15px;">
-          <h4 style="font-size: 13px; color: var(--primary); margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
+        <div style="background: var(--bg-sidebar-hover); padding: 14px; border-radius: 12px; border: 1px solid var(--border-subtle); margin-bottom: 15px;">
+          <h4 style="font-size: 13px; color: #2563eb; margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
           <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; position: relative;">
             <div class="form-group pos-relative" style="margin-bottom: 0;">
               <label for="edit_sale_drug_input">Search Medicine to Add *</label>
@@ -666,7 +654,7 @@
               <input type="number" id="edit_sale_qty" min="1" value="1" />
             </div>
             <button type="button" id="edit-sale-add-item-btn" class="btn btn-auto"
-              style="height: 38px; padding: 0 16px;">+ Add Item</button>
+              style="height: 38px; padding: 0 16px; background: #2563eb;">+ Add Item</button>
           </div>
         </div>
 
@@ -695,7 +683,7 @@
 
         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
           <div>
-            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: var(--primary); font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
+            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #2563eb; font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
           </div>
           <div style="display: flex; gap: 8px;">
             <button type="button" id="cancel-edit-sale-btn" class="btn btn-auto btn-cancel">Cancel</button>
@@ -707,22 +695,23 @@
       </div>
     </div>
 
-    <!-- Visual Revenues & Reports View -->
+    <!-- 6. Visual Revenues & Reports View -->
     <section id="reports-view" class="view-panel">
+      <!-- Vibrant Gradient KPI Cards -->
       <div class="kpi-grid">
-        <div class="card card-full-width kpi-card-blue">
+        <div class="card card-full-width kpi-card kpi-card-blue">
           <small class="kpi-label">Today's Revenue</small>
           <h2 id="kpi-today-rev" class="kpi-value-blue">LKR 0.00</h2>
           <small id="kpi-today-orders" class="kpi-sub-blue">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card-green">
+        <div class="card card-full-width kpi-card kpi-card-green">
           <small class="kpi-label">This Month</small>
           <h2 id="kpi-month-rev" class="kpi-value-green">LKR 0.00</h2>
           <small id="kpi-month-orders" class="kpi-sub-green">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card-purple">
+        <div class="card card-full-width kpi-card kpi-card-purple">
           <small class="kpi-label">All Time Revenue</small>
           <h2 id="kpi-total-rev" class="kpi-value-purple">LKR 0.00</h2>
           <small id="kpi-total-orders" class="kpi-sub-purple">0 transactions</small>
@@ -732,7 +721,7 @@
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
-            <h3 style="font-size: 15px; font-weight: 700;">Revenue Analytics</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: #2563eb;">Revenue Analytics</h3>
             <p class="chart-subtitle">Store sales and turnover performance breakdown</p>
           </div>
 
@@ -749,22 +738,23 @@
       </div>
     </section>
 
-    <!-- Visual Profit Analytics & Charts View -->
+    <!-- 7. Visual Profit Analytics & Charts View -->
     <section id="profits-view" class="view-panel">
+      <!-- Vibrant Gradient KPI Cards for Profits -->
       <div class="kpi-grid">
-        <div class="card card-full-width kpi-card-blue">
+        <div class="card card-full-width kpi-card kpi-profit-teal">
           <small class="kpi-label">Today's Profit</small>
           <h2 id="kpi-today-profit" class="kpi-value-blue">LKR 0.00</h2>
           <small id="kpi-today-profit-orders" class="kpi-sub-green-light">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card-green">
+        <div class="card card-full-width kpi-card kpi-profit-amber">
           <small class="kpi-label">This Month Profit</small>
           <h2 id="kpi-month-profit" class="kpi-value-green">LKR 0.00</h2>
           <small id="kpi-month-profit-orders" class="kpi-sub-emerald">0 transactions</small>
         </div>
 
-        <div class="card card-full-width kpi-card-purple">
+        <div class="card card-full-width kpi-card kpi-profit-indigo">
           <small class="kpi-label">All Time Net Profit</small>
           <h2 id="kpi-total-profit" class="kpi-value-purple">LKR 0.00</h2>
           <small id="kpi-total-profit-orders" class="kpi-sub-violet">0 transactions</small>
@@ -774,7 +764,7 @@
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
-            <h3 style="font-size: 15px; font-weight: 700;">Profit Analytics</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: #0d9488;">Profit Analytics</h3>
             <p class="chart-subtitle">Gross profit breakdown (Selling Price - Buy Price)</p>
           </div>
 
@@ -791,13 +781,13 @@
       </div>
     </section>
 
-    <!-- Suppliers Directory View -->
+    <!-- 8. Suppliers Directory View -->
     <section id="suppliers-view" class="view-panel">
       <div style="display: grid; grid-template-columns: minmax(360px, 1fr) 2fr; gap: 20px;">
 
         <!-- Add Supplier Form Card -->
         <div class="card">
-          <h3 class="card-title-spaced">Register New Supplier</h3>
+          <h3 class="card-title-spaced" style="color: #ec4899;">Register New Supplier</h3>
           <form id="supplier-form">
             <div class="form-group">
               <label for="sup_name">Company / Distributor Name *</label>
@@ -819,7 +809,7 @@
               <label for="sup_address">Physical Address</label>
               <input type="text" id="sup_address" placeholder="e.g. Colombo 03" autocomplete="off" />
             </div>
-            <button type="submit" class="btn" style="background: var(--success);">Save Supplier</button>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">Save Supplier</button>
           </form>
           <div id="supplier-status-msg" class="status-msg"></div>
         </div>
@@ -828,7 +818,7 @@
         <div class="card card-full-flex">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
             <h3 class="no-margin" style="font-size: 15px; font-weight: 700;">Registered Suppliers</h3>
-            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm" style="background: var(--bg-card); color: var(--text-body); border: 1px solid var(--border-input);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
                 <polyline points="1 20 1 14 7 14"/>
@@ -856,66 +846,36 @@
       </div>
     </section>
 
-    <!-- Store Settings View -->
+    <!-- 9. Store Settings View -->
     <section id="settings-view" class="view-panel">
-      <div class="form-hero-layout">
-        <div class="card">
-          <h3 class="card-title-spaced">Pharmacy Information</h3>
-          <form id="settings-form">
-            <div class="form-group">
-              <label for="setting_pharmacy_name">Pharmacy Name *</label>
-              <input type="text" id="setting_pharmacy_name" placeholder="e.g. Sahasna Pharmacy" required />
-            </div>
-            <div class="form-group">
-              <label for="setting_pharmacy_address">Store Address *</label>
-              <input type="text" id="setting_pharmacy_address" placeholder="e.g. No. 123, Main Street, Colombo"
-                required />
-            </div>
-            <div class="form-group">
-              <label for="setting_pharmacy_phone">Phone / Contact Number *</label>
-              <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
-            </div>
-            <button type="submit" class="btn">Save Pharmacy Details</button>
-          </form>
-          <div id="settings-status-msg" class="status-msg"></div>
-        </div>
-
-        <div class="hero-showcase-panel">
-          <div class="hero-showcase-content">
-            <div class="hero-badge">Hardware Integration</div>
-            <h2>Thermal Printer Diagnostics</h2>
-            <p>Printed receipts are generated directly in ESC/POS raw command format for optimal print quality on 80mm and 58mm thermal rolls.</p>
-
-            <div class="hero-stats-grid">
-              <div class="hero-stat-card">
-                <strong>Standard Roll Width</strong>
-                <span>Formatted for standard 80mm thermal receipt paper roll</span>
-              </div>
-              <div class="hero-stat-card">
-                <strong>Dynamic Header Sync</strong>
-                <span>Store name and phone updates reflect on the next receipt</span>
-              </div>
-              <div class="hero-stat-card">
-                <strong>Local Persistence</strong>
-                <span>Settings are stored locally in the encrypted SQLite vault</span>
-              </div>
-              <div class="hero-stat-card">
-                <strong>Offline Printing</strong>
-                <span>Operates completely offline without cloud latency</span>
-              </div>
-            </div>
+      <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <h3 class="card-title-spaced" style="color: #06b6d4;">Pharmacy Information & Settings</h3>
+        <form id="settings-form">
+          <div class="form-group">
+            <label for="setting_pharmacy_name">Pharmacy Name *</label>
+            <input type="text" id="setting_pharmacy_name" placeholder="e.g. Sahasna Pharmacy" required />
           </div>
-        </div>
-
+          <div class="form-group">
+            <label for="setting_pharmacy_address">Store Address *</label>
+            <input type="text" id="setting_pharmacy_address" placeholder="e.g. No. 123, Main Street, Colombo"
+              required />
+          </div>
+          <div class="form-group">
+            <label for="setting_pharmacy_phone">Phone / Contact Number *</label>
+            <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
+          </div>
+          <button type="submit" class="btn" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">Save Pharmacy Details</button>
+        </form>
+        <div id="settings-status-msg" class="status-msg"></div>
       </div>
     </section>
 
-    <!-- Reset System View -->
+    <!-- 10. Reset System View -->
     <section id="clear-inventory-view" class="view-panel">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
 
         <!-- 1. Delete Selected Medicine -->
-        <div class="card" style="border-top: 3px solid var(--warning);">
+        <div class="card" style="border-top: 4px solid var(--warning);">
           <h3 style="color: var(--warning); margin-top: 0; font-size: 15px; font-weight: 700;">Delete Single Medicine</h3>
           <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
 
@@ -933,7 +893,7 @@
         </div>
 
         <!-- 2. Clear All Medicines Only -->
-        <div class="card" style="border-top: 3px solid #be123c;">
+        <div class="card" style="border-top: 4px solid #be123c;">
           <h3 style="color: #be123c; margin-top: 0; font-size: 15px; font-weight: 700;">Clear All Medicines Only</h3>
           <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
@@ -947,7 +907,7 @@
         </div>
 
         <!-- 3. Clear All Sales Only -->
-        <div class="card" style="border-top: 3px solid var(--purple);">
+        <div class="card" style="border-top: 4px solid var(--purple);">
           <h3 style="color: var(--purple); margin-top: 0; font-size: 15px; font-weight: 700;">Clear Sales & Reports</h3>
           <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
@@ -961,7 +921,7 @@
         </div>
 
         <!-- 4. Full Factory Reset -->
-        <div class="card" style="border-top: 3px solid var(--danger);">
+        <div class="card" style="border-top: 4px solid var(--danger);">
           <h3 style="color: var(--danger); margin-top: 0; font-size: 15px; font-weight: 700;">Full System Reset</h3>
           <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
@@ -1102,7 +1062,7 @@
 
         <div class="modal-footer-actions">
           <button type="button" id="cancel-edit-drug-btn" class="btn btn-auto btn-cancel">Cancel</button>
-          <button type="submit" class="btn btn-auto btn-save">Save Changes</button>
+          <button type="submit" class="btn btn-auto" style="background: #2563eb; color: #ffffff;">Save Changes</button>
         </div>
         <div id="edit-drug-status-msg" class="status-msg"></div>
       </form>
