@@ -206,7 +206,7 @@ async function loadShiftsHistoryTable() {
     res.data.forEach((s) => {
       const tr = document.createElement('tr');
       const isClosed = s.status === 'CLOSED';
-      const varianceColor = s.variance < 0 ? '#dc2626' : (s.variance > 0 ? '#0284c7' : '#16a34a');
+      const varianceColor = s.variance < 0 ? '#dc2626' : (s.variance > 0 ? '#2563eb' : '#059669');
 
       tr.innerHTML = `
         <td><strong>#${s.id}</strong></td>
@@ -234,12 +234,12 @@ if (tillOpenForm) {
     const msg = document.getElementById('till-status-msg');
 
     const floatVal = parseFloat(floatInp.value) || 0;
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Opening till register...';
 
     const res = await window.api.openShift(floatVal);
     if (res && res.success) {
-      msg.style.color = '#16a34a';
+      msg.style.color = '#059669';
       msg.innerText = '✓ Till shift opened successfully!';
       floatInp.value = '';
       await checkActiveShiftStatus();
@@ -271,12 +271,12 @@ if (tillCloseForm) {
       note: noteInp ? noteInp.value.trim() : ''
     };
 
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Closing shift & generating Z-Report...';
 
     const res = await window.api.closeShift(payload);
     if (res && res.success) {
-      msg.style.color = '#16a34a';
+      msg.style.color = '#059669';
       msg.innerText = '✓ Till closed successfully! Printing closing summary...';
 
       await window.api.printTillReport({
@@ -333,13 +333,13 @@ if (settingsForm) {
       pharmacy_phone: document.getElementById('setting_pharmacy_phone').value.trim()
     };
 
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Saving pharmacy details...';
 
     const res = await window.api.updateSettings(payload);
     if (res.success) {
       currentSettings = payload;
-      msg.style.color = '#16a34a';
+      msg.style.color = '#059669';
       msg.innerText = '✓ Pharmacy details updated successfully!';
       setTimeout(() => { msg.innerText = ''; }, 2500);
     } else {
@@ -378,7 +378,7 @@ async function loadSuppliersManagement() {
         <td>${s.phone || '-'}</td>
         <td>${s.email || '-'}</td>
         <td>
-          <button onclick="deleteSupplierRecord(${s.id})" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Delete</button>
+          <button onclick="deleteSupplierRecord(${s.id})" style="background: #ffffff; color: #dc2626; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -400,12 +400,12 @@ if (supplierForm) {
       address: document.getElementById('sup_address').value.trim()
     };
 
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Saving supplier...';
 
     const res = await window.api.addSupplier(payload);
     if (res && res.success) {
-      msg.style.color = '#16a34a';
+      msg.style.color = '#059669';
       msg.innerText = '✓ Supplier added successfully!';
       supplierForm.reset();
       await loadSuppliersManagement();
@@ -481,7 +481,7 @@ function showInwardDrugList(q = '') {
   inwardDropIndex = 0;
   inwardDropdown.innerHTML = inwardDropMatches.map((d, i) => `
     <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
-      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
+      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #2563eb;">[${d.category || 'General'}]</small>
     </div>
   `).join('');
 
@@ -564,7 +564,7 @@ if (stockInwardForm) {
     const minStockVal = parseInt(document.getElementById('inward_min_stock').value, 10) || 10;
 
     if (inwardStatusMsg) {
-      inwardStatusMsg.style.color = '#475569';
+      inwardStatusMsg.style.color = '#64748b';
       inwardStatusMsg.innerText = 'Processing stock inward...';
     }
 
@@ -620,7 +620,7 @@ if (stockInwardForm) {
       }
 
       if (inwardStatusMsg) {
-        inwardStatusMsg.style.color = '#16a34a';
+        inwardStatusMsg.style.color = '#059669';
         inwardStatusMsg.innerText = '✓ Stock received & batch logged successfully!';
       }
       stockInwardForm.reset();
@@ -717,7 +717,7 @@ function renderInventoryTable() {
       <td><strong>${row.total_stock}</strong></td>
       <td>${status.badge}</td>
       <td>
-        <button onclick="openEditItemModal(${row.drug_id}, ${row.batch_id || 'null'})" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">✏️ Edit</button>
+        <button onclick="openEditItemModal(${row.drug_id}, ${row.batch_id || 'null'})" style="background: #ffffff; color: #2563eb; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Edit</button>
       </td>
     `;
     tableBody.appendChild(tr);
@@ -804,12 +804,12 @@ if (editItemForm) {
       quantity: parseInt(document.getElementById('edit_quantity').value, 10) || 0
     };
 
-    statusMsg.style.color = '#475569';
+    statusMsg.style.color = '#64748b';
     statusMsg.innerText = 'Updating details...';
 
     const res = await window.api.updateInventoryItem(payload);
     if (res.success) {
-      statusMsg.style.color = '#16a34a';
+      statusMsg.style.color = '#059669';
       statusMsg.innerText = '✓ All details updated successfully!';
       await loadInventory();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
@@ -860,7 +860,7 @@ function showList(q = '') {
   dropIndex = 0;
   menu.innerHTML = dropMatches.map((d, i) => {
     const isClosestExpiry = i === 0;
-    const fefoBadge = isClosestExpiry ? '<span style="background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">FEFO RECOMMENDED</span>' : '';
+    const fefoBadge = isClosestExpiry ? '<span style="background: #ecfdf5; color: #059669; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; border: 1px solid #a7f3d0;">FEFO RECOMMENDED</span>' : '';
     
     return `
       <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
@@ -1015,7 +1015,7 @@ function renderCart() {
       <td>${item.sell_price.toFixed(2)}</td>
       <td>${item.quantity}</td>
       <td><strong>${item.total_price.toFixed(2)}</strong></td>
-      <td><button onclick="removeFromCart(${index})" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">✕</button></td>
+      <td><button onclick="removeFromCart(${index})" style="background: #ffffff; color: #dc2626; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">✕</button></td>
     `;
     cartBody.appendChild(tr);
   });
@@ -1200,7 +1200,7 @@ async function processCheckout({ shouldPrint = true } = {}) {
     const nowStr = new Date().toLocaleString();
 
     if (msg) {
-      msg.style.color = '#475569';
+      msg.style.color = '#64748b';
       msg.innerText = 'Processing sale...';
     }
 
@@ -1240,7 +1240,7 @@ async function processCheckout({ shouldPrint = true } = {}) {
     if (res && res.success) {
       const invoiceLabel = res.data.invoiceNo ? `#${res.data.invoiceNo}` : `#${res.data.saleId}`;
       if (msg) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = `✓ Sale completed! Invoice ${invoiceLabel}${shouldPrint ? ' (Printing...)' : ' (Saved)'}`;
       }
 
@@ -1971,7 +1971,7 @@ if (saveEditSaleBtn) {
     const grandTotal = Math.max(0, subtotal - discountVal);
 
     saveEditSaleBtn.disabled = true;
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Updating invoice and syncing stock...';
 
     try {
@@ -1983,7 +1983,7 @@ if (saveEditSaleBtn) {
       });
 
       if (res && res.success) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = '✓ Invoice updated & stock synced successfully!';
 
         await loadSalesHistory();
@@ -2098,13 +2098,13 @@ if (deleteSelectedDrugBtn) {
     }
 
     deleteSelectedDrugBtn.disabled = true;
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Deleting medicine...';
 
     try {
       const res = await window.api.deleteMedicineKeepSales(drugId);
       if (res && res.success) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = '✓ Medicine removed from database!';
         if (input) input.value = '';
         if (hiddenId) hiddenId.value = '';
@@ -2143,13 +2143,13 @@ if (deleteAllDrugsBtn) {
     }
 
     deleteAllDrugsBtn.disabled = true;
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Clearing all medicines...';
 
     try {
       const res = await window.api.deleteAllMedicinesKeepSales();
       if (res && res.success) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = '✓ All medicines and stocks cleared!';
         await loadDeleteDrugDropdown();
         if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
@@ -2187,13 +2187,13 @@ if (clearAllSalesBtn) {
     }
 
     clearAllSalesBtn.disabled = true;
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Clearing sales history...';
 
     try {
       const res = await window.api.deleteAllSales();
       if (res && res.success) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = '✓ All sales history & charts cleared!';
       } else {
         msg.style.color = '#dc2626';
@@ -2228,13 +2228,13 @@ if (wipeDatabaseBtn) {
     }
 
     wipeDatabaseBtn.disabled = true;
-    msg.style.color = '#475569';
+    msg.style.color = '#64748b';
     msg.innerText = 'Wiping complete database...';
 
     try {
       const res = await window.api.clearInventory();
       if (res && res.success) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = '✓ Complete system wiped successfully!';
         await loadDeleteDrugDropdown();
         if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
@@ -2288,14 +2288,14 @@ if (importCsvBtn) {
   importCsvBtn.addEventListener('click', async () => {
     const msg = document.getElementById('inward-status-msg');
     if (msg) {
-      msg.style.color = '#475569';
+      msg.style.color = '#64748b';
       msg.innerText = 'Selecting file for import...';
     }
 
     const res = await window.api.importCSV();
     if (res && res.success) {
       if (msg) {
-        msg.style.color = '#16a34a';
+        msg.style.color = '#059669';
         msg.innerText = `✓ Successfully imported ${res.count} items/batches!`;
       }
       await displayDrugDropdown();
