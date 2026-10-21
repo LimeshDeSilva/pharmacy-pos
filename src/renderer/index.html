@@ -4,58 +4,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pharmacy Management System</title>
-
+  <title>MediCare - Pharmacy Management System</title>
   <link rel="stylesheet" href="style.css">
   <script src="chart.umd.js"></script>
 </head>
 
 <body>
 
-  <!-- ========================= side navigation bar========================= -->
-
+  <!-- ========================= SIDEBAR NAVIGATION ========================= -->
   <nav id="sidebar">
-    <div class="brand">🏥 MediCare POS</div>
+    <div class="brand">
+      <div class="brand-icon-wrapper">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 6v12M6 12h12"/>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <span class="brand-title">MEDICARE</span>
+        <span class="brand-subtitle">Pharmacy POS</span>
+      </div>
+    </div>
+
     <ul class="nav-links">
       <li class="nav-item active" data-view="stock-inward-view">
-        <span>📥 Stock Inward</span> <small style="opacity: 0.6; font-size: 11px;">(F1)</small>
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 3v12M5 10l7 7 7-7M5 21h14" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Stock Inward</span>
+        </div>
+        <kbd class="shortcut-tag">F1</kbd>
       </li>
+
       <li class="nav-item" data-view="inventory-view">
-        <span>📦 Inventory</span>
-        <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
-          <span id="sidebar-alert-badge" class="sidebar-badge">0</span>
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="22.08" x2="12" y2="12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Inventory</span>
+        </div>
+        <span id="sidebar-alert-badge" class="sidebar-badge">0</span>
+      </li>
+
+      <li class="nav-item" data-view="pos-view">
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Billing (POS)</span>
+        </div>
+        <kbd class="shortcut-tag">F4</kbd>
+      </li>
+
+      <li class="nav-item" data-view="till-view">
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="2" y="4" width="20" height="16" rx="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="6" y1="12" x2="18" y2="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="6" y1="8" x2="10" y2="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="6" y1="16" x2="14" y2="16" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Till / Register</span>
         </div>
       </li>
-      <li class="nav-item" data-view="pos-view">
-        <span>🛒 Billing (POS)</span> <small style="opacity: 0.6; font-size: 11px;">(F4)</small>
-      </li>
-      <li class="nav-item" data-view="till-view">
-        <span>💵 Till / Shift</span>
-      </li>
+
       <li class="nav-item" data-view="sales-view">
-        <span>💰 Sales History</span> <small style="opacity: 0.6; font-size: 11px;">(F5)</small>
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="14 2 14 8 20 8" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="16" y1="13" x2="8" y2="13" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="16" y1="17" x2="8" y2="17" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Sales History</span>
+        </div>
+        <kbd class="shortcut-tag">F5</kbd>
       </li>
+
       <li class="nav-item" data-view="reports-view">
-        <span>📈 Revenue & Charts</span> <small style="opacity: 0.6; font-size: 11px;">(F6)</small>
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="20" x2="18" y2="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="20" x2="12" y2="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="6" y1="20" x2="6" y2="14" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Revenue Reports</span>
+        </div>
+        <kbd class="shortcut-tag">F6</kbd>
       </li>
+
       <li class="nav-item" data-view="profits-view">
-        <span>📊 Profits & Charts</span> <small style="opacity: 0.6; font-size: 11px;">(F7)</small>
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="17 6 23 6 23 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Profit Analytics</span>
+        </div>
+        <kbd class="shortcut-tag">F7</kbd>
       </li>
+
       <li class="nav-item" data-view="suppliers-view">
-        <span>📦 Suppliers Directory</span>
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="7" r="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Suppliers</span>
+        </div>
       </li>
-      <li class="nav-item" data-view="settings-view">⚙️ Store Settings</li>
-      <li class="nav-item nav-item-reset" data-view="clear-inventory-view">⚠️ Reset System</li>
+
+      <li class="nav-item" data-view="settings-view">
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Store Settings</span>
+        </div>
+      </li>
+
+      <li class="nav-item nav-item-reset" data-view="clear-inventory-view">
+        <div class="nav-item-content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="9" x2="12" y2="13" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Reset System</span>
+        </div>
+      </li>
     </ul>
   </nav>
 
+  <!-- ========================= MAIN CONTENT WRAPPER ========================= -->
   <main id="main-content">
 
-    <header style="display: flex; justify-content: space-between; align-items: center;">
+    <header>
       <h1 id="page-title">Stock Inward (Goods Receiving)</h1>
-      <div id="header-shift-indicator"
-        style="font-size: 13px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 4px 10px; border-radius: 6px; border: 1px solid #fecaca;">
-        🔴 Till: Closed
+      <div id="header-shift-indicator">
+        Till: Closed
       </div>
     </header>
 
@@ -64,23 +158,30 @@
       <div class="form-hero-layout">
 
         <!-- Left: Form Card -->
-        <div class="card" style="max-width: 700px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h3 class="card-title-spaced" style="margin-bottom: 0;">Goods Receiving & Stock Inward</h3>
-            <button type="button" id="import-csv-btn" class="btn btn-auto btn-sm" style="background: #059669;">📥 Import
-              CSV Spreadsheet</button>
+        <div class="card" style="max-width: 720px;">
+          <div class="card-title-spaced">
+            <span>Goods Receiving & Inward Entry</span>
+            <button type="button" id="import-csv-btn" class="btn btn-auto btn-sm btn-export">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Import CSV
+            </button>
           </div>
+
           <form id="stock-inward-form">
 
             <div class="form-group pos-relative">
               <label for="inward_drug_input">Search Master Drug Database (Brand / Generic) *</label>
-              <input type="text" id="inward_drug_input" placeholder="Type to search master drugs or enter new name..."
+              <input type="text" id="inward_drug_input" placeholder="Type to search master drugs or enter a new name..."
                 autocomplete="off" required autofocus />
               <input type="hidden" id="inward_selected_drug_id" />
               <div id="inward-dropdown" class="pos-dropdown" style="display: none;"></div>
             </div>
 
-            <!-- Always visible Generic Name and Category fields -->
+            <!-- Generic Name and Category fields -->
             <div class="grid-2-col">
               <div class="form-group">
                 <label for="inward_generic_name">Generic Name</label>
@@ -92,7 +193,7 @@
               </div>
             </div>
 
-            <h4 class="edit-batch-heading" style="margin-top: 0;">Shipment Batch Details</h4>
+            <h4 class="edit-batch-heading">Shipment Batch & Pricing Details</h4>
             <div class="grid-2-col">
               <div class="form-group">
                 <label for="inward_supplier_select">Supplier / Vendor</label>
@@ -112,64 +213,63 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1.1fr; gap: 10px;">
               <div class="form-group">
-                <label for="inward_buy_price">Buy Price *</label>
+                <label for="inward_buy_price">Buy Price (LKR) *</label>
                 <input type="number" step="any" min="0" id="inward_buy_price" placeholder="0.00" required />
               </div>
               <div class="form-group">
-                <label for="inward_sell_price">Sell Price *</label>
+                <label for="inward_sell_price">Sell Price (LKR) *</label>
                 <input type="number" step="any" min="0" id="inward_sell_price" placeholder="0.00" required />
               </div>
               <div class="form-group">
-                <label for="inward_quantity">Quantity *</label>
+                <label for="inward_quantity">Quantity (Units) *</label>
                 <input type="number" min="1" id="inward_quantity" placeholder="0" required />
               </div>
               <div class="form-group">
-                <label for="inward_min_stock">Min Alert *</label>
+                <label for="inward_min_stock">Low Stock Alert *</label>
                 <input type="number" min="1" id="inward_min_stock" value="10" placeholder="10" required />
               </div>
             </div>
 
-            <button type="submit" class="btn btn-checkout" style="margin-top: 10px;">💾 Save & Receive Stock</button>
+            <button type="submit" class="btn btn-checkout">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Save & Receive Inward Stock
+            </button>
           </form>
           <div id="inward-status-msg" class="status-msg"></div>
         </div>
 
-        <!-- Right: Decorative Hero Showcase Panel -->
+        <!-- Right: Decorative Clinical Showcase Panel -->
         <div class="hero-showcase-panel">
           <div class="hero-showcase-content">
-            <div class="hero-badge">Smart Pharmacy POS</div>
+            <div class="hero-badge">Clinical Enterprise OS</div>
             <h2>Inventory & Prescription Management</h2>
-            <p>Maintain accurate stock balances, configure batch expiry trackers, and handle point-of-sale invoicing
-              seamlessly.</p>
+            <p>Maintain accurate stock balances, configure FEFO batch expiry trackers, and handle point-of-sale invoicing seamlessly.</p>
 
             <div class="hero-illustration">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
-                <circle cx="100" cy="100" r="85" fill="#e0f2fe" opacity="0.6" />
-                <rect x="55" y="70" width="45" height="75" rx="6" fill="#0284c7" />
-                <rect x="62" y="58" width="31" height="12" rx="3" fill="#38bdf8" />
-                <rect x="65" y="90" width="25" height="35" rx="2" fill="#ffffff" />
-                <rect x="70" y="100" width="15" height="3" rx="1.5" fill="#0284c7" />
-                <rect x="70" y="107" width="15" height="3" rx="1.5" fill="#0284c7" />
-                <rect x="70" y="114" width="10" height="3" rx="1.5" fill="#0284c7" />
-                <g transform="rotate(-35 130 110)">
-                  <rect x="115" y="80" width="30" height="60" rx="15" fill="#38bdf8" />
-                  <path d="M115 110 H145 V125 C145 133.284 138.284 140 130 140 C121.716 140 115 133.284 115 125 Z"
-                    fill="#16a34a" />
-                  <circle cx="130" cy="95" r="4" fill="#ffffff" opacity="0.7" />
-                </g>
-                <circle cx="150" cy="65" r="16" fill="#16a34a" />
-                <path d="M150 56 V74 M141 65 H159" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
+                <rect x="25" y="25" width="150" height="150" rx="20" fill="#f0f9ff" stroke="#bae6fd" stroke-width="2"/>
+                <rect x="45" y="55" width="110" height="90" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+                <line x1="58" y1="75" x2="100" y2="75" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                <line x1="58" y1="90" x2="142" y2="90" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                <line x1="58" y1="102" x2="130" y2="102" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                <line x1="58" y1="114" x2="115" y2="114" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="140" cy="55" r="22" fill="#0284c7" filter="drop-shadow(0 4px 6px rgba(2, 132, 199, 0.3))"/>
+                <path d="M140 45v20M130 55h20" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
               </svg>
             </div>
 
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
-                <strong>Real-Time</strong>
-                <span>Batch Expiry Alerts</span>
+                <strong>Real-Time Tracking</strong>
+                <span>Automated FEFO Expiry Alerts</span>
               </div>
               <div class="hero-stat-card">
-                <strong>Offline-First</strong>
-                <span>Instant Invoicing</span>
+                <strong>Offline-First Engine</strong>
+                <span>High-Speed Local POS Database</span>
               </div>
             </div>
           </div>
@@ -184,7 +284,7 @@
         <div class="inventory-top-bar">
           <div class="inventory-controls-left">
             <div class="control-group">
-              <label for="inventory-filter" class="control-label">Filter By:</label>
+              <label for="inventory-filter" class="control-label">Filter</label>
               <select id="inventory-filter" class="select-filter">
                 <option value="ALL">All Items</option>
                 <option value="IN_STOCK">In Stock</option>
@@ -196,16 +296,37 @@
             </div>
 
             <div class="control-group">
-              <label for="inventory-search" class="control-label">Search:</label>
+              <label for="inventory-search" class="control-label">Search</label>
               <input type="text" id="inventory-search" class="input-search"
                 placeholder="Search brand, generic, batch..." autocomplete="off" />
             </div>
           </div>
 
           <div class="inventory-actions-right">
-            <button id="export-csv-btn" class="btn btn-auto btn-export">📥 Export CSV</button>
-            <button id="backup-db-btn" class="btn btn-auto btn-backup">💾 Backup DB</button>
-            <button id="refresh-inventory-btn" class="btn btn-auto">🔄 Refresh Stock</button>
+            <button id="export-csv-btn" class="btn btn-auto btn-export">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Export CSV
+            </button>
+            <button id="backup-db-btn" class="btn btn-auto btn-backup">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Backup DB
+            </button>
+            <button id="refresh-inventory-btn" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Refresh Stock
+            </button>
           </div>
         </div>
 
@@ -238,11 +359,11 @@
 
         <!-- Left: Item Selector Card -->
         <div class="card card-sticky-top">
-          <h3 class="card-title-spaced">Select Item</h3>
+          <h3 class="card-title-spaced">Select Medicine</h3>
 
           <div class="form-group pos-relative">
             <label for="pos_drug_input">Search Medicine (Start typing name...) *</label>
-            <input type="text" id="pos_drug_input" placeholder="Type brand/generic name..." autocomplete="off"
+            <input type="text" id="pos_drug_input" placeholder="Type brand, generic, or batch..." autocomplete="off"
               autofocus />
             <div id="pos-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
@@ -254,7 +375,13 @@
             <input type="number" id="pos_qty" min="1" value="1" />
           </div>
 
-          <button id="add-to-cart-btn" type="button" class="btn">Add to Cart 🛒 (Enter)</button>
+          <button id="add-to-cart-btn" type="button" class="btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add to Current Bill (Enter)
+          </button>
           <div id="pos-input-msg" class="status-msg"></div>
         </div>
 
@@ -266,7 +393,7 @@
             <table class="data-table data-table-fill no-margin-bottom">
               <thead class="sticky-thead-shallow">
                 <tr>
-                  <th>Item</th>
+                  <th>Medicine</th>
                   <th>Price</th>
                   <th>Qty</th>
                   <th>Total (LKR)</th>
@@ -275,19 +402,19 @@
               </thead>
               <tbody id="cart-table-body">
                 <tr>
-                  <td colspan="5" class="table-empty-cell">Cart is empty.</td>
+                  <td colspan="5" class="table-empty-cell">Cart is empty. Select items to begin billing.</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <!-- Prescription Details for Controlled Drugs -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-            <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0284c7; cursor: pointer; margin-bottom: 6px;">
-              <input type="checkbox" id="enable-prescription-checkbox" style="width: auto;" /> 
-              📋 Attach Prescription (For Antibiotics / Controlled Drugs)
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0284c7; cursor: pointer; margin-bottom: 4px;">
+              <input type="checkbox" id="enable-prescription-checkbox" style="width: auto; cursor: pointer;" /> 
+              Clinical Prescription Attachment (Controlled Drugs / Antibiotics)
             </label>
-            <div id="prescription-fields-container" style="display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+            <div id="prescription-fields-container" style="display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
               <input type="text" id="rx_patient_name" placeholder="Patient Name *" autocomplete="off" />
               <input type="text" id="rx_doctor_name" placeholder="Doctor Name *" autocomplete="off" />
               <input type="text" id="rx_number" placeholder="Prescription / Ref No *" autocomplete="off" />
@@ -297,31 +424,36 @@
 
           <div class="pos-calculation-panel">
             <div class="pos-total-row">
-              <span class="pos-total-label">Net Total:</span>
+              <span class="pos-total-label">Net Payable:</span>
               <span id="grand-total-display" class="pos-grand-total">LKR 0.00</span>
             </div>
 
             <div class="pos-payment-grid">
               <div>
-                <label for="pos-discount-amount" class="pos-pay-label">Discount (%)</label>
+                <label for="pos-discount-amount" class="pos-pay-label">Discount Rate (%)</label>
                 <input type="text" inputmode="decimal" id="pos-discount-amount" class="pos-paid-input" placeholder="0%"
                   autocomplete="off" />
               </div>
 
               <div>
-                <label for="pos-paid-amount" class="pos-pay-label">Cash Paid (LKR) *</label>
+                <label for="pos-paid-amount" class="pos-pay-label">Cash Tendered (LKR) *</label>
                 <input type="text" inputmode="decimal" id="pos-paid-amount" class="pos-paid-input" placeholder="0.00"
                   autocomplete="off" />
               </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-              <label class="pos-pay-label" style="margin-bottom: 0;">Balance / Change</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px;">
+              <label class="pos-pay-label" style="margin-bottom: 0;">Change / Balance Due</label>
               <div id="pos-balance-display" class="pos-balance-value">LKR 0.00</div>
             </div>
           </div>
 
-          <button id="checkout-btn" class="btn btn-checkout">Complete Checkout & Print (F8)</button>
+          <button id="checkout-btn" class="btn btn-checkout">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Complete Checkout & Print (F8)
+          </button>
           <div id="checkout-status-msg" class="status-msg"></div>
         </div>
 
@@ -330,38 +462,40 @@
 
     <!-- TILL / SHIFT MANAGEMENT VIEW -->
     <section id="till-view" class="view-panel">
-      <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
+      <div style="display: grid; grid-template-columns: minmax(360px, 1fr) 1.5fr; gap: 20px;">
 
         <!-- Shift Action Panel -->
         <div class="card">
           <h3 id="till-action-title">Till Operations</h3>
 
           <div id="till-open-section">
-            <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">Open a new cash register shift by
-              specifying the starting cash float.</p>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">Open a new cash register shift by specifying the starting cash float in the drawer.</p>
             <form id="till-open-form">
               <div class="form-group">
                 <label for="till_opening_float">Starting Cash Float (LKR) *</label>
                 <input type="text" inputmode="decimal" id="till_opening_float" placeholder="0.00" required
                   autocomplete="off" />
               </div>
-              <button type="submit" class="btn btn-checkout" style="margin-top: 5px;">🟢 Open Till Shift</button>
+              <button type="submit" class="btn btn-checkout" style="margin-top: 8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Open Cash Shift
+              </button>
             </form>
           </div>
 
           <div id="till-close-section" style="display: none;">
-            <div
-              style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
-              <div style="font-weight: 700; color: #166534; font-size: 15px; margin-bottom: 4px;">🟢 Shift Currently
-                Active</div>
-              <div style="font-size: 12px; color: #4b5563;">Shift #<span id="active-shift-id">-</span> (Opened: <span
-                  id="active-shift-opened">-</span>)</div>
-              <div style="font-size: 13px; margin-top: 6px;">Opening Float: <strong id="active-shift-float"
-                  style="color: #0284c7;">LKR 0.00</strong></div>
-              <div style="font-size: 13px;">Shift Sales: <strong id="active-shift-sales" style="color: #16a34a;">LKR
-                  0.00</strong></div>
-              <div style="font-size: 14px; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
-                Expected Cash: <strong id="active-shift-expected" style="color: #0f172a;">LKR 0.00</strong>
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+              <div style="font-weight: 700; color: #166534; font-size: 14.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span>
+                Active Cash Shift
+              </div>
+              <div style="font-size: 12px; color: #4b5563;">Shift #<span id="active-shift-id">-</span> (Opened: <span id="active-shift-opened">-</span>)</div>
+              <div style="font-size: 13px; margin-top: 8px;">Opening Float: <strong id="active-shift-float" style="color: #0284c7; font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
+              <div style="font-size: 13px;">Shift Total Sales: <strong id="active-shift-sales" style="color: #16a34a; font-variant-numeric: tabular-nums;">LKR 0.00</strong></div>
+              <div style="font-size: 14px; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                Expected Physical Cash: <strong id="active-shift-expected" style="color: #0f172a; font-variant-numeric: tabular-nums;">LKR 0.00</strong>
               </div>
             </div>
 
@@ -373,9 +507,16 @@
               </div>
               <div class="form-group">
                 <label for="till_close_note">Shift Notes (Optional)</label>
-                <input type="text" id="till_close_note" placeholder="e.g. Day-end closing" />
+                <input type="text" id="till_close_note" placeholder="e.g. End of day reconciliation" />
               </div>
-              <button type="submit" class="btn" style="background: #dc2626;">🔴 End Till & Print Z-Report</button>
+              <button type="submit" class="btn" style="background: #dc2626;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                </svg>
+                Close Till & Print Z-Report
+              </button>
             </form>
           </div>
 
@@ -384,9 +525,16 @@
 
         <!-- Shift History List -->
         <div class="card card-full-flex">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 class="no-margin">Shift / Till History</h3>
-            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 class="no-margin" style="font-size: 15px; font-weight: 700;">Shift & Register Audit History</h3>
+            <button id="refresh-shifts-btn" type="button" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Refresh
+            </button>
           </div>
           <div class="table-scroll-container">
             <table class="data-table">
@@ -421,14 +569,21 @@
           </div>
 
           <div class="sales-filter-group">
-            <input type="number" id="sales-invoice-search" placeholder="Search Invoice # (e.g. 2)..."
-              class="date-input-field" style="width: 190px;" />
-            <label for="sales-date-filter" class="control-label">Filter Date:</label>
+            <input type="number" id="sales-invoice-search" placeholder="Search Invoice #..."
+              class="date-input-field" style="width: 170px;" />
+            <label for="sales-date-filter" class="control-label">Date:</label>
             <input type="date" id="sales-date-filter" class="date-input-field" />
 
             <button id="sales-today-btn" type="button" class="btn btn-auto btn-today">Today</button>
             <button id="sales-clear-filter-btn" type="button" class="btn btn-auto btn-all-time">All Time</button>
-            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
+            <button id="refresh-sales-btn" type="button" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Refresh
+            </button>
           </div>
         </div>
 
@@ -471,13 +626,20 @@
         </table>
 
         <div id="modal-receipt-discount-row"
-          style="display: none; justify-content: space-between; padding: 4px 8px; font-size: 13px; color: #dc2626;">
+          style="display: none; justify-content: space-between; padding: 6px 12px; font-size: 13px; color: #dc2626; background: #fef2f2; border-radius: 6px; margin-bottom: 8px;">
           <span>Discount Applied:</span>
           <span id="modal-receipt-discount-val">- LKR 0.00</span>
         </div>
 
         <div class="modal-action-row">
-          <button id="modal-reprint-btn" class="btn btn-auto btn-reprint">🖨️ Print Receipt</button>
+          <button id="modal-reprint-btn" class="btn btn-auto btn-reprint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print Receipt
+          </button>
         </div>
       </div>
     </div>
@@ -490,11 +652,9 @@
           <button id="close-edit-sale-modal" class="close-icon-btn">✕</button>
         </div>
 
-        <div
-          style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-          <h4 style="font-size: 13px; color: #0284c7; margin-bottom: 8px;">Add / Exchange Medicine to this Invoice</h4>
-          <div
-            style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; position: relative;">
+        <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+          <h4 style="font-size: 13px; color: #0284c7; margin-bottom: 8px; font-weight: 700;">Add / Exchange Medicine to this Invoice</h4>
+          <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; position: relative;">
             <div class="form-group pos-relative" style="margin-bottom: 0;">
               <label for="edit_sale_drug_input">Search Medicine to Add *</label>
               <input type="text" id="edit_sale_drug_input" placeholder="Type brand/batch..." autocomplete="off" />
@@ -509,9 +669,8 @@
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: #475569; margin-bottom: 8px;">Current Invoice Items</h4>
-        <div
-          style="max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px;">
+        <h4 style="font-size: 13px; color: #475569; margin-bottom: 8px; font-weight: 700;">Current Invoice Items</h4>
+        <div style="max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 12px;">
           <table class="data-table">
             <thead>
               <tr>
@@ -528,22 +687,19 @@
         </div>
 
         <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center; justify-content: flex-end;">
-          <label for="edit-sale-discount-input" style="font-size: 13px; font-weight: bold; margin-bottom: 0;">Discount
-            (%):</label>
-          <input type="text" inputmode="decimal" id="edit-sale-discount-input" style="width: 110px; padding: 4px 8px;"
+          <label for="edit-sale-discount-input" style="font-size: 13px; font-weight: 700; margin-bottom: 0;">Discount (%):</label>
+          <input type="text" inputmode="decimal" id="edit-sale-discount-input" style="width: 110px; padding: 5px 10px;"
             placeholder="0%" autocomplete="off" />
         </div>
 
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 12px;">
           <div>
-            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #0284c7;">LKR
-                0.00</span></strong>
+            <strong style="font-size: 16px;">New Total: <span id="edit-sale-total-display" style="color: #0284c7; font-variant-numeric: tabular-nums;">LKR 0.00</span></strong>
           </div>
           <div style="display: flex; gap: 8px;">
             <button type="button" id="cancel-edit-sale-btn" class="btn btn-auto btn-cancel">Cancel</button>
             <button type="button" id="save-edit-sale-btn" class="btn btn-auto btn-checkout"
-              style="margin-top: 0 !important;">💾 Save & Reprint Receipt</button>
+              style="margin-top: 0 !important;">Save & Reprint Receipt</button>
           </div>
         </div>
         <div id="edit-sale-status-msg" class="status-msg"></div>
@@ -556,27 +712,27 @@
         <div class="card card-full-width kpi-card-blue">
           <small class="kpi-label">Today's Revenue</small>
           <h2 id="kpi-today-rev" class="kpi-value-blue">LKR 0.00</h2>
-          <small id="kpi-today-orders" class="kpi-sub-blue">0 orders</small>
+          <small id="kpi-today-orders" class="kpi-sub-blue">0 transactions</small>
         </div>
 
         <div class="card card-full-width kpi-card-green">
           <small class="kpi-label">This Month</small>
           <h2 id="kpi-month-rev" class="kpi-value-green">LKR 0.00</h2>
-          <small id="kpi-month-orders" class="kpi-sub-green">0 orders</small>
+          <small id="kpi-month-orders" class="kpi-sub-green">0 transactions</small>
         </div>
 
         <div class="card card-full-width kpi-card-purple">
           <small class="kpi-label">All Time Revenue</small>
           <h2 id="kpi-total-rev" class="kpi-value-purple">LKR 0.00</h2>
-          <small id="kpi-total-orders" class="kpi-sub-purple">0 orders</small>
+          <small id="kpi-total-orders" class="kpi-sub-purple">0 transactions</small>
         </div>
       </div>
 
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
-            <h3>Revenue Analytics</h3>
-            <p class="chart-subtitle">Visual breakdown of store sales performance</p>
+            <h3 style="font-size: 15px; font-weight: 700;">Revenue Analytics</h3>
+            <p class="chart-subtitle">Store financial performance breakdown</p>
           </div>
 
           <div class="filter-btn-group">
@@ -617,8 +773,8 @@
       <div class="card card-full-width">
         <div class="chart-header-row">
           <div>
-            <h3>Profit Analytics</h3>
-            <p class="chart-subtitle">Visual breakdown of net gross profit (Selling Price - Cost Price)</p>
+            <h3 style="font-size: 15px; font-weight: 700;">Profit Analytics</h3>
+            <p class="chart-subtitle">Gross profit breakdown (Selling Price - Buy Price)</p>
           </div>
 
           <div class="filter-btn-group">
@@ -636,14 +792,14 @@
 
     <!-- Suppliers Directory View -->
     <section id="suppliers-view" class="view-panel">
-      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+      <div style="display: grid; grid-template-columns: minmax(360px, 1fr) 2fr; gap: 20px;">
 
         <!-- Add Supplier Form Card -->
         <div class="card">
-          <h3 class="card-title-spaced">Add New Supplier</h3>
+          <h3 class="card-title-spaced">Register New Supplier</h3>
           <form id="supplier-form">
             <div class="form-group">
-              <label for="sup_name">Supplier / Company Name *</label>
+              <label for="sup_name">Company / Distributor Name *</label>
               <input type="text" id="sup_name" placeholder="e.g. PharmaCorp Distributors" required autocomplete="off" />
             </div>
             <div class="form-group">
@@ -659,19 +815,26 @@
               <input type="email" id="sup_email" placeholder="e.g. info@pharmacorp.com" autocomplete="off" />
             </div>
             <div class="form-group">
-              <label for="sup_address">Address</label>
+              <label for="sup_address">Physical Address</label>
               <input type="text" id="sup_address" placeholder="e.g. Colombo 03" autocomplete="off" />
             </div>
-            <button type="submit" class="btn" style="background: #059669;">💾 Save Supplier</button>
+            <button type="submit" class="btn" style="background: #059669;">Save Supplier</button>
           </form>
           <div id="supplier-status-msg" class="status-msg"></div>
         </div>
 
         <!-- Suppliers List Table -->
         <div class="card card-full-flex">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 class="no-margin">Registered Suppliers</h3>
-            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm">🔄 Refresh</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 class="no-margin" style="font-size: 15px; font-weight: 700;">Registered Suppliers</h3>
+            <button id="refresh-suppliers-btn" type="button" class="btn btn-auto btn-sm" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Refresh
+            </button>
           </div>
           <div class="table-scroll-container">
             <table class="data-table">
@@ -720,27 +883,25 @@
           <div class="hero-showcase-content">
             <div class="hero-badge">Receipt Branding</div>
             <h2>Custom Thermal Header</h2>
-            <p>Changes saved here automatically update the business header and footer on every thermal receipt printed.
-            </p>
+            <p>Changes saved here automatically update the business header and footer on every printed POS thermal receipt.</p>
 
             <div class="hero-illustration">
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-svg">
-                <circle cx="100" cy="100" r="85" fill="#e0f2fe" opacity="0.6" />
-                <path d="M50 85 L100 55 L150 85 V150 H50 Z" fill="#0284c7" />
-                <rect x="65" y="95" width="30" height="30" rx="4" fill="#38bdf8" />
-                <rect x="105" y="95" width="30" height="55" rx="4" fill="#ffffff" />
-                <path d="M45 85 Q100 95 155 85 L150 75 Q100 85 50 75 Z" fill="#16a34a" />
+                <rect x="35" y="30" width="130" height="140" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+                <path d="M55 55h90M55 70h65M55 95h90M55 110h90M55 125h45" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="130" cy="125" r="14" fill="#0284c7"/>
+                <polyline points="125 125 129 129 136 121" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
 
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
-                <strong>Dynamic Bill</strong>
-                <span>Instant Header Sync</span>
+                <strong>Dynamic Bill Engine</strong>
+                <span>Instant Thermal Header Sync</span>
               </div>
               <div class="hero-stat-card">
-                <strong>Offline Storage</strong>
-                <span>Locally Saved in SQLite</span>
+                <strong>Offline Persistence</strong>
+                <span>Safely Stored in SQLite</span>
               </div>
             </div>
           </div>
@@ -751,79 +912,66 @@
 
     <!-- Reset System View -->
     <section id="clear-inventory-view" class="view-panel">
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 20px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
 
         <!-- 1. Delete Selected Medicine -->
-        <div class="card"
-          style="border-top: 4px solid #d97706; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <h3 style="color: #b45309; margin-top: 0;">🗑️ Delete Selected Medicine</h3>
-          <p style="font-size: 13px; color: #64748b;">Remove a discontinued medicine and its inventory stock. Past sales
-            history will NOT be deleted.</p>
+        <div class="card" style="border-top: 3px solid #d97706;">
+          <h3 style="color: #b45309; margin-top: 0; font-size: 15px; font-weight: 700;">Delete Single Medicine</h3>
+          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
 
           <div class="form-group pos-relative" style="margin-top: 15px;">
             <label for="delete_drug_input">Search Medicine to Delete *</label>
-            <input type="text" id="delete_drug_input" placeholder="Type brand or generic name..." autocomplete="off"
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+            <input type="text" id="delete_drug_input" placeholder="Type brand or generic name..." autocomplete="off" />
             <input type="hidden" id="selected_delete_drug_id" />
             <div id="delete-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
           </div>
 
-          <button id="delete-selected-drug-btn"
-            style="width: 100%; margin-top: 15px; padding: 10px; background: #d97706; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete
-            Selected Medicine</button>
-          <div id="delete-drug-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+          <button id="delete-selected-drug-btn" class="btn" style="background: #d97706; margin-top: 10px;">
+            Delete Selected Medicine
+          </button>
+          <div id="delete-drug-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
-        <!-- 3. Clear All Medicines Only -->
-        <div class="card"
-          style="border-top: 4px solid #be123c; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <h3 style="color: #be123c; margin-top: 0;">📦 Clear All Medicines Only</h3>
-          <p style="font-size: 13px; color: #64748b;">Wipe all registered drugs and batch stocks. Past sales orders and
-            charts are preserved. PIN required.</p>
+        <!-- 2. Clear All Medicines Only -->
+        <div class="card" style="border-top: 3px solid #be123c;">
+          <h3 style="color: #be123c; margin-top: 0; font-size: 15px; font-weight: 700;">Clear All Medicines Only</h3>
+          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
-            <label for="admin-pin-clear-medicines">Enter PIN *</label>
-            <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN..."
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+            <label for="admin-pin-clear-medicines">Enter Admin PIN *</label>
+            <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN..." />
           </div>
-          <button id="delete-all-drugs-btn"
-            style="width: 100%; margin-top: 15px; padding: 10px; background: #be123c; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Clear
-            All Active Medicines</button>
-          <div id="delete-all-drugs-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+          <button id="delete-all-drugs-btn" class="btn" style="background: #be123c; margin-top: 10px;">
+            Clear All Active Medicines
+          </button>
+          <div id="delete-all-drugs-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
-        <!-- 4. Clear All Sales Only -->
-        <div class="card"
-          style="border-top: 4px solid #9333ea; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <h3 style="color: #9333ea; margin-top: 0;">📊 Clear All Sales & Reports</h3>
-          <p style="font-size: 13px; color: #64748b;">Wipe all sales invoices, revenue history, and profit charts.
-            Medicines and active stocks will remain intact. PIN required.</p>
+        <!-- 3. Clear All Sales Only -->
+        <div class="card" style="border-top: 3px solid #7c3aed;">
+          <h3 style="color: #7c3aed; margin-top: 0; font-size: 15px; font-weight: 700;">Clear Sales & Reports</h3>
+          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
-            <label for="admin-pin-clear-sales">Enter PIN *</label>
-            <input type="password" id="admin-pin-clear-sales" placeholder="Enter PIN..."
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+            <label for="admin-pin-clear-sales">Enter Admin PIN *</label>
+            <input type="password" id="admin-pin-clear-sales" placeholder="Enter PIN..." />
           </div>
-          <button id="clear-all-sales-btn"
-            style="width: 100%; margin-top: 15px; padding: 10px; background: #9333ea; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Clear
-            All Sales History</button>
-          <div id="clear-all-sales-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+          <button id="clear-all-sales-btn" class="btn" style="background: #7c3aed; margin-top: 10px;">
+            Clear All Sales History
+          </button>
+          <div id="clear-all-sales-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
-        <!-- 5. Full Factory Reset -->
-        <div class="card"
-          style="border-top: 4px solid #dc2626; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <h3 style="color: #dc2626; margin-top: 0;">💥 Full Factory Reset</h3>
-          <p style="font-size: 13px; color: #64748b;">Wipe all medicines, batches, sales orders, and report data
-            permanently. PIN required.</p>
+        <!-- 4. Full Factory Reset -->
+        <div class="card" style="border-top: 3px solid #dc2626;">
+          <h3 style="color: #dc2626; margin-top: 0; font-size: 15px; font-weight: 700;">Full System Reset</h3>
+          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
           <div class="form-group" style="margin-top: 15px;">
-            <label for="admin-pin-confirm">Enter PIN *</label>
-            <input type="password" id="admin-pin-confirm" placeholder="Enter PIN..."
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+            <label for="admin-pin-confirm">Enter Admin PIN *</label>
+            <input type="password" id="admin-pin-confirm" placeholder="Enter PIN..." />
           </div>
-          <button id="wipe-database-btn"
-            style="width: 100%; margin-top: 15px; padding: 10px; background: #dc2626; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Wipe
-            Entire System</button>
-          <div id="wipe-status-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+          <button id="wipe-database-btn" class="btn" style="background: #dc2626; margin-top: 10px;">
+            Wipe Entire System
+          </button>
+          <div id="wipe-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
       </div>
