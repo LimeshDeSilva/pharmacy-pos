@@ -1548,38 +1548,91 @@ function renderSalesChart(periodType = 'daily') {
     labelText = 'Monthly Sales (LKR)';
   }
 
-  const labels = dataset.map((d) => d.period);
-  const data = dataset.map((d) => d.total_revenue);
+  const labels = dataset.length > 0 ? dataset.map((d) => d.period) : ['No Sales Recorded'];
+  const data = dataset.length > 0 ? dataset.map((d) => d.total_revenue) : [0];
 
   if (salesChartInstance) salesChartInstance.destroy();
 
   const ctx = canvas.getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  let gradient;
+  try {
+    gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(43, 130, 254, 0.28)');
+    gradient.addColorStop(0.65, isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(43, 130, 254, 0.08)');
+    gradient.addColorStop(1, isDark ? 'rgba(56, 189, 248, 0.00)' : 'rgba(43, 130, 254, 0.00)');
+  } catch (e) {
+    gradient = 'rgba(43, 130, 254, 0.12)';
+  }
+
+  const primaryColor = isDark ? '#38BDF8' : '#2B82FE';
+
   salesChartInstance = new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
-      labels: labels.length > 0 ? labels : ['No Sales Recorded'],
+      labels: labels,
       datasets: [
         {
           label: labelText,
-          data: data.length > 0 ? data : [0],
-          backgroundColor: 'rgba(2, 132, 199, 0.75)',
-          borderColor: '#0284c7',
-          borderWidth: 2,
-          borderRadius: 6,
-          maxBarThickness: 45
+          data: data,
+          borderColor: primaryColor,
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#FFFFFF',
+          pointBorderColor: primaryColor,
+          pointBorderWidth: 2.5,
+          pointRadius: 4.5,
+          pointHoverRadius: 7,
+          pointHoverBackgroundColor: primaryColor,
+          pointHoverBorderColor: '#FFFFFF',
+          pointHoverBorderWidth: 2
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
       scales: {
-        y: { beginAtZero: true, ticks: { callback: (val) => `LKR ${val}` }, grid: { color: document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9' } },
-        x: { grid: { display: false } }
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (val) => `LKR ${val}`,
+            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            color: isDark ? '#94A3B8' : '#64748B'
+          },
+          grid: {
+            color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)',
+            borderDash: [4, 4]
+          }
+        },
+        x: {
+          ticks: {
+            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            color: isDark ? '#94A3B8' : '#64748B'
+          },
+          grid: { display: false }
+        }
       },
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}` } }
+        tooltip: {
+          backgroundColor: isDark ? '#1E293B' : '#0F172A',
+          titleFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 700 },
+          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
+            label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}`
+          }
+        }
       }
     }
   });
@@ -1588,9 +1641,12 @@ function renderSalesChart(periodType = 'daily') {
 const filterButtons = document.querySelectorAll('.filter-btn');
 filterButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
-    filterButtons.forEach((b) => b.classList.remove('active-filter'));
-    btn.classList.add('active-filter');
+    filterButtons.forEach((b) => {
+      b.classList.remove('active', 'active-filter');
+    });
+    btn.classList.add('active', 'active-filter');
     const period = btn.getAttribute('data-period');
+    currentPeriodFilter = period;
     renderSalesChart(period);
   });
 });
@@ -1653,32 +1709,85 @@ function renderProfitChart(periodType = 'daily') {
   if (profitChartInstance) profitChartInstance.destroy();
 
   const ctx = canvas.getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  let gradient;
+  try {
+    gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(16, 185, 129, 0.28)');
+    gradient.addColorStop(0.65, isDark ? 'rgba(52, 211, 153, 0.08)' : 'rgba(16, 185, 129, 0.08)');
+    gradient.addColorStop(1, isDark ? 'rgba(52, 211, 153, 0.00)' : 'rgba(16, 185, 129, 0.00)');
+  } catch (e) {
+    gradient = 'rgba(16, 185, 129, 0.12)';
+  }
+
+  const greenColor = isDark ? '#34D399' : '#10B981';
+
   profitChartInstance = new Chart(ctx, {
-    type: 'bar',
+    type: 'line',
     data: {
       labels: labels,
       datasets: [
         {
           label: labelText,
           data: data,
-          backgroundColor: 'rgba(22, 163, 74, 0.85)',
-          borderColor: '#16a34a',
-          borderWidth: 2,
-          borderRadius: 6,
-          maxBarThickness: 45
+          borderColor: greenColor,
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#FFFFFF',
+          pointBorderColor: greenColor,
+          pointBorderWidth: 2.5,
+          pointRadius: 4.5,
+          pointHoverRadius: 7,
+          pointHoverBackgroundColor: greenColor,
+          pointHoverBorderColor: '#FFFFFF',
+          pointHoverBorderWidth: 2
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
       scales: {
-        y: { beginAtZero: true, ticks: { callback: (val) => `LKR ${val}` }, grid: { color: '#f1f5f9' } },
-        x: { grid: { display: false } }
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (val) => `LKR ${val}`,
+            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            color: isDark ? '#94A3B8' : '#64748B'
+          },
+          grid: {
+            color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)',
+            borderDash: [4, 4]
+          }
+        },
+        x: {
+          ticks: {
+            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            color: isDark ? '#94A3B8' : '#64748B'
+          },
+          grid: { display: false }
+        }
       },
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}` } }
+        tooltip: {
+          backgroundColor: isDark ? '#1E293B' : '#0F172A',
+          titleFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 700 },
+          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
+            label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}`
+          }
+        }
       }
     }
   });
@@ -1687,9 +1796,12 @@ function renderProfitChart(periodType = 'daily') {
 const profitFilterButtons = document.querySelectorAll('.profit-filter-btn');
 profitFilterButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
-    profitFilterButtons.forEach((b) => b.classList.remove('active-filter'));
-    btn.classList.add('active-filter');
+    profitFilterButtons.forEach((b) => {
+      b.classList.remove('active', 'active-filter');
+    });
+    btn.classList.add('active', 'active-filter');
     const period = btn.getAttribute('data-period');
+    currentProfitPeriodFilter = period;
     renderProfitChart(period);
   });
 });
