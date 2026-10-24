@@ -481,6 +481,62 @@ header {
   pointer-events: none;
 }
 
+/* ========================== */
+.official-hero-card-revenue {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 22px;
+  min-height: 154px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.official-hero-card-revenue::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: -40px;
+  right: 0px;
+  width: 100%;
+  background: url('assets/reports.png') no-repeat right;
+  background-size: 800px;
+  pointer-events: none;
+}
+
+/* ========================== */
+.official-hero-card-profit {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 22px;
+  min-height: 154px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.official-hero-card-profit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: -40px;
+  right: 0px;
+  width: 100%;
+  background: url('assets/profit.png') no-repeat right;
+  background-size: 800px;
+  pointer-events: none;
+}
+
 .hero-left-col {
   position: relative;
   z-index: 2;
@@ -1143,12 +1199,17 @@ tbody tr:hover {
 
 .hero-sales {
   background: linear-gradient(135deg, #FFFFFF 0%, #FAF8FF 50%, #F4EFFF 100%) !important;
-  border-color: #E9D5FF !important;
+  border-color: #bb7bff !important;
 }
 
 .hero-reports {
   background: linear-gradient(135deg, #FFFFFF 0%, #F5FDF9 50%, #E8FBF1 100%) !important;
-  border-color: #A7F3D0 !important;
+  border-color: #2ef095 !important;
+}
+
+.hero-profit {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5FDF9 50%, #E8FBF1 100%) !important;
+  border-color: #00aaff !important;
 }
 
 /* Inventory Controls */
