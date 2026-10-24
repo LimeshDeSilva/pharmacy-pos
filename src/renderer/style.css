@@ -386,9 +386,9 @@ header {
   top: 0;
   bottom: 0;
   right: 70px;
-  width: 600px;
+  width: 900px;
   background: url('assets/stockinward.png') no-repeat center right;
-  background-size: 600px;
+  background-size: 650px;
   pointer-events: none;
 }
 
@@ -1188,8 +1188,9 @@ tbody tr:hover {
 } */
 
 /* Background Gradients for Hero Cards */
-.hero-inventory {
+.hero-inventory, .hero-stockInward {
   background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 60%, #EBF4FF 100%) !important;
+  border-color: #00aaff !important;
 }
 
 .hero-till {
