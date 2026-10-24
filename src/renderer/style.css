@@ -367,7 +367,7 @@ header {
    ========================================================================== */
 .official-hero-card {
   background-color: #FFFFFF;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid #00aaff ;
   border-radius: var(--radius-lg);
   padding: 24px 28px;
   position: relative;
@@ -420,7 +420,7 @@ header {
 
 .hero-heading span {
   color: var(--accent-primary);
-  display: block;
+  display: inline-block;
 }
 
 .hero-desc {
@@ -1052,8 +1052,8 @@ tbody tr:hover {
   justify-content: flex-end;
   height: 10px;
   max-width: 600px;
-  margin-right: -50px;
-  margin-top: -40px;
+  margin-right: -80px;
+  margin-top: -10px;
 }
 
 .hero-art-container-stock-inward{
@@ -1063,7 +1063,7 @@ tbody tr:hover {
   align-items: center;
   justify-content: flex-end;
   height: 10px;
-  max-width: 700px;
+  max-width: 600px;
   margin-right: -30px;
 }
 
