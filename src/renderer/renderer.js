@@ -686,7 +686,12 @@ function renderInventoryTable() {
 
   const filteredData = rawInventoryData.filter((row) => {
     const status = calculateItemStatus(row);
-    const matchesFilter = activeFilter === 'ALL' || status.type === activeFilter;
+    const matchesFilter =
+      activeFilter === 'ALL' ||
+      status.type === activeFilter ||
+      (activeFilter === 'NORMAL' && status.type === 'IN_STOCK') ||
+      (activeFilter === 'LOW' && status.type === 'LOW_STOCK') ||
+      (activeFilter === 'NEAR_EXPIRY' && status.type === 'EXPIRING_SOON');
     const matchesSearch =
       !searchTerm ||
       (row.brand_name && String(row.brand_name).toLowerCase().includes(searchTerm)) ||
@@ -2299,14 +2304,17 @@ if (importCsvBtn) {
         msg.style.color = '#059669';
         msg.innerText = `✓ Successfully imported ${res.count} items/batches!`;
       }
-      await displayDrugDropdown();
+      await loadInventory();
+      if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
       await refreshAlertBadges();
+      alert(`✓ Successfully imported ${res.count} inventory items/batches!`);
       setTimeout(() => { if (msg) msg.innerText = ''; }, 3000);
     } else if (res && !res.canceled) {
       if (msg) {
         msg.style.color = '#dc2626';
         msg.innerText = '✗ Import failed: ' + res.error;
       }
+      alert('✗ Import failed: ' + (res.error || 'Unknown error'));
     } else {
       if (msg) msg.innerText = '';
     }
