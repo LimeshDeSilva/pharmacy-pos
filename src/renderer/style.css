@@ -608,6 +608,19 @@ header {
   flex-direction: column;
   gap: 6px;
   min-width: 148px;
+  cursor: pointer;
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease, border-color var(--transition-speed) ease;
+  user-select: none;
+}
+
+.hero-floating-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.12), 0 8px 12px -6px rgba(15, 23, 42, 0.05);
+  border-color: #CBD5E1;
+}
+
+.hero-floating-stat:active {
+  transform: translateY(0);
 }
 
 .floating-stat-top {
