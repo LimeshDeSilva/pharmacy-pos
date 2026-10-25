@@ -71,6 +71,65 @@
   --transition-speed: 0.18s;
 }
 
+/* ==========================================================================
+   DARK THEME PALETTE - DEEP MIDNIGHT NAVY SPECIFICATION
+   Pixel-Perfect Match to User Uploaded Mockup
+   ========================================================================== */
+[data-theme="dark"] {
+  /* Theme Canvas & Surfaces - Deep Midnight Navy */
+  --bg-app: #030C1D;
+  --bg-surface: #051630;
+  --bg-card: #051630;
+  --bg-card-hover: #071E3E;
+  --bg-sidebar: #020914;
+  --bg-sidebar-hover: rgba(30, 64, 175, 0.15);
+  --bg-sidebar-active: linear-gradient(90deg, #1D6EE5 0%, #1555C2 100%);
+  --bg-input: #030D1E;
+  --bg-input-focus: #041228;
+
+  /* Borders & Dividers */
+  --border-subtle: #0C2D58;
+  --border-card: #0C2D58;
+  --border-input: #0A264E;
+  --border-input-focus: #38BDF8;
+  --border-light: #0A264E;
+
+  /* Typography */
+  --text-main: #FFFFFF;
+  --text-body: #CBD5E1;
+  --text-muted: #8DA2BE;
+  --text-subtle: #4B6589;
+
+  /* Vibrant Functional Accents */
+  --accent-primary: #38BDF8;
+  --accent-primary-hover: #0EA5E9;
+  --accent-primary-light: rgba(56, 189, 248, 0.12);
+  --accent-primary-pill: #0E3E8C;
+
+  --accent-emerald: #10B981;
+  --accent-emerald-hover: #059669;
+  --accent-emerald-light: rgba(16, 185, 129, 0.15);
+
+  --accent-amber: #F59E0B;
+  --accent-amber-light: rgba(245, 158, 11, 0.15);
+
+  --accent-red: #EF4444;
+  --accent-red-hover: #DC2626;
+  --accent-red-light: rgba(239, 68, 68, 0.15);
+
+  --accent-purple: #A855F7;
+  --accent-purple-light: rgba(168, 85, 247, 0.15);
+
+  --accent-teal: #14B8A6;
+  --accent-teal-light: rgba(20, 184, 166, 0.15);
+
+  /* Shadows for dark mode */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-float: 0 10px 25px -5px rgba(0, 0, 0, 0.55);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+}
+
 /* Base Reset */
 *,
 *::before,
@@ -1895,11 +1954,6 @@ tbody tr:hover {
   gap: 2px;
 }
 
-[data-theme="dark"] .chart-type-toggle-group {
-  background-color: #1E293B;
-  border-color: #334155;
-}
-
 .btn-chart-toggle {
   display: inline-flex;
   align-items: center;
@@ -1919,10 +1973,6 @@ tbody tr:hover {
   color: var(--text-main);
 }
 
-[data-theme="dark"] .btn-chart-toggle:hover {
-  color: #F8FAFC;
-}
-
 .btn-chart-toggle.active {
   background-color: var(--accent-primary);
   color: #FFFFFF;
@@ -1933,4 +1983,559 @@ tbody tr:hover {
   background-color: var(--accent-emerald);
   color: #FFFFFF;
   box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+}
+
+/* ==========================================================================
+   DARK MODE COMPONENT OVERRIDES - EXACT SPECIFICATION MATCH
+   ========================================================================== */
+
+/* 1. App Canvas & Sidebar */
+[data-theme="dark"] body {
+  background-color: #030C1D;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] #sidebar {
+  background-color: #020914;
+  border-right: 1px solid #0A2246;
+}
+
+[data-theme="dark"] .brand-title {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .brand-subtitle {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .nav-section-title {
+  color: #435A7B;
+}
+
+[data-theme="dark"] .nav-item {
+  color: #8DA2BE;
+}
+
+[data-theme="dark"] .nav-item .nav-icon {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .nav-item:hover {
+  background-color: rgba(29, 110, 229, 0.15);
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .nav-item:hover .nav-icon {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .nav-item.active {
+  background: linear-gradient(90deg, #1D6EE5 0%, #1555C2 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(29, 110, 229, 0.35);
+}
+
+[data-theme="dark"] .nav-item.active .nav-icon {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .shortcut-tag {
+  background-color: #081E3D;
+  color: #5D7AA0;
+  border: 1px solid #0F2E5A;
+}
+
+[data-theme="dark"] .nav-item.active .shortcut-tag {
+  background-color: #0E3E8C;
+  color: #9EC5FE;
+  border: none;
+}
+
+[data-theme="dark"] .sidebar-badge {
+  background-color: #EF4444;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .nav-item-reset {
+  color: #EF4444 !important;
+}
+
+[data-theme="dark"] .nav-item-reset .nav-icon {
+  color: #EF4444 !important;
+}
+
+[data-theme="dark"] .nav-item-reset:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* 2. Header & Controls */
+[data-theme="dark"] #page-title {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .header-cube-icon {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .header-icon-btn {
+  background-color: #061A38;
+  border: 1px solid #0E2F5D;
+  color: #8DA2BE;
+}
+
+[data-theme="dark"] .header-icon-btn:hover {
+  background-color: #0A2652;
+  color: #FFFFFF;
+  border-color: #38BDF8;
+}
+
+/* 3. Hero Cards & Floating Stat (All Panels) */
+[data-theme="dark"] .official-hero-card,
+[data-theme="dark"] .official-hero-card-stock-inward,
+[data-theme="dark"] .official-hero-card-inventory,
+[data-theme="dark"] .official-hero-card-sales,
+[data-theme="dark"] .official-hero-card-till,
+[data-theme="dark"] .official-hero-card-revenue,
+[data-theme="dark"] .official-hero-card-profit,
+[data-theme="dark"] .hero-stockInward,
+[data-theme="dark"] .hero-inventory,
+[data-theme="dark"] .hero-till,
+[data-theme="dark"] .hero-sales,
+[data-theme="dark"] .hero-reports,
+[data-theme="dark"] .hero-profit {
+  /* background: linear-gradient(135deg, #071C3D 0%, #061937 50%, #030D22 100%) !important; */
+  border-color: #0D3265 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .hero-heading,
+[data-theme="dark"] .hero-heading-single {
+  color: #000000;
+}
+
+[data-theme="dark"] .hero-heading span {
+  color: #2B82FE;
+}
+
+[data-theme="dark"] .hero-desc {
+  color: #436a9a;
+}
+
+[data-theme="dark"] .hero-welcome-badge {
+  background-color: #0B254A;
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .hero-feature-pill {
+  background-color: #061C3D;
+  border: 1px solid #0F3567;
+  color: #CBD5E1;
+  box-shadow: none;
+}
+
+[data-theme="dark"] .hero-floating-stat {
+  background-color: #061A3B;
+  border: 1px solid #103B70;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .hero-floating-stat:hover {
+  border-color: #1D6EE5;
+}
+
+[data-theme="dark"] .stat-icon-square {
+  background-color: #0E326B;
+  color: #38BDF8;
+  box-shadow: 0 4px 10px rgba(14, 50, 107, 0.4);
+}
+
+[data-theme="dark"] .stat-label-text {
+  color: #7D98B9;
+}
+
+[data-theme="dark"] .stat-val-text {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .stat-trend-text {
+  color: #10B981;
+}
+
+/* 4. Form Cards & Inward Entry Form */
+[data-theme="dark"] .card {
+  background-color: #051630;
+  border: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] .card-title-cube {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .card-title-text {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .form-group label {
+  color: #CBD5E1;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] select {
+  background-color: #030D1E;
+  border: 1px solid #0A264E;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] input:hover,
+[data-theme="dark"] select:hover {
+  border-color: #16427D;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus {
+  background-color: #041228;
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+[data-theme="dark"] input::placeholder {
+  color: #3D526E;
+}
+
+[data-theme="dark"] select option {
+  background-color: #051630;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) hue-rotate(170deg) brightness(1.2);
+  cursor: pointer;
+}
+
+/* Vibrant Electric Cyan Icons inside Inputs */
+[data-theme="dark"] .input-icon {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .input-prefix-icon {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .input-prefix-tag {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .select-chevron {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .form-subheading {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .form-subheading svg {
+  stroke: #38BDF8;
+}
+
+/* 5. Buttons */
+[data-theme="dark"] .btn-export {
+  background-color: #061D3D;
+  border: 1px solid #0284C7;
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .btn-export:hover {
+  background-color: #0C366E;
+  border-color: #38BDF8;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-save-inward {
+  background: linear-gradient(90deg, #0070F3 0%, #0056CC 100%);
+  box-shadow: 0 4px 18px rgba(0, 102, 255, 0.35);
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-save-inward:hover {
+  background: linear-gradient(90deg, #157AFF 0%, #0060E6 100%);
+  box-shadow: 0 6px 22px rgba(0, 102, 255, 0.45);
+}
+
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(90deg, #0070F3 0%, #0056CC 100%);
+  box-shadow: 0 4px 18px rgba(0, 102, 255, 0.35);
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-outline {
+  background-color: #061D3D;
+  color: #38BDF8;
+  border: 1px solid #0284C7;
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  background-color: #0C366E;
+  color: #FFFFFF;
+  border-color: #38BDF8;
+}
+
+/* 6. Autocomplete Dropdown */
+[data-theme="dark"] .pos-dropdown {
+  background-color: #051630;
+  border: 1px solid #0C2D58;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .dropdown-item,
+[data-theme="dark"] .pos-option {
+  background-color: #051630;
+  color: #F8FAFC;
+  border-bottom: 1px solid #0A264E;
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item.active,
+[data-theme="dark"] .pos-option:hover,
+[data-theme="dark"] .pos-option.selected {
+  background-color: #0A2955;
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .pos-option code {
+  background-color: #030D1E;
+  color: #38BDF8;
+  border: 1px solid #0A264E;
+}
+
+/* 7. Tables (Inventory, Sales, Billing) */
+[data-theme="dark"] .table-container,
+[data-theme="dark"] .cart-scroll-container,
+[data-theme="dark"] .table-scroll-container {
+  background-color: #051630;
+  border: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] thead th,
+[data-theme="dark"] .sticky-thead-shallow th {
+  background-color: #030D1E;
+  color: #7D98B9;
+  border-bottom: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] tbody td {
+  background-color: transparent;
+  border-bottom: 1px solid #081F3E;
+  color: #F1F5F9;
+}
+
+[data-theme="dark"] tbody tr:hover {
+  background-color: #071F42;
+}
+
+[data-theme="dark"] .table-empty-cell {
+  color: #7D98B9;
+}
+
+/* 8. Modals & Dialogs */
+[data-theme="dark"] .modal-backdrop {
+  background-color: rgba(1, 6, 15, 0.78);
+}
+
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal-dialog-receipt,
+[data-theme="dark"] .modal-dialog-edit,
+[data-theme="dark"] .modal-dialog-edit-sale {
+  background-color: #051630;
+  border: 1px solid #0C2D58;
+  color: #F1F5F9;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] .modal-action-row,
+[data-theme="dark"] .modal-footer-actions {
+  border-top: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] .close-icon-btn {
+  color: #7D98B9;
+}
+
+[data-theme="dark"] .close-icon-btn:hover {
+  background-color: #0A264E;
+  color: #EF4444;
+}
+
+[data-theme="dark"] .btn-cancel {
+  background-color: #030D1E;
+  border: 1px solid #0A264E;
+  color: #8DA2BE;
+}
+
+[data-theme="dark"] .btn-cancel:hover {
+  background-color: #071A36;
+  color: #FFFFFF;
+  border-color: #0E3770;
+}
+
+[data-theme="dark"] .receipt-container {
+  background-color: #030D1E;
+  border: 1px dashed #0C2D58;
+  color: #CBD5E1;
+}
+
+[data-theme="dark"] .receipt-header h3,
+[data-theme="dark"] .receipt-sub-row-bold,
+[data-theme="dark"] .total-row {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .receipt-divider,
+[data-theme="dark"] .receipt-summary {
+  border-color: #0C2D58;
+}
+
+[data-theme="dark"] .receipt-table th,
+[data-theme="dark"] .modal-receipt-table th {
+  border-bottom: 1px solid #0C2D58;
+  color: #7D98B9;
+}
+
+/* 9. POS Billing Panel */
+[data-theme="dark"] .payable-card {
+  background: linear-gradient(135deg, #071E40 0%, #030D1E 100%);
+  border: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] .pos-calculation-panel {
+  background: linear-gradient(135deg, #051630 0%, #030D1E 100%);
+  border: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] .pos-total-row {
+  border-bottom: 1px dashed #0C2D58;
+}
+
+[data-theme="dark"] .pos-total-label {
+  color: #CBD5E1;
+}
+
+[data-theme="dark"] .pos-pay-label {
+  color: #7D98B9;
+}
+
+[data-theme="dark"] .pos-paid-input {
+  background-color: #030D1E;
+  border: 1px solid #0A264E;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .pos-paid-input:focus {
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+/* 10. KPI Cards & Analytics */
+[data-theme="dark"] .kpi-card {
+  background-color: #051630;
+  border: 1px solid #0C2D58;
+}
+
+[data-theme="dark"] .kpi-label {
+  color: #7D98B9;
+}
+
+[data-theme="dark"] .kpi-icon-badge.blue {
+  background-color: #061C3D;
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .kpi-icon-badge.green {
+  background-color: #04241E;
+  color: #10B981;
+}
+
+[data-theme="dark"] .kpi-icon-badge.purple {
+  background-color: #1E133D;
+  color: #A855F7;
+}
+
+[data-theme="dark"] .btn-chart-filter {
+  background-color: #030D1E;
+  color: #7D98B9;
+  border: 1px solid #0A264E;
+}
+
+[data-theme="dark"] .btn-chart-filter.active,
+[data-theme="dark"] .btn-chart-filter:hover {
+  background-color: #1D6EE5;
+  color: #FFFFFF;
+  border-color: #1D6EE5;
+}
+
+[data-theme="dark"] .profit-filter-btn {
+  background-color: #030D1E;
+  color: #7D98B9;
+  border-color: #0A264E;
+}
+
+[data-theme="dark"] .profit-filter-btn.active,
+[data-theme="dark"] .profit-filter-btn:hover {
+  background-color: #10B981;
+  color: #FFFFFF;
+  border-color: #10B981;
+}
+
+[data-theme="dark"] .chart-type-toggle-group {
+  background-color: #030D1E;
+  border: 1px solid #0A264E;
+}
+
+[data-theme="dark"] .btn-chart-toggle {
+  color: #7D98B9;
+}
+
+[data-theme="dark"] .btn-chart-toggle:hover {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-chart-toggle.active {
+  background-color: #1D6EE5;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-chart-toggle.profit.active {
+  background-color: #10B981;
+  color: #FFFFFF;
+}
+
+/* 11. Till Notice */
+[data-theme="dark"] .till-notice-amber {
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #FBBF24;
+}
+
+/* 12. Custom Scrollbar for Dark Theme */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #020914;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #0C2D58;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #1A4D8C;
 }
