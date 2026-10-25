@@ -1557,43 +1557,61 @@ function renderSalesChart(periodType = 'daily') {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
   const primaryColor = isDark ? '#38BDF8' : '#2B82FE';
-  const barBg = isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(43, 130, 254, 0.25)';
+  const barBg = isDark ? 'rgba(56, 189, 248, 0.4)' : 'rgba(43, 130, 254, 0.3)';
+
+  let gradient = 'rgba(43, 130, 254, 0.12)';
+  try {
+    const grad = ctx.createLinearGradient(0, 0, 0, 240);
+    grad.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(43, 130, 254, 0.28)');
+    grad.addColorStop(0.7, isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(43, 130, 254, 0.05)');
+    grad.addColorStop(1, isDark ? 'rgba(56, 189, 248, 0.00)' : 'rgba(43, 130, 254, 0.00)');
+    gradient = grad;
+  } catch (e) {}
+
+  let chartDataset = [];
+  if (currentSalesChartType === 'line') {
+    chartDataset = [
+      {
+        type: 'line',
+        label: labelText,
+        data: data,
+        borderColor: primaryColor,
+        backgroundColor: gradient,
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: primaryColor,
+        pointBorderWidth: 2.5,
+        pointRadius: 3.5,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: primaryColor,
+        pointHoverBorderColor: '#FFFFFF',
+        pointHoverBorderWidth: 2
+      }
+    ];
+  } else {
+    // Default: 'bar'
+    chartDataset = [
+      {
+        type: 'bar',
+        label: labelText,
+        data: data,
+        backgroundColor: barBg,
+        borderColor: primaryColor,
+        borderWidth: 1.5,
+        borderRadius: 6,
+        maxBarThickness: 28,
+        borderRadius: 4
+      }
+    ];
+  }
 
   salesChartInstance = new Chart(ctx, {
-    type: 'bar',
+    type: currentSalesChartType,
     data: {
       labels: labels,
-      datasets: [
-        {
-          type: 'bar',
-          label: labelText,
-          data: data,
-          backgroundColor: barBg,
-          borderColor: primaryColor,
-          borderWidth: 1.5,
-          borderRadius: 6,
-          maxBarThickness: 45,
-          order: 2
-        },
-        {
-          type: 'line',
-          label: labelText,
-          data: data,
-          borderColor: primaryColor,
-          borderWidth: 2.5,
-          fill: false,
-          tension: 0.35,
-          pointBackgroundColor: '#FFFFFF',
-          pointBorderColor: primaryColor,
-          pointBorderWidth: 2.5,
-          pointRadius: 4.5,
-          pointHoverRadius: 7,
-          pointHoverBackgroundColor: primaryColor,
-          pointHoverBorderColor: '#FFFFFF',
-          pointHoverBorderWidth: 2,
-          order: 1
-        }
-      ]
+      datasets: chartDataset
     },
     options: {
       responsive: true,
@@ -1617,8 +1635,11 @@ function renderSalesChart(periodType = 'daily') {
         },
         x: {
           ticks: {
-            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-            color: isDark ? '#94A3B8' : '#64748B'
+            font: { size: 10.5, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            color: isDark ? '#94A3B8' : '#64748B',
+            autoSkip: true,
+            maxTicksLimit: 12,
+            maxRotation: 0
           },
           grid: { display: false }
         }
@@ -1633,10 +1654,7 @@ function renderSalesChart(periodType = 'daily') {
           cornerRadius: 8,
           displayColors: false,
           callbacks: {
-            label: (item) => {
-              if (item.datasetIndex !== 0) return null;
-              return ` Revenue: LKR ${Number(item.raw).toFixed(2)}`;
-            }
+            label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}`
           }
         }
       }
@@ -1654,6 +1672,17 @@ filterButtons.forEach((btn) => {
     const period = btn.getAttribute('data-period');
     currentPeriodFilter = period;
     renderSalesChart(period);
+  });
+});
+
+// Sales Chart Type Toggle (Bar vs Line)
+const salesToggleBtns = document.querySelectorAll('.btn-chart-toggle:not(.profit)');
+salesToggleBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    salesToggleBtns.forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSalesChartType = btn.getAttribute('data-chart-type') || 'bar';
+    renderSalesChart(currentPeriodFilter || 'daily');
   });
 });
 
@@ -1718,43 +1747,61 @@ function renderProfitChart(periodType = 'daily') {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
   const greenColor = isDark ? '#34D399' : '#10B981';
-  const barBg = isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(16, 185, 129, 0.25)';
+  const barBg = isDark ? 'rgba(52, 211, 153, 0.4)' : 'rgba(16, 185, 129, 0.3)';
+
+  let gradient = 'rgba(16, 185, 129, 0.12)';
+  try {
+    const grad = ctx.createLinearGradient(0, 0, 0, 240);
+    grad.addColorStop(0, isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(16, 185, 129, 0.28)');
+    grad.addColorStop(0.7, isDark ? 'rgba(52, 211, 153, 0.05)' : 'rgba(16, 185, 129, 0.05)');
+    grad.addColorStop(1, isDark ? 'rgba(52, 211, 153, 0.00)' : 'rgba(16, 185, 129, 0.00)');
+    gradient = grad;
+  } catch (e) {}
+
+  let chartDataset = [];
+  if (currentProfitChartType === 'line') {
+    chartDataset = [
+      {
+        type: 'line',
+        label: labelText,
+        data: data,
+        borderColor: greenColor,
+        backgroundColor: gradient,
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: greenColor,
+        pointBorderWidth: 2.5,
+        pointRadius: 3.5,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: greenColor,
+        pointHoverBorderColor: '#FFFFFF',
+        pointHoverBorderWidth: 2
+      }
+    ];
+  } else {
+    // Default: 'bar'
+    chartDataset = [
+      {
+        type: 'bar',
+        label: labelText,
+        data: data,
+        backgroundColor: barBg,
+        borderColor: greenColor,
+        borderWidth: 1.5,
+        borderRadius: 6,
+        maxBarThickness: 28,
+        borderRadius: 4
+      }
+    ];
+  }
 
   profitChartInstance = new Chart(ctx, {
-    type: 'bar',
+    type: currentProfitChartType,
     data: {
       labels: labels,
-      datasets: [
-        {
-          type: 'bar',
-          label: labelText,
-          data: data,
-          backgroundColor: barBg,
-          borderColor: greenColor,
-          borderWidth: 1.5,
-          borderRadius: 6,
-          maxBarThickness: 45,
-          order: 2
-        },
-        {
-          type: 'line',
-          label: labelText,
-          data: data,
-          borderColor: greenColor,
-          borderWidth: 2.5,
-          fill: false,
-          tension: 0.35,
-          pointBackgroundColor: '#FFFFFF',
-          pointBorderColor: greenColor,
-          pointBorderWidth: 2.5,
-          pointRadius: 4.5,
-          pointHoverRadius: 7,
-          pointHoverBackgroundColor: greenColor,
-          pointHoverBorderColor: '#FFFFFF',
-          pointHoverBorderWidth: 2,
-          order: 1
-        }
-      ]
+      datasets: chartDataset
     },
     options: {
       responsive: true,
@@ -1778,8 +1825,11 @@ function renderProfitChart(periodType = 'daily') {
         },
         x: {
           ticks: {
-            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-            color: isDark ? '#94A3B8' : '#64748B'
+            font: { size: 10.5, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            color: isDark ? '#94A3B8' : '#64748B',
+            autoSkip: true,
+            maxTicksLimit: 12,
+            maxRotation: 0
           },
           grid: { display: false }
         }
@@ -1794,10 +1844,7 @@ function renderProfitChart(periodType = 'daily') {
           cornerRadius: 8,
           displayColors: false,
           callbacks: {
-            label: (item) => {
-              if (item.datasetIndex !== 0) return null;
-              return ` Profit: LKR ${Number(item.raw).toFixed(2)}`;
-            }
+            label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}`
           }
         }
       }
@@ -1815,6 +1862,17 @@ profitFilterButtons.forEach((btn) => {
     const period = btn.getAttribute('data-period');
     currentProfitPeriodFilter = period;
     renderProfitChart(period);
+  });
+});
+
+// Profit Chart Type Toggle (Bar vs Line)
+const profitToggleBtns = document.querySelectorAll('.btn-chart-toggle.profit');
+profitToggleBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    profitToggleBtns.forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentProfitChartType = btn.getAttribute('data-chart-type') || 'bar';
+    renderProfitChart(currentProfitPeriodFilter || 'daily');
   });
 });
 
@@ -2550,6 +2608,8 @@ document.addEventListener('keydown', async (e) => {
 // ==================== MODERN SAAS CIRCULAR VIEW TRANSITIONS THEME CONTROLLER ====================
 let currentPeriodFilter = 'daily';
 let currentProfitPeriodFilter = 'daily';
+let currentSalesChartType = 'bar'; // 'bar' | 'line'
+let currentProfitChartType = 'bar'; // 'bar' | 'line'
 
 function initThemeController() {
   const savedTheme = localStorage.getItem('pos_theme') || 'light';
