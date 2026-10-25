@@ -41,6 +41,11 @@ contextBridge.exposeInMainWorld('api', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (settings) => ipcRenderer.invoke('settings:update', settings),
   verifyPin: (pin) => ipcRenderer.invoke('auth:verifyPin', pin),
+  isAuthSetupCompleted: () => ipcRenderer.invoke('auth:isSetupCompleted'),
+  setupCredentials: (data) => ipcRenderer.invoke('auth:setupCredentials', data),
+  login: (data) => ipcRenderer.invoke('auth:login', data),
+  verifyPassword: (password) => ipcRenderer.invoke('auth:verifyPassword', password),
+  changeCredentials: (data) => ipcRenderer.invoke('auth:changeCredentials', data),
 
   deleteSingleSale: (saleId) => ipcRenderer.invoke('sales:deleteSingle', saleId),
   deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll'),
