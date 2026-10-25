@@ -39,6 +39,7 @@ function initDatabase() {
       buy_price REAL NOT NULL,
       sell_price REAL NOT NULL,
       quantity INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (drug_id) REFERENCES drugs(id) ON DELETE CASCADE,
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
       UNIQUE(drug_id, batch_number)
@@ -128,6 +129,31 @@ function initDatabase() {
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN batch_number TEXT;`); } catch (e) { }
   try { db.exec(`ALTER TABLE sale_items ADD COLUMN buy_price REAL DEFAULT 0;`); } catch (e) { }
   try { db.exec(`ALTER TABLE batches ADD COLUMN supplier_id INTEGER;`); } catch (e) { }
+  try {
+    const batchCols = db.prepare(`PRAGMA table_info(batches)`).all();
+    const hasCreatedAt = batchCols.some(c => c.name === 'created_at');
+    if (!hasCreatedAt) {
+      db.exec(`ALTER TABLE batches ADD COLUMN created_at TEXT;`);
+    }
+    db.exec(`
+      UPDATE batches 
+      SET created_at = (
+        SELECT MIN(s.created_at) 
+        FROM sales s 
+        JOIN sale_items si ON si.sale_id = s.id 
+        WHERE si.batch_id = batches.id
+      )
+      WHERE created_at IS NULL AND EXISTS (
+        SELECT 1 FROM sale_items si WHERE si.batch_id = batches.id
+      );
+    `);
+    db.exec(`UPDATE batches SET created_at = datetime('now', 'localtime') WHERE created_at IS NULL;`);
+  } catch (e) {
+    try {
+      db.exec(`ALTER TABLE batches ADD COLUMN created_at TEXT;`);
+      db.exec(`UPDATE batches SET created_at = datetime('now', 'localtime') WHERE created_at IS NULL;`);
+    } catch (e2) { }
+  }
 
   // FIX: Automatically backfill missing buy prices from batches table for past sales
   try {
