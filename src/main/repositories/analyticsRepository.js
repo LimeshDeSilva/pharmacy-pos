@@ -88,7 +88,12 @@ class AnalyticsRepository {
       const query = `
         SELECT 
           COUNT(s.id) AS orders,
-          COALESCE(SUM(s.total_amount - (SELECT COALESCE(SUM(si.quantity * COALESCE(si.buy_price, b.buy_price, 0)), 0) FROM sale_items si LEFT JOIN batches b ON si.batch_id = b.id WHERE si.sale_id = s.id)), 0) AS profit
+          COALESCE(SUM(s.total_amount - (
+            SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+            FROM sale_items si 
+            LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
+            WHERE si.sale_id = s.id
+          )), 0) AS profit
         FROM sales s
         ${whereClause}
       `;
@@ -110,7 +115,12 @@ class AnalyticsRepository {
     return this.db.prepare(`
       SELECT 
         date(s.created_at, 'localtime') AS period,
-        COALESCE(SUM(s.total_amount - (SELECT COALESCE(SUM(si.quantity * COALESCE(si.buy_price, b.buy_price, 0)), 0) FROM sale_items si LEFT JOIN batches b ON si.batch_id = b.id WHERE si.sale_id = s.id)), 0) AS total_profit
+        COALESCE(SUM(s.total_amount - (
+          SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+          FROM sale_items si 
+          LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
+          WHERE si.sale_id = s.id
+        )), 0) AS total_profit
       FROM sales s
       WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-29 days')
       GROUP BY date(s.created_at, 'localtime')
@@ -122,7 +132,12 @@ class AnalyticsRepository {
     return this.db.prepare(`
       SELECT 
         strftime('%Y-W%W', s.created_at, 'localtime') AS period,
-        COALESCE(SUM(s.total_amount - (SELECT COALESCE(SUM(si.quantity * COALESCE(si.buy_price, b.buy_price, 0)), 0) FROM sale_items si LEFT JOIN batches b ON si.batch_id = b.id WHERE si.sale_id = s.id)), 0) AS total_profit
+        COALESCE(SUM(s.total_amount - (
+          SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+          FROM sale_items si 
+          LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
+          WHERE si.sale_id = s.id
+        )), 0) AS total_profit
       FROM sales s
       WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-56 days')
       GROUP BY strftime('%Y-W%W', s.created_at, 'localtime')
@@ -134,7 +149,12 @@ class AnalyticsRepository {
     return this.db.prepare(`
       SELECT 
         strftime('%Y-%m', s.created_at, 'localtime') AS period,
-        COALESCE(SUM(s.total_amount - (SELECT COALESCE(SUM(si.quantity * COALESCE(si.buy_price, b.buy_price, 0)), 0) FROM sale_items si LEFT JOIN batches b ON si.batch_id = b.id WHERE si.sale_id = s.id)), 0) AS total_profit
+        COALESCE(SUM(s.total_amount - (
+          SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+          FROM sale_items si 
+          LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
+          WHERE si.sale_id = s.id
+        )), 0) AS total_profit
       FROM sales s
       WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-180 days')
       GROUP BY strftime('%Y-%m', s.created_at, 'localtime')

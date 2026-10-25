@@ -159,8 +159,13 @@ function initDatabase() {
   try {
     db.exec(`
       UPDATE sale_items 
-      SET buy_price = (SELECT buy_price FROM batches WHERE batches.id = sale_items.batch_id)
-      WHERE (buy_price IS NULL OR buy_price = 0) AND batch_id IS NOT NULL;
+      SET buy_price = (
+        SELECT b.buy_price FROM batches b 
+        WHERE b.id = sale_items.batch_id 
+           OR (sale_items.batch_id IS NULL AND b.batch_number = sale_items.batch_number)
+        LIMIT 1
+      )
+      WHERE (buy_price IS NULL OR buy_price <= 0);
     `);
   } catch (e) { }
 }

@@ -62,7 +62,11 @@ class SalesRepository {
           throw new Error(`Insufficient stock for ${item.brand_name} (Batch: ${item.batch_number})`);
         }
 
-        const buyPrice = parseFloat(item.buy_price) || 0;
+        let buyPrice = parseFloat(item.buy_price);
+        if (isNaN(buyPrice) || buyPrice <= 0) {
+          const batchRow = this.db.prepare('SELECT buy_price FROM batches WHERE id = ?').get(item.batch_id);
+          buyPrice = batchRow ? (parseFloat(batchRow.buy_price) || 0) : 0;
+        }
         const sellPrice = parseFloat(item.sell_price) || 0;
         const qty = parseInt(item.quantity, 10) || 1;
 
@@ -369,17 +373,29 @@ class SalesRepository {
       `);
 
       for (const item of newItems) {
-        const buyPrice = parseFloat(item.buy_price) || 0;
-        const sellPrice = parseFloat(item.sell_price) || 0;
-        const qty = parseInt(item.quantity, 10) || 1;
-
         let finalBatchId = item.batch_id;
+        let batchBuyPrice = 0;
+
         if (!finalBatchId && item.batch_number) {
           const found = this.db.prepare(`SELECT id, buy_price FROM batches WHERE batch_number = ?`).get(item.batch_number);
           if (found) {
             finalBatchId = found.id;
+            batchBuyPrice = parseFloat(found.buy_price) || 0;
+          }
+        } else if (finalBatchId) {
+          const found = this.db.prepare(`SELECT buy_price FROM batches WHERE id = ?`).get(finalBatchId);
+          if (found) {
+            batchBuyPrice = parseFloat(found.buy_price) || 0;
           }
         }
+
+        let buyPrice = parseFloat(item.buy_price);
+        if (isNaN(buyPrice) || buyPrice <= 0) {
+          buyPrice = batchBuyPrice;
+        }
+
+        const sellPrice = parseFloat(item.sell_price) || 0;
+        const qty = parseInt(item.quantity, 10) || 1;
 
         if (finalBatchId) {
           const deductRes = deductStock.run(qty, finalBatchId, qty);

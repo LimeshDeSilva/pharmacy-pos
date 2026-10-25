@@ -34,6 +34,7 @@ const cartItemSchema = z.object({
   batch_id: z.number().int().positive(),
   brand_name: z.string(),
   batch_number: z.string(),
+  buy_price: z.number().nonnegative().optional().default(0),
   sell_price: z.number().nonnegative(),
   quantity: z.number().int().positive(),
   total_price: z.number().nonnegative()
