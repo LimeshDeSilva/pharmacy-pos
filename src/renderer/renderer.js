@@ -28,9 +28,178 @@ const viewTitles = {
   'clear-inventory-view': 'System Reset & Wipe'
 };
 
+// ==================== MASTER AUTHENTICATION & LOGIN STATE ====================
+let isAppAuthenticated = false;
+
+async function checkAppAuth() {
+  if (!window.api || typeof window.api.isAuthSetupCompleted !== 'function') return;
+
+  const authOverlay = document.getElementById('auth-overlay');
+  const setupPanel = document.getElementById('auth-setup-panel');
+  const loginPanel = document.getElementById('auth-login-panel');
+  const authTitle = document.getElementById('auth-main-title');
+  const authSubtitle = document.getElementById('auth-sub-title');
+
+  if (!authOverlay) return;
+
+  try {
+    const res = await window.api.isAuthSetupCompleted();
+    const isSetup = res && res.isSetup;
+
+    authOverlay.style.display = 'flex';
+    if (!isSetup) {
+      if (setupPanel) setupPanel.style.display = 'block';
+      if (loginPanel) loginPanel.style.display = 'none';
+      if (authTitle) authTitle.innerText = 'First-Time Security Setup';
+      if (authSubtitle) authSubtitle.innerText = 'Create your administrator username & master password';
+      setTimeout(() => {
+        const uInp = document.getElementById('setup_username');
+        if (uInp) uInp.focus();
+      }, 150);
+    } else {
+      if (setupPanel) setupPanel.style.display = 'none';
+      if (loginPanel) loginPanel.style.display = 'block';
+      if (authTitle) authTitle.innerText = 'MediCare POS Authentication';
+      if (authSubtitle) authSubtitle.innerText = 'Enter your administrator credentials to access the system';
+      const loginUserInp = document.getElementById('login_username');
+      if (loginUserInp && res.username) {
+        loginUserInp.value = res.username;
+      }
+      setTimeout(() => {
+        const pInp = document.getElementById('login_password');
+        if (pInp) {
+          pInp.value = '';
+          pInp.focus();
+        }
+      }, 150);
+    }
+  } catch (err) {
+    console.error('Error during auth check:', err);
+  }
+}
+
+function lockApp() {
+  const authOverlay = document.getElementById('auth-overlay');
+  const setupPanel = document.getElementById('auth-setup-panel');
+  const loginPanel = document.getElementById('auth-login-panel');
+  const authTitle = document.getElementById('auth-main-title');
+  const authSubtitle = document.getElementById('auth-sub-title');
+  const passwordInp = document.getElementById('login_password');
+  const statusMsg = document.getElementById('login-status-msg');
+
+  if (!authOverlay) return;
+
+  isAppAuthenticated = false;
+  authOverlay.style.display = 'flex';
+  if (setupPanel) setupPanel.style.display = 'none';
+  if (loginPanel) loginPanel.style.display = 'block';
+  if (authTitle) authTitle.innerText = 'System Locked';
+  if (authSubtitle) authSubtitle.innerText = 'Enter master password to unlock and resume your session';
+  if (statusMsg) statusMsg.innerText = '';
+  if (passwordInp) {
+    passwordInp.value = '';
+    setTimeout(() => passwordInp.focus(), 150);
+  }
+}
+
+function initAuthListeners() {
+  const lockBtn = document.getElementById('lock-app-btn');
+  if (lockBtn) {
+    lockBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      lockApp();
+    });
+  }
+
+  const setupForm = document.getElementById('setup-form');
+  if (setupForm) {
+    setupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('setup_username').value.trim();
+      const password = document.getElementById('setup_password').value;
+      const confirmPassword = document.getElementById('setup_confirm_password').value;
+      const msg = document.getElementById('setup-status-msg');
+
+      if (!username) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Please provide an administrator username.';
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Passwords do not match. Please verify.';
+        return;
+      }
+
+      if (!password || password.length < 3) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Password must be at least 3 characters.';
+        return;
+      }
+
+      msg.style.color = '#64748b';
+      msg.innerText = 'Saving credentials & configuring system...';
+
+      const res = await window.api.setupCredentials({ username, password });
+      if (res && res.success) {
+        msg.style.color = '#059669';
+        msg.innerText = '✓ Master credentials initialized! Welcome.';
+        isAppAuthenticated = true;
+        setTimeout(() => {
+          const authOverlay = document.getElementById('auth-overlay');
+          if (authOverlay) authOverlay.style.display = 'none';
+          msg.innerText = '';
+        }, 600);
+        await loadStoreSettings();
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to setup credentials');
+      }
+    });
+  }
+
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login_username').value.trim();
+      const password = document.getElementById('login_password').value;
+      const msg = document.getElementById('login-status-msg');
+
+      msg.style.color = '#64748b';
+      msg.innerText = 'Verifying credentials...';
+
+      const res = await window.api.login({ username, password });
+      if (res && res.success) {
+        msg.style.color = '#059669';
+        msg.innerText = '✓ Access granted. Welcome back!';
+        isAppAuthenticated = true;
+        setTimeout(() => {
+          const authOverlay = document.getElementById('auth-overlay');
+          if (authOverlay) authOverlay.style.display = 'none';
+          const passInp = document.getElementById('login_password');
+          if (passInp) passInp.value = '';
+          msg.innerText = '';
+        }, 500);
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invalid username or password.');
+        const passInp = document.getElementById('login_password');
+        if (passInp) {
+          passInp.value = '';
+          passInp.focus();
+        }
+      }
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     initThemeController();
+    initAuthListeners();
+    await checkAppAuth();
     await loadStoreSettings();
     await refreshAlertBadges();
     await checkActiveShiftStatus();
@@ -234,10 +403,33 @@ if (tillOpenForm) {
   tillOpenForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const floatInp = document.getElementById('till_opening_float');
+    const passwordInp = document.getElementById('till_open_password');
     const msg = document.getElementById('till-status-msg');
 
     const floatVal = parseFloat(floatInp.value) || 0;
+    const passwordVal = passwordInp ? passwordInp.value : '';
+
+    if (!passwordVal) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Master password is required to open till shift.';
+      if (passwordInp) passwordInp.focus();
+      return;
+    }
+
     msg.style.color = '#64748b';
+    msg.innerText = 'Verifying master password...';
+
+    const authRes = await window.api.verifyPassword(passwordVal);
+    if (!authRes || !authRes.success) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid Master Password. Access denied.';
+      if (passwordInp) {
+        passwordInp.value = '';
+        passwordInp.focus();
+      }
+      return;
+    }
+
     msg.innerText = 'Opening till register...';
 
     const res = await window.api.openShift(floatVal);
@@ -245,6 +437,7 @@ if (tillOpenForm) {
       msg.style.color = '#059669';
       msg.innerText = '✓ Till shift opened successfully!';
       floatInp.value = '';
+      if (passwordInp) passwordInp.value = '';
       await checkActiveShiftStatus();
       await loadTillManagementView();
 
@@ -253,7 +446,7 @@ if (tillOpenForm) {
       }, 700);
     } else {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + res.error;
+      msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to open till shift');
     }
   });
 }
@@ -265,8 +458,31 @@ if (tillCloseForm) {
     if (!currentActiveShift) return;
 
     const actualCashInp = document.getElementById('till_counted_cash');
+    const passwordInp = document.getElementById('till_close_password');
     const noteInp = document.getElementById('till_close_note');
     const msg = document.getElementById('till-status-msg');
+
+    const passwordVal = passwordInp ? passwordInp.value : '';
+    if (!passwordVal) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Master password is required to close till shift.';
+      if (passwordInp) passwordInp.focus();
+      return;
+    }
+
+    msg.style.color = '#64748b';
+    msg.innerText = 'Verifying master password...';
+
+    const authRes = await window.api.verifyPassword(passwordVal);
+    if (!authRes || !authRes.success) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Invalid Master Password. Access denied.';
+      if (passwordInp) {
+        passwordInp.value = '';
+        passwordInp.focus();
+      }
+      return;
+    }
 
     const payload = {
       shiftId: currentActiveShift.id,
@@ -274,7 +490,6 @@ if (tillCloseForm) {
       note: noteInp ? noteInp.value.trim() : ''
     };
 
-    msg.style.color = '#64748b';
     msg.innerText = 'Closing shift & generating Z-Report...';
 
     const res = await window.api.closeShift(payload);
@@ -290,13 +505,14 @@ if (tillCloseForm) {
       });
 
       actualCashInp.value = '';
+      if (passwordInp) passwordInp.value = '';
       if (noteInp) noteInp.value = '';
 
       await checkActiveShiftStatus();
       await loadTillManagementView();
     } else {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + res.error;
+      msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to close till shift');
     }
   });
 }
@@ -317,10 +533,14 @@ async function loadStoreSettings() {
     const nameInp = document.getElementById('setting_pharmacy_name');
     const addrInp = document.getElementById('setting_pharmacy_address');
     const phoneInp = document.getElementById('setting_pharmacy_phone');
+    const userLabel = document.getElementById('current-admin-username-label');
+    const userInp = document.getElementById('cred_new_username');
 
     if (nameInp) nameInp.value = currentSettings.pharmacy_name || '';
     if (addrInp) addrInp.value = currentSettings.pharmacy_address || '';
     if (phoneInp) phoneInp.value = currentSettings.pharmacy_phone || '';
+    if (userLabel) userLabel.textContent = currentSettings.admin_username || 'admin';
+    if (userInp && !userInp.value) userInp.value = currentSettings.admin_username || 'admin';
   }
 }
 
@@ -340,14 +560,67 @@ if (settingsForm) {
     msg.innerText = 'Saving pharmacy details...';
 
     const res = await window.api.updateSettings(payload);
-    if (res.success) {
-      currentSettings = payload;
+    if (res && res.success) {
+      currentSettings = { ...currentSettings, ...payload };
       msg.style.color = '#059669';
       msg.innerText = '✓ Pharmacy details updated successfully!';
       setTimeout(() => { msg.innerText = ''; }, 2500);
     } else {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Error: ' + res.error;
+      msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to save');
+    }
+  });
+}
+
+const credentialsForm = document.getElementById('credentials-form');
+if (credentialsForm) {
+  credentialsForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById('cred_current_password').value;
+    const newUsername = document.getElementById('cred_new_username').value.trim();
+    const newPassword = document.getElementById('cred_new_password').value;
+    const confirmPassword = document.getElementById('cred_confirm_password').value;
+    const msg = document.getElementById('credentials-status-msg');
+
+    if (!currentPassword) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Please enter current master password.';
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ New passwords do not match. Please verify.';
+      return;
+    }
+
+    if (newPassword && newPassword.length < 3) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ New password must be at least 3 characters.';
+      return;
+    }
+
+    msg.style.color = '#64748b';
+    msg.innerText = 'Verifying and updating credentials...';
+
+    const res = await window.api.changeCredentials({
+      currentPassword,
+      newUsername,
+      newPassword
+    });
+
+    if (res && res.success) {
+      msg.style.color = '#059669';
+      msg.innerText = '✓ Master credentials updated successfully!';
+      document.getElementById('cred_current_password').value = '';
+      document.getElementById('cred_new_password').value = '';
+      document.getElementById('cred_confirm_password').value = '';
+      const userLabel = document.getElementById('current-admin-username-label');
+      if (userLabel && newUsername) userLabel.textContent = newUsername;
+      setTimeout(() => { msg.innerText = ''; }, 3500);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to update credentials.');
     }
   });
 }
@@ -2502,7 +2775,7 @@ if (deleteAllDrugsBtn) {
     const authRes = await window.api.verifyPin(pinInput.value);
     if (!authRes || !authRes.success) {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
+      msg.innerText = '✗ Invalid Master Password.';
       pinInput.value = '';
       pinInput.focus();
       return;
@@ -2546,7 +2819,7 @@ if (clearAllSalesBtn) {
     const authRes = await window.api.verifyPin(pinInput.value);
     if (!authRes || !authRes.success) {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
+      msg.innerText = '✗ Invalid Master Password.';
       pinInput.value = '';
       pinInput.focus();
       return;
@@ -2587,7 +2860,7 @@ if (wipeDatabaseBtn) {
     const authRes = await window.api.verifyPin(pinInput.value);
     if (!authRes || !authRes.success) {
       msg.style.color = '#dc2626';
-      msg.innerText = '✗ Invalid PIN.';
+      msg.innerText = '✗ Invalid Master Password.';
       pinInput.value = '';
       pinInput.focus();
       return;
