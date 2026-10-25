@@ -1329,12 +1329,49 @@ if (checkoutBtn) {
 // ==================== SALES HISTORY MODULE ====================
 let rawSalesData = [];
 
+function getLocalTodayISO() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function updateSalesFilterButtonsUI() {
+  const dateInput = document.getElementById('sales-date-filter');
+  const todayBtn = document.getElementById('sales-today-btn');
+  const allTimeBtn = document.getElementById('sales-clear-filter-btn');
+  if (!todayBtn || !allTimeBtn) return;
+
+  const currentVal = dateInput ? dateInput.value.trim() : '';
+  const todayVal = getLocalTodayISO();
+
+  if (currentVal === todayVal) {
+    todayBtn.classList.add('btn-primary');
+    todayBtn.classList.remove('btn-outline');
+    allTimeBtn.classList.remove('btn-primary');
+    allTimeBtn.classList.add('btn-outline');
+  } else if (!currentVal) {
+    allTimeBtn.classList.add('btn-primary');
+    allTimeBtn.classList.remove('btn-outline');
+    todayBtn.classList.remove('btn-primary');
+    todayBtn.classList.add('btn-outline');
+  } else {
+    todayBtn.classList.remove('btn-primary');
+    todayBtn.classList.add('btn-outline');
+    allTimeBtn.classList.remove('btn-primary');
+    allTimeBtn.classList.add('btn-outline');
+  }
+}
+
 function renderSalesTable() {
   const tableBody = document.getElementById('sales-table-body');
   const revenueBanner = document.getElementById('total-revenue-banner');
   const dateInput = document.getElementById('sales-date-filter');
   const searchInput = document.getElementById('sales-invoice-search');
   if (!tableBody) return;
+
+  updateSalesFilterButtonsUI();
 
   const selectedDate = dateInput && dateInput.value ? dateInput.value.trim() : '';
   const searchInvoiceId = searchInput && searchInput.value ? searchInput.value.trim() : '';
@@ -1349,7 +1386,8 @@ function renderSalesTable() {
     const saleIdStr = String(sale.sale_id ?? sale.id ?? '');
     const invoiceNoStr = String(sale.invoice_no ?? '');
     const matchesSearch = !searchInvoiceId || saleIdStr === searchInvoiceId || invoiceNoStr === searchInvoiceId;
-    const matchesDate = !selectedDate || (sale.sale_date && sale.sale_date.includes(selectedDate));
+    const saleDateStr = String(sale.sale_date || '');
+    const matchesDate = !selectedDate || saleDateStr.startsWith(selectedDate) || saleDateStr.includes(selectedDate);
     return matchesSearch && matchesDate;
   });
 
@@ -1390,6 +1428,10 @@ async function loadSalesHistory() {
     const res = await window.api.getAllSales();
     if (res && res.success) {
       rawSalesData = res.data || [];
+      const dateInput = document.getElementById('sales-date-filter');
+      if (dateInput && !dateInput.value && !dateInput.dataset.userCleared) {
+        dateInput.value = getLocalTodayISO();
+      }
       renderSalesTable();
     }
   } catch (err) {
@@ -1399,15 +1441,25 @@ async function loadSalesHistory() {
 
 const salesDateFilter = document.getElementById('sales-date-filter');
 if (salesDateFilter) {
-  salesDateFilter.addEventListener('input', renderSalesTable);
-  salesDateFilter.addEventListener('change', renderSalesTable);
+  salesDateFilter.addEventListener('input', () => {
+    if (!salesDateFilter.value) salesDateFilter.dataset.userCleared = 'true';
+    else delete salesDateFilter.dataset.userCleared;
+    renderSalesTable();
+  });
+  salesDateFilter.addEventListener('change', () => {
+    if (!salesDateFilter.value) salesDateFilter.dataset.userCleared = 'true';
+    else delete salesDateFilter.dataset.userCleared;
+    renderSalesTable();
+  });
 }
 
 const salesTodayBtn = document.getElementById('sales-today-btn');
 if (salesTodayBtn) {
   salesTodayBtn.addEventListener('click', () => {
-    const todayStr = new Date().toISOString().slice(0, 10);
-    if (salesDateFilter) salesDateFilter.value = todayStr;
+    if (salesDateFilter) {
+      salesDateFilter.value = getLocalTodayISO();
+      delete salesDateFilter.dataset.userCleared;
+    }
     renderSalesTable();
   });
 }
@@ -1415,7 +1467,10 @@ if (salesTodayBtn) {
 const salesClearBtn = document.getElementById('sales-clear-filter-btn');
 if (salesClearBtn) {
   salesClearBtn.addEventListener('click', () => {
-    if (salesDateFilter) salesDateFilter.value = '';
+    if (salesDateFilter) {
+      salesDateFilter.value = '';
+      salesDateFilter.dataset.userCleared = 'true';
+    }
     renderSalesTable();
   });
 }
@@ -1592,115 +1647,86 @@ function renderSalesChart(periodType = 'daily') {
   const labels = dataset.length > 0 ? dataset.map((d) => d.period) : ['No Sales Recorded'];
   const data = dataset.length > 0 ? dataset.map((d) => d.total_revenue) : [0];
 
-  if (salesChartInstance) salesChartInstance.destroy();
+  const isTypeChange = !salesChartInstance || salesChartInstance.config.type !== currentSalesChartType;
 
-  const ctx = canvas.getContext('2d');
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isTypeChange) {
+    if (salesChartInstance) salesChartInstance.destroy();
 
-  const primaryColor = isDark ? '#38BDF8' : '#2B82FE';
-  const barBg = isDark ? 'rgba(56, 189, 248, 0.4)' : 'rgba(43, 130, 254, 0.3)';
-
-  let gradient = 'rgba(43, 130, 254, 0.12)';
-  try {
-    const grad = ctx.createLinearGradient(0, 0, 0, 240);
-    grad.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(43, 130, 254, 0.28)');
-    grad.addColorStop(0.7, isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(43, 130, 254, 0.05)');
-    grad.addColorStop(1, isDark ? 'rgba(56, 189, 248, 0.00)' : 'rgba(43, 130, 254, 0.00)');
-    gradient = grad;
-  } catch (e) {}
-
-  let chartDataset = [];
-  if (currentSalesChartType === 'line') {
-    chartDataset = [
-      {
-        type: 'line',
-        label: labelText,
-        data: data,
-        borderColor: primaryColor,
-        backgroundColor: gradient,
-        borderWidth: 2.5,
-        fill: true,
-        tension: 0.35,
-        pointBackgroundColor: '#FFFFFF',
-        pointBorderColor: primaryColor,
-        pointBorderWidth: 2.5,
-        pointRadius: 3.5,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: primaryColor,
-        pointHoverBorderColor: '#FFFFFF',
-        pointHoverBorderWidth: 2
-      }
-    ];
-  } else {
-    // Default: 'bar'
-    chartDataset = [
-      {
-        type: 'bar',
-        label: labelText,
-        data: data,
-        backgroundColor: barBg,
-        borderColor: primaryColor,
-        borderWidth: 1.5,
-        borderRadius: 6,
-        maxBarThickness: 28,
-        borderRadius: 4
-      }
-    ];
-  }
-
-  salesChartInstance = new Chart(ctx, {
-    type: currentSalesChartType,
-    data: {
-      labels: labels,
-      datasets: chartDataset
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false
+    salesChartInstance = new Chart(ctx, {
+      type: currentSalesChartType,
+      data: {
+        labels: labels,
+        datasets: chartDataset
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: (val) => `LKR ${val}`,
-            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-            color: isDark ? '#94A3B8' : '#64748B'
-          },
-          grid: {
-            color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)',
-            borderDash: [4, 4]
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 750,
+          easing: 'easeOutQuart'
+        },
+        animations: {
+          y: {
+            duration: 750,
+            easing: 'easeOutQuart'
           }
         },
-        x: {
-          ticks: {
-            font: { size: 10.5, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-            color: isDark ? '#94A3B8' : '#64748B',
-            autoSkip: true,
-            maxTicksLimit: 12,
-            maxRotation: 0
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (val) => `LKR ${val}`,
+              font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+              color: isDark ? '#94A3B8' : '#64748B'
+            },
+            grid: {
+              color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)',
+              borderDash: [4, 4]
+            }
           },
-          grid: { display: false }
-        }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: isDark ? '#1E293B' : '#0F172A',
-          titleFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 700 },
-          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-          padding: 10,
-          cornerRadius: 8,
-          displayColors: false,
-          callbacks: {
-            label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}`
+          x: {
+            ticks: {
+              font: { size: 10.5, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+              color: isDark ? '#94A3B8' : '#64748B',
+              autoSkip: true,
+              maxTicksLimit: 12,
+              maxRotation: 0
+            },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#1E293B' : '#0F172A',
+            titleFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 700 },
+            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}`
+            }
           }
         }
       }
-    }
-  });
+    });
+  } else {
+    salesChartInstance.data.labels = labels;
+    salesChartInstance.data.datasets = chartDataset;
+    salesChartInstance.options.scales.y.ticks.color = isDark ? '#94A3B8' : '#64748B';
+    salesChartInstance.options.scales.x.ticks.color = isDark ? '#94A3B8' : '#64748B';
+    salesChartInstance.options.scales.y.grid.color = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)';
+    salesChartInstance.options.plugins.tooltip.backgroundColor = isDark ? '#1E293B' : '#0F172A';
+    salesChartInstance.update({
+      duration: 750,
+      easing: 'easeOutQuart'
+    });
+  }
 }
 
 const filterButtons = document.querySelectorAll('.filter-btn');
@@ -1782,115 +1808,86 @@ function renderProfitChart(periodType = 'daily') {
   const labels = dataset.length > 0 ? dataset.map((d) => d.period) : ['No Sales Recorded'];
   const data = dataset.length > 0 ? dataset.map((d) => d.total_profit) : [0];
 
-  if (profitChartInstance) profitChartInstance.destroy();
+  const isTypeChange = !profitChartInstance || profitChartInstance.config.type !== currentProfitChartType;
 
-  const ctx = canvas.getContext('2d');
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isTypeChange) {
+    if (profitChartInstance) profitChartInstance.destroy();
 
-  const greenColor = isDark ? '#34D399' : '#10B981';
-  const barBg = isDark ? 'rgba(52, 211, 153, 0.4)' : 'rgba(16, 185, 129, 0.3)';
-
-  let gradient = 'rgba(16, 185, 129, 0.12)';
-  try {
-    const grad = ctx.createLinearGradient(0, 0, 0, 240);
-    grad.addColorStop(0, isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(16, 185, 129, 0.28)');
-    grad.addColorStop(0.7, isDark ? 'rgba(52, 211, 153, 0.05)' : 'rgba(16, 185, 129, 0.05)');
-    grad.addColorStop(1, isDark ? 'rgba(52, 211, 153, 0.00)' : 'rgba(16, 185, 129, 0.00)');
-    gradient = grad;
-  } catch (e) {}
-
-  let chartDataset = [];
-  if (currentProfitChartType === 'line') {
-    chartDataset = [
-      {
-        type: 'line',
-        label: labelText,
-        data: data,
-        borderColor: greenColor,
-        backgroundColor: gradient,
-        borderWidth: 2.5,
-        fill: true,
-        tension: 0.35,
-        pointBackgroundColor: '#FFFFFF',
-        pointBorderColor: greenColor,
-        pointBorderWidth: 2.5,
-        pointRadius: 3.5,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: greenColor,
-        pointHoverBorderColor: '#FFFFFF',
-        pointHoverBorderWidth: 2
-      }
-    ];
-  } else {
-    // Default: 'bar'
-    chartDataset = [
-      {
-        type: 'bar',
-        label: labelText,
-        data: data,
-        backgroundColor: barBg,
-        borderColor: greenColor,
-        borderWidth: 1.5,
-        borderRadius: 6,
-        maxBarThickness: 28,
-        borderRadius: 4
-      }
-    ];
-  }
-
-  profitChartInstance = new Chart(ctx, {
-    type: currentProfitChartType,
-    data: {
-      labels: labels,
-      datasets: chartDataset
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false
+    profitChartInstance = new Chart(ctx, {
+      type: currentProfitChartType,
+      data: {
+        labels: labels,
+        datasets: chartDataset
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: (val) => `LKR ${val}`,
-            font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-            color: isDark ? '#94A3B8' : '#64748B'
-          },
-          grid: {
-            color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)',
-            borderDash: [4, 4]
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 750,
+          easing: 'easeOutQuart'
+        },
+        animations: {
+          y: {
+            duration: 750,
+            easing: 'easeOutQuart'
           }
         },
-        x: {
-          ticks: {
-            font: { size: 10.5, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-            color: isDark ? '#94A3B8' : '#64748B',
-            autoSkip: true,
-            maxTicksLimit: 12,
-            maxRotation: 0
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (val) => `LKR ${val}`,
+              font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+              color: isDark ? '#94A3B8' : '#64748B'
+            },
+            grid: {
+              color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)',
+              borderDash: [4, 4]
+            }
           },
-          grid: { display: false }
-        }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: isDark ? '#1E293B' : '#0F172A',
-          titleFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 700 },
-          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
-          padding: 10,
-          cornerRadius: 8,
-          displayColors: false,
-          callbacks: {
-            label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}`
+          x: {
+            ticks: {
+              font: { size: 10.5, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+              color: isDark ? '#94A3B8' : '#64748B',
+              autoSkip: true,
+              maxTicksLimit: 12,
+              maxRotation: 0
+            },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#1E293B' : '#0F172A',
+            titleFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 700 },
+            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: 600 },
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}`
+            }
           }
         }
       }
-    }
-  });
+    });
+  } else {
+    profitChartInstance.data.labels = labels;
+    profitChartInstance.data.datasets = chartDataset;
+    profitChartInstance.options.scales.y.ticks.color = isDark ? '#94A3B8' : '#64748B';
+    profitChartInstance.options.scales.x.ticks.color = isDark ? '#94A3B8' : '#64748B';
+    profitChartInstance.options.scales.y.grid.color = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(226, 232, 240, 0.65)';
+    profitChartInstance.options.plugins.tooltip.backgroundColor = isDark ? '#1E293B' : '#0F172A';
+    profitChartInstance.update({
+      duration: 750,
+      easing: 'easeOutQuart'
+    });
+  }
 }
 
 const profitFilterButtons = document.querySelectorAll('.profit-filter-btn');
