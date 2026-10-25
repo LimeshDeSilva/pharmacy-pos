@@ -30,7 +30,7 @@ class AnalyticsRepository {
         date(created_at, 'localtime') AS period,
         COALESCE(SUM(total_amount), 0) AS total_revenue
       FROM sales
-      WHERE date(created_at, 'localtime') >= date('now', 'localtime', '-6 days')
+      WHERE date(created_at, 'localtime') >= date('now', 'localtime', '-29 days')
       GROUP BY date(created_at, 'localtime')
       ORDER BY date(created_at, 'localtime') ASC
     `).all();
@@ -112,7 +112,7 @@ class AnalyticsRepository {
         date(s.created_at, 'localtime') AS period,
         COALESCE(SUM(s.total_amount - (SELECT COALESCE(SUM(si.quantity * COALESCE(si.buy_price, b.buy_price, 0)), 0) FROM sale_items si LEFT JOIN batches b ON si.batch_id = b.id WHERE si.sale_id = s.id)), 0) AS total_profit
       FROM sales s
-      WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-6 days')
+      WHERE date(s.created_at, 'localtime') >= date('now', 'localtime', '-29 days')
       GROUP BY date(s.created_at, 'localtime')
       ORDER BY period ASC
     `).all();
