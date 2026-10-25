@@ -322,14 +322,14 @@ body {
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 28px 14px 28px;
+  padding: 8px 24px 10px 24px;
 }
 
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .header-left {
@@ -432,11 +432,104 @@ header {
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-card);
-  margin-bottom: 22px;
+  margin-bottom: 10px;
   min-height: 154px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* ==========================================================================
+   COMPACT STOCK INWARD FORM (Fit Window Height without Scrolling)
+   ========================================================================== */
+#stock-inward-view .card {
+  padding: 13px 20px;
+  margin-bottom: 6px;
+}
+
+#stock-inward-view .card-title-spaced {
+  margin-bottom: 8px;
+}
+
+#stock-inward-view .card-title-text {
+  font-size: 15px;
+}
+
+#stock-inward-view .card-title-cube {
+  width: 20px;
+  height: 20px;
+}
+
+#stock-inward-view .btn-export {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+#stock-inward-view .form-group {
+  margin-bottom: 7px;
+}
+
+#stock-inward-view .form-group label {
+  font-size: 11.5px;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+#stock-inward-view input[type="text"],
+#stock-inward-view input[type="number"],
+#stock-inward-view input[type="date"],
+#stock-inward-view select {
+  height: 34px;
+  font-size: 12.5px;
+  padding: 0 12px 0 34px;
+}
+
+#stock-inward-view .input-icon {
+  width: 14px;
+  height: 14px;
+  left: 10px;
+}
+
+#stock-inward-view .input-prefix-icon {
+  left: 12px;
+  font-size: 13px;
+}
+
+#stock-inward-view .input-prefix-tag {
+  left: 10px;
+  font-size: 11.5px;
+}
+
+#stock-inward-view .select-chevron {
+  right: 10px;
+  width: 14px;
+  height: 14px;
+}
+
+#stock-inward-view .grid-2-col {
+  gap: 10px;
+}
+
+#stock-inward-view .grid-4-col {
+  gap: 10px;
+}
+
+#stock-inward-view .form-subheading {
+  margin: 6px 0 6px 0;
+  font-size: 12.5px;
+  gap: 6px;
+}
+
+#stock-inward-view .form-subheading svg {
+  width: 15px;
+  height: 15px;
+}
+
+#stock-inward-view .btn-save-inward {
+  height: 38px;
+  font-size: 13px;
+  margin-top: 8px;
+  gap: 6px;
 }
 
 .official-hero-card-stock-inward::before {
@@ -1050,7 +1143,60 @@ tbody tr:hover {
   background-color: #F8FAFC;
 }
 
-/* Badges */
+/* Badges & Inventory Statuses */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.badge-in-stock {
+  background-color: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+.badge-low-stock {
+  background-color: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+}
+
+.badge-out-of-stock {
+  background-color: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.badge-expiring {
+  background-color: #FFF7ED;
+  color: #EA580C;
+  border: 1px solid #FFEDD5;
+}
+
+.badge-expired {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
 .badge-success {
   background-color: var(--accent-emerald-light);
   color: var(--accent-emerald-hover);
@@ -1078,12 +1224,19 @@ tbody tr:hover {
   font-size: 11px;
 }
 
+/* Inventory Filter Select Custom Width & Clear Padding */
+#inventory-filter {
+  padding-left: 14px !important;
+  padding-right: 32px !important;
+  font-weight: 600;
+}
+
 /* ==========================================================================
    POS BILLING
    ========================================================================== */
 .pos-grid {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 0.9fr 1.35fr;
   gap: 20px;
 }
 
@@ -2538,4 +2691,40 @@ tbody tr:hover {
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: #1A4D8C;
+}
+
+/* 13. Dark Theme Status Badges */
+[data-theme="dark"] .badge-in-stock {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] .badge-low-stock {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+[data-theme="dark"] .badge-out-of-stock {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #F87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+[data-theme="dark"] .badge-expiring {
+  background-color: rgba(234, 88, 12, 0.15);
+  color: #FB923C;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+[data-theme="dark"] .badge-expired {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Smooth Canvas Chart Animation transition */
+#salesChart, #profitChart {
+  transition: opacity 0.25s ease;
 }
