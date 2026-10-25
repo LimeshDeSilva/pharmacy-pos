@@ -324,10 +324,91 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
+  ipcMain.handle('auth:isSetupCompleted', async () => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const isSetup = settings.auth_setup_completed === '1' && !!settings.admin_password;
+      return { success: true, isSetup, username: settings.admin_username || 'admin' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:setupCredentials', async (event, { username, password }) => {
+    try {
+      if (!username || !username.trim()) throw new Error('Username is required');
+      if (!password || !password.trim()) throw new Error('Password is required');
+      const cleanUser = username.trim();
+      const cleanPass = password.trim();
+      settingsRepo.updateSettings({
+        admin_username: cleanUser,
+        admin_password: cleanPass,
+        admin_pin: cleanPass,
+        auth_setup_completed: '1'
+      });
+      return { success: true, username: cleanUser };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:login', async (event, { username, password }) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedUser = (settings.admin_username || 'admin').trim().toLowerCase();
+      const storedPass = String(settings.admin_password || settings.admin_pin || '1234').trim();
+      
+      const inputUser = String(username || '').trim().toLowerCase();
+      const inputPass = String(password || '').trim();
+
+      if (inputUser === storedUser && inputPass === storedPass) {
+        return { success: true, username: settings.admin_username || 'admin' };
+      }
+      return { success: false, error: 'Invalid username or password.' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:verifyPassword', async (event, password) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedPass = String(settings.admin_password || settings.admin_pin || '1234').trim();
+      return { success: String(password || '').trim() === storedPass };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle('auth:verifyPin', async (event, pin) => {
     try {
       const settings = settingsRepo.getSettings();
-      return { success: String(pin).trim() === String(settings.admin_pin || '1234').trim() };
+      const storedPass = String(settings.admin_password || settings.admin_pin || '1234').trim();
+      return { success: String(pin || '').trim() === storedPass };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:changeCredentials', async (event, { currentPassword, newUsername, newPassword }) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedPass = String(settings.admin_password || settings.admin_pin || '1234').trim();
+      if (String(currentPassword || '').trim() !== storedPass) {
+        throw new Error('Current password is incorrect.');
+      }
+      if (!newUsername || !newUsername.trim()) throw new Error('New username is required.');
+      if (!newPassword || !newPassword.trim()) throw new Error('New password is required.');
+
+      const cleanUser = newUsername.trim();
+      const cleanPass = newPassword.trim();
+      settingsRepo.updateSettings({
+        admin_username: cleanUser,
+        admin_password: cleanPass,
+        admin_pin: cleanPass,
+        auth_setup_completed: '1'
+      });
+      return { success: true, username: cleanUser };
     } catch (error) {
       return { success: false, error: error.message };
     }
