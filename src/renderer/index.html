@@ -916,19 +916,34 @@
       </div>
 
       <!-- Chart Card -->
-      <div class="card">
+      <div class="card chart-analytics-card">
         <div class="card-title-spaced">
           <div>
             <h3 class="card-title-text" style="color: var(--text-main); margin-bottom: 2px;">Revenue Analytics</h3>
             <span style="font-size: 12px; color: var(--text-muted);">Store sales and turnover performance breakdown</span>
           </div>
-          <div style="display: flex; gap: 6px;">
-            <button id="rep-filter-7days" class="btn btn-chart-filter active">Daily (Last 7 Days)</button>
-            <button class="btn btn-chart-filter">Weekly</button>
-            <button id="rep-filter-month" class="btn btn-chart-filter">Monthly</button>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- Chart Type Toggle (Bar vs Line) -->
+            <div class="chart-type-toggle-group">
+              <button id="sales-toggle-bar" class="btn-chart-toggle active" data-chart-type="bar" title="Bar Chart">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span>Bar</span>
+              </button>
+              <button id="sales-toggle-line" class="btn-chart-toggle" data-chart-type="line" title="Line Chart">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Line</span>
+              </button>
+            </div>
+
+            <!-- Time Period Filters -->
+            <div style="display: flex; gap: 4px;">
+              <button id="rep-filter-7days" class="btn btn-chart-filter filter-btn active" data-period="daily">Daily (Last 30 Days)</button>
+              <button class="btn btn-chart-filter filter-btn" data-period="weekly">Weekly</button>
+              <button id="rep-filter-month" class="btn btn-chart-filter filter-btn" data-period="monthly">Monthly</button>
+            </div>
           </div>
         </div>
-        <div style="height: 300px; position: relative;">
+        <div style="height: 270px; position: relative;">
           <canvas id="salesChart"></canvas>
         </div>
       </div>
@@ -995,19 +1010,34 @@
       </div>
 
       <!-- Profit Chart Card -->
-      <div class="card">
+      <div class="card chart-analytics-card">
         <div class="card-title-spaced">
           <div>
             <h3 class="card-title-text" style="color: var(--text-main); margin-bottom: 2px;">Net Profit Analytics</h3>
             <span style="font-size: 12px; color: var(--text-muted);">Margin performance & store net profit trajectories</span>
           </div>
-          <div style="display: flex; gap: 6px;">
-            <button class="profit-filter-btn active" data-period="daily">Daily</button>
-            <button class="profit-filter-btn" data-period="weekly">Weekly</button>
-            <button class="profit-filter-btn" data-period="monthly">Monthly</button>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- Chart Type Toggle (Bar vs Line) -->
+            <div class="chart-type-toggle-group">
+              <button id="profit-toggle-bar" class="btn-chart-toggle profit active" data-chart-type="bar" title="Bar Chart">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span>Bar</span>
+              </button>
+              <button id="profit-toggle-line" class="btn-chart-toggle profit" data-chart-type="line" title="Line Chart">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Line</span>
+              </button>
+            </div>
+
+            <!-- Time Period Filters -->
+            <div style="display: flex; gap: 4px;">
+              <button class="profit-filter-btn active" data-period="daily">Daily (Last 30 Days)</button>
+              <button class="profit-filter-btn" data-period="weekly">Weekly</button>
+              <button class="profit-filter-btn" data-period="monthly">Monthly</button>
+            </div>
           </div>
         </div>
-        <div style="height: 300px; position: relative;">
+        <div style="height: 270px; position: relative;">
           <canvas id="profitChart"></canvas>
         </div>
       </div>
