@@ -169,6 +169,13 @@
           Till: Closed
         </div>
 
+        <button id="lock-app-btn" class="header-icon-btn" title="Lock System / Sign Out">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </button>
+
         <button id="theme-toggle-btn" class="header-icon-btn" title="Toggle Light / Dark Mode">
           <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"></circle>
@@ -616,6 +623,10 @@
                 <label for="till_opening_float">Starting Cash Float (LKR) *</label>
                 <input type="number" step="any" min="0" id="till_opening_float" value="0.00" placeholder="0.00" required />
               </div>
+              <div class="form-group">
+                <label for="till_open_password">Admin Password *</label>
+                <input type="password" id="till_open_password" placeholder="Enter password to authorize..." required />
+              </div>
               <button type="submit" class="btn btn-primary" style="width: 100%; height: 42px; font-weight: 700;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 Open Cash Shift
@@ -640,6 +651,10 @@
               <div class="form-group">
                 <label for="till_close_note">Shift Notes / Variances</label>
                 <input type="text" id="till_close_note" placeholder="e.g. Verified by manager" />
+              </div>
+              <div class="form-group">
+                <label for="till_close_password">Admin Password *</label>
+                <input type="password" id="till_close_password" placeholder="Enter password to authorize..." required />
               </div>
               <button type="submit" class="btn btn-primary" style="width: 100%; height: 42px; background-color: var(--accent-red);">
                 Close Till & Finalize Shift
@@ -1110,25 +1125,60 @@
 
     <!-- 9. Store Settings View -->
     <section id="settings-view" class="view-panel">
-      <div class="card" style="max-width: 650px; margin: 0 auto;">
-        <h3 class="card-title-spaced" style="color: var(--accent-primary);">Pharmacy Information & Settings</h3>
-        <form id="settings-form">
-          <div class="form-group">
-            <label for="setting_pharmacy_name">Pharmacy Name *</label>
-            <input type="text" id="setting_pharmacy_name" placeholder="e.g. Sahasna Pharmacy" required />
+      <div class="settings-grid">
+        <!-- Card 1: Pharmacy Profile -->
+        <div class="card">
+          <h3 class="card-title-spaced" style="color: var(--accent-primary);">Pharmacy Information &amp; Settings</h3>
+          <form id="settings-form">
+            <div class="form-group">
+              <label for="setting_pharmacy_name">Pharmacy Name *</label>
+              <input type="text" id="setting_pharmacy_name" placeholder="e.g. Sahasna Pharmacy" required />
+            </div>
+            <div class="form-group">
+              <label for="setting_pharmacy_address">Store Address *</label>
+              <input type="text" id="setting_pharmacy_address" placeholder="e.g. No. 123, Main Street, Colombo"
+                required />
+            </div>
+            <div class="form-group">
+              <label for="setting_pharmacy_phone">Phone / Contact Number *</label>
+              <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
+            </div>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #06141B; width: 100%; font-weight: 700;">Save Pharmacy Details</button>
+          </form>
+          <div id="settings-status-msg" class="status-msg"></div>
+        </div>
+
+        <!-- Card 2: Admin Security & Login Credentials -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="card-title-spaced" style="color: var(--accent-emerald); margin: 0;">Admin Security &amp; Credentials</h3>
+            <span class="auth-badge-chip">Admin User: <strong id="current-admin-username-label">admin</strong></span>
           </div>
-          <div class="form-group">
-            <label for="setting_pharmacy_address">Store Address *</label>
-            <input type="text" id="setting_pharmacy_address" placeholder="e.g. No. 123, Main Street, Colombo"
-              required />
-          </div>
-          <div class="form-group">
-            <label for="setting_pharmacy_phone">Phone / Contact Number *</label>
-            <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
-          </div>
-          <button type="submit" class="btn" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #06141B;">Save Pharmacy Details</button>
-        </form>
-        <div id="settings-status-msg" class="status-msg"></div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">Change your master username and login password. This password will automatically apply to till shifts and reset authorizations.</p>
+          
+          <form id="credentials-form">
+            <div class="form-group">
+              <label for="cred_current_password">Current Password *</label>
+              <input type="password" id="cred_current_password" placeholder="Enter current password..." required />
+            </div>
+            <div class="form-group">
+              <label for="cred_new_username">New Username *</label>
+              <input type="text" id="cred_new_username" placeholder="e.g. admin" required />
+            </div>
+            <div class="form-group">
+              <label for="cred_new_password">New Password *</label>
+              <input type="password" id="cred_new_password" placeholder="Enter new password..." required />
+            </div>
+            <div class="form-group">
+              <label for="cred_confirm_password">Confirm New Password *</label>
+              <input type="password" id="cred_confirm_password" placeholder="Confirm new password..." required />
+            </div>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #FFFFFF; width: 100%; font-weight: 700;">
+              Update Login Credentials
+            </button>
+          </form>
+          <div id="credentials-status-msg" class="status-msg"></div>
+        </div>
       </div>
     </section>
 
@@ -1155,7 +1205,7 @@
                   </svg>
                   RESTRICTED ZONE &bull; ADMIN AUTHORIZATION REQUIRED
                 </span>
-                <span class="wipe-pin-hint">Default Admin PIN: <code>1234</code></span>
+                <span class="wipe-pin-hint">Protected by Admin Password</span>
               </div>
               <h2 class="wipe-header-title">System Reset &amp; Data Sanitization</h2>
               <p class="wipe-header-desc">
@@ -1244,10 +1294,10 @@
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
-                  Enter Admin Security PIN *
+                  Enter Admin Password *
                 </label>
                 <div class="wipe-pin-box">
-                  <input type="password" id="admin-pin-clear-medicines" class="wipe-input wipe-pin-input" placeholder="••••" maxlength="8" autocomplete="off" />
+                  <input type="password" id="admin-pin-clear-medicines" class="wipe-input wipe-pin-input" placeholder="Enter password..." autocomplete="off" />
                 </div>
               </div>
 
@@ -1292,10 +1342,10 @@
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
-                  Enter Admin Security PIN *
+                  Enter Admin Password *
                 </label>
                 <div class="wipe-pin-box">
-                  <input type="password" id="admin-pin-clear-sales" class="wipe-input wipe-pin-input" placeholder="••••" maxlength="8" autocomplete="off" />
+                  <input type="password" id="admin-pin-clear-sales" class="wipe-input wipe-pin-input" placeholder="Enter password..." autocomplete="off" />
                 </div>
               </div>
 
@@ -1355,10 +1405,10 @@
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
-                  Enter Admin Security PIN to Authorize *
+                  Enter Admin Password to Authorize *
                 </label>
                 <div class="wipe-pin-box">
-                  <input type="password" id="admin-pin-confirm" class="wipe-input wipe-pin-input danger" placeholder="••••" maxlength="8" autocomplete="off" />
+                  <input type="password" id="admin-pin-confirm" class="wipe-input wipe-pin-input danger" placeholder="Enter password..." autocomplete="off" />
                 </div>
               </div>
 
@@ -1510,6 +1560,71 @@
         </div>
         <div id="edit-drug-status-msg" class="status-msg"></div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== MASTER AUTH & LOGIN OVERLAY ==================== -->
+  <div id="auth-overlay" class="auth-overlay" style="display: none;">
+    <div class="auth-backdrop-blur"></div>
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-brand-badge">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2 id="auth-main-title" class="auth-title">MediCare POS Security</h2>
+        <p id="auth-sub-title" class="auth-subtitle">Please authenticate to access the pharmacy system</p>
+      </div>
+
+      <!-- Initial First-Time Setup Panel -->
+      <div id="auth-setup-panel" style="display: none;">
+        <div class="auth-alert-box info-alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span><strong>First Time Setup:</strong> Create an administrator username and master password to secure your pharmacy system.</span>
+        </div>
+        <form id="setup-form" class="auth-form">
+          <div class="form-group">
+            <label for="setup_username">Administrator Username *</label>
+            <input type="text" id="setup_username" placeholder="e.g. admin" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label for="setup_password">Master Password *</label>
+            <input type="password" id="setup_password" placeholder="Enter secure master password" required autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="setup_confirm_password">Confirm Master Password *</label>
+            <input type="password" id="setup_confirm_password" placeholder="Re-type master password" required autocomplete="new-password" />
+          </div>
+          <button type="submit" id="setup-submit-btn" class="btn auth-submit-btn">
+            Set Password &amp; Launch System
+          </button>
+        </form>
+        <div id="setup-status-msg" class="status-msg"></div>
+      </div>
+
+      <!-- Normal App Login Panel -->
+      <div id="auth-login-panel" style="display: none;">
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="login_username">Username *</label>
+            <input type="text" id="login_username" placeholder="Enter username" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label for="login_password">Password *</label>
+            <input type="password" id="login_password" placeholder="Enter master password" required autocomplete="current-password" />
+          </div>
+          <button type="submit" id="login-submit-btn" class="btn auth-submit-btn">
+            Unlock &amp; Continue
+          </button>
+        </form>
+        <div id="login-status-msg" class="status-msg"></div>
+      </div>
     </div>
   </div>
 
