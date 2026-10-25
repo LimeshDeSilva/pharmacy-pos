@@ -97,6 +97,14 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
+  ipcMain.handle('inventory:getTodayInwardStats', async () => {
+    try {
+      return { success: true, data: batchRepo.getTodayInwardStats() };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle('batches:add', async (event, batchData) => {
     try {
       const validated = batchSchema.parse(batchData);
