@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('api', {
   addDrug: (drugData) => ipcRenderer.invoke('drugs:add', drugData),
   getAllDrugs: () => ipcRenderer.invoke('drugs:getAll'),
   addBatch: (batchData) => ipcRenderer.invoke('batches:add', batchData),
+  getTodayInwardStats: () => ipcRenderer.invoke('inventory:getTodayInwardStats'),
   
   getInventory: () => ipcRenderer.invoke('inventory:getAll'),
   updateInventoryItem: (itemData) => ipcRenderer.invoke('inventory:updateItem', itemData),
