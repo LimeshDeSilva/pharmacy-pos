@@ -1134,66 +1134,248 @@
 
     <!-- 10. Reset System View -->
     <section id="clear-inventory-view" class="view-panel">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+      <div class="wipe-module-container">
 
-        <!-- 1. Delete Selected Medicine -->
-        <div class="card" style="border-top: 4px solid var(--warning);">
-          <h3 style="color: var(--warning); margin-top: 0; font-size: 15px; font-weight: 700;">Delete Single Medicine</h3>
-          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Remove a discontinued medicine and its inventory stock. Past sales records will NOT be deleted.</p>
-
-          <div class="form-group pos-relative" style="margin-top: 15px;">
-            <label for="delete_drug_input">Search Medicine to Delete *</label>
-            <input type="text" id="delete_drug_input" placeholder="Type brand or generic name..." autocomplete="off" />
-            <input type="hidden" id="selected_delete_drug_id" />
-            <div id="delete-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
+        <!-- Top Security Danger Banner -->
+        <div class="wipe-header-banner">
+          <div class="wipe-header-main">
+            <div class="wipe-header-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="8" x2="12" y2="12" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="16" x2="12.01" y2="16" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="wipe-header-text">
+              <div class="wipe-header-badge-row">
+                <span class="wipe-security-badge">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  RESTRICTED ZONE &bull; ADMIN AUTHORIZATION REQUIRED
+                </span>
+                <span class="wipe-pin-hint">Default Admin PIN: <code>1234</code></span>
+              </div>
+              <h2 class="wipe-header-title">System Reset &amp; Data Sanitization</h2>
+              <p class="wipe-header-desc">
+                Execute selective catalog maintenance or authorized database purge routines. Actions in this module permanently modify or wipe database records and cannot be undone.
+              </p>
+            </div>
           </div>
-
-          <button id="delete-selected-drug-btn" class="btn" style="background: var(--warning); color: #06141B; margin-top: 10px;">
-            Delete Selected Medicine
-          </button>
-          <div id="delete-drug-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
         </div>
 
-        <!-- 2. Clear All Medicines Only -->
-        <div class="card" style="border-top: 4px solid #be123c;">
-          <h3 style="color: #be123c; margin-top: 0; font-size: 15px; font-weight: 700;">Clear All Medicines Only</h3>
-          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Wipe all registered drugs and active batch stocks. Past sales orders and reports are preserved. PIN required.</p>
-          <div class="form-group" style="margin-top: 15px;">
-            <label for="admin-pin-clear-medicines">Enter Admin PIN *</label>
-            <input type="password" id="admin-pin-clear-medicines" placeholder="Enter PIN..." />
-          </div>
-          <button id="delete-all-drugs-btn" class="btn" style="background: #be123c; color: #ffffff; margin-top: 10px;">
-            Clear All Active Medicines
-          </button>
-          <div id="delete-all-drugs-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
-        </div>
+        <!-- 4 Action Cards Grid -->
+        <div class="wipe-grid">
 
-        <!-- 3. Clear All Sales Only -->
-        <div class="card" style="border-top: 4px solid var(--purple);">
-          <h3 style="color: var(--purple); margin-top: 0; font-size: 15px; font-weight: 700;">Clear Sales & Reports</h3>
-          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Wipe all sales invoices, revenue history, and profit charts. Medicines and active stock remain intact. PIN required.</p>
-          <div class="form-group" style="margin-top: 15px;">
-            <label for="admin-pin-clear-sales">Enter Admin PIN *</label>
-            <input type="password" id="admin-pin-clear-sales" placeholder="Enter PIN..." />
-          </div>
-          <button id="clear-all-sales-btn" class="btn" style="background: var(--purple); color: #ffffff; margin-top: 10px;">
-            Clear All Sales History
-          </button>
-          <div id="clear-all-sales-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
-        </div>
+          <!-- 1. Delete Selected Medicine (Amber / Caution) -->
+          <div class="wipe-card wipe-card-amber">
+            <div class="wipe-card-header">
+              <div class="wipe-card-header-left">
+                <div class="wipe-icon-wrapper amber">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="8.5" y1="8.5" x2="15.5" y2="15.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <span class="wipe-card-pill pill-amber">Level 1 &bull; Selective Catalog</span>
+                  <h3 class="wipe-card-title">Delete Single Medicine</h3>
+                </div>
+              </div>
+            </div>
+            <p class="wipe-card-desc">
+              Remove a discontinued medicine and its current batch stocks from the inventory catalog. Past sales orders and historical financial records are preserved.
+            </p>
 
-        <!-- 4. Full Factory Reset -->
-        <div class="card" style="border-top: 4px solid var(--danger);">
-          <h3 style="color: var(--danger); margin-top: 0; font-size: 15px; font-weight: 700;">Full System Reset</h3>
-          <p style="font-size: 12.5px; color: var(--c-5); margin-top: 4px;">Permanently wipe all medicines, batches, sales orders, till shifts, and report data. PIN required.</p>
-          <div class="form-group" style="margin-top: 15px;">
-            <label for="admin-pin-confirm">Enter Admin PIN *</label>
-            <input type="password" id="admin-pin-confirm" placeholder="Enter PIN..." />
+            <div class="wipe-card-body">
+              <div class="form-group pos-relative">
+                <label for="delete_drug_input" class="wipe-field-label">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  Search Medicine to Delete *
+                </label>
+                <div class="wipe-input-wrapper pos-relative">
+                  <input type="text" id="delete_drug_input" class="wipe-input" placeholder="Type brand or generic name..." autocomplete="off" />
+                  <input type="hidden" id="selected_delete_drug_id" />
+                  <div id="delete-drug-dropdown" class="pos-dropdown" style="display: none;"></div>
+                </div>
+              </div>
+
+              <div class="wipe-action-container">
+                <button id="delete-selected-drug-btn" class="wipe-btn wipe-btn-amber">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  Delete Selected Medicine
+                </button>
+                <div id="delete-drug-status-msg" class="wipe-status-msg"></div>
+              </div>
+            </div>
           </div>
-          <button id="wipe-database-btn" class="btn" style="background: var(--danger); color: #ffffff; margin-top: 10px;">
-            Wipe Entire System
-          </button>
-          <div id="wipe-status-msg" style="margin-top: 8px; font-size: 12px; text-align: center;"></div>
+
+          <!-- 2. Clear All Medicines Only (Crimson / High Risk) -->
+          <div class="wipe-card wipe-card-crimson">
+            <div class="wipe-card-header">
+              <div class="wipe-card-header-left">
+                <div class="wipe-icon-wrapper crimson">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                </div>
+                <div>
+                  <span class="wipe-card-pill pill-crimson">Level 2 &bull; High Risk Inventory</span>
+                  <h3 class="wipe-card-title">Clear All Medicines</h3>
+                </div>
+              </div>
+            </div>
+            <p class="wipe-card-desc">
+              Permanently wipe all registered drug items and active batch inventory stocks. Past sales orders, invoices, and analytics reports remain intact.
+            </p>
+
+            <div class="wipe-card-body">
+              <div class="form-group">
+                <label for="admin-pin-clear-medicines" class="wipe-field-label">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Enter Admin Security PIN *
+                </label>
+                <div class="wipe-pin-box">
+                  <input type="password" id="admin-pin-clear-medicines" class="wipe-input wipe-pin-input" placeholder="••••" maxlength="8" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="wipe-action-container">
+                <button id="delete-all-drugs-btn" class="wipe-btn wipe-btn-crimson">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                  Clear All Active Medicines
+                </button>
+                <div id="delete-all-drugs-msg" class="wipe-status-msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Clear All Sales Only (Purple / Financial) -->
+          <div class="wipe-card wipe-card-purple">
+            <div class="wipe-card-header">
+              <div class="wipe-card-header-left">
+                <div class="wipe-icon-wrapper purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
+                <div>
+                  <span class="wipe-card-pill pill-purple">Level 3 &bull; Financial Ledger</span>
+                  <h3 class="wipe-card-title">Clear Sales &amp; Financials</h3>
+                </div>
+              </div>
+            </div>
+            <p class="wipe-card-desc">
+              Permanently wipe all sales transaction receipts, till shift balances, and revenue charts. Active medicine catalog and current stock levels are untouched.
+            </p>
+
+            <div class="wipe-card-body">
+              <div class="form-group">
+                <label for="admin-pin-clear-sales" class="wipe-field-label">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Enter Admin Security PIN *
+                </label>
+                <div class="wipe-pin-box">
+                  <input type="password" id="admin-pin-clear-sales" class="wipe-input wipe-pin-input" placeholder="••••" maxlength="8" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="wipe-action-container">
+                <button id="clear-all-sales-btn" class="wipe-btn wipe-btn-purple">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                  </svg>
+                  Clear All Sales History
+                </button>
+                <div id="clear-all-sales-msg" class="wipe-status-msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Full Factory Reset (Danger / Nuclear) -->
+          <div class="wipe-card wipe-card-danger">
+            <div class="wipe-card-header">
+              <div class="wipe-card-header-left">
+                <div class="wipe-icon-wrapper danger">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div>
+                  <span class="wipe-card-pill pill-danger">Level 4 &bull; Nuclear Wipe</span>
+                  <h3 class="wipe-card-title">Full Factory System Reset</h3>
+                </div>
+              </div>
+            </div>
+            <p class="wipe-card-desc">
+              Total wipe of all medicines, batch stock, sales invoices, till shifts, and audit logs. Restores the database to its pristine factory installation state.
+            </p>
+
+            <div class="wipe-checklist">
+              <div class="wipe-check-item">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <span>Erases all drugs, batches &amp; inventory stock</span>
+              </div>
+              <div class="wipe-check-item">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <span>Erases all sales orders, invoices &amp; reports</span>
+              </div>
+              <div class="wipe-check-item warning">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Permanent action &bull; Data cannot be recovered</span>
+              </div>
+            </div>
+
+            <div class="wipe-card-body">
+              <div class="form-group">
+                <label for="admin-pin-confirm" class="wipe-field-label">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Enter Admin Security PIN to Authorize *
+                </label>
+                <div class="wipe-pin-box">
+                  <input type="password" id="admin-pin-confirm" class="wipe-input wipe-pin-input danger" placeholder="••••" maxlength="8" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="wipe-action-container">
+                <button id="wipe-database-btn" class="wipe-btn wipe-btn-danger">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                  Wipe Entire System
+                </button>
+                <div id="wipe-status-msg" class="wipe-status-msg"></div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

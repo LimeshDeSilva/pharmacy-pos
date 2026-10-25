@@ -2728,3 +2728,585 @@ tbody tr:hover {
 #salesChart, #profitChart {
   transition: opacity 0.25s ease;
 }
+
+/* ==================== SYSTEM RESET & WIPE MODULE ==================== */
+.wipe-module-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.wipe-header-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.wipe-header-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #EF4444 0%, #F59E0B 100%);
+}
+
+.wipe-header-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.wipe-header-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wipe-header-icon-box svg {
+  width: 26px;
+  height: 26px;
+}
+
+.wipe-header-text {
+  flex: 1;
+}
+
+.wipe-header-badge-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.wipe-security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.wipe-pin-hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.wipe-pin-hint code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.wipe-header-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.3px;
+}
+
+.wipe-header-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 860px;
+}
+
+/* Wipe Action Cards Grid */
+.wipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.wipe-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.wipe-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.wipe-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.wipe-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.wipe-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wipe-icon-wrapper svg {
+  width: 22px;
+  height: 22px;
+}
+
+.wipe-icon-wrapper.amber {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #D97706;
+}
+
+.wipe-icon-wrapper.crimson {
+  background: rgba(190, 18, 60, 0.12);
+  border: 1px solid rgba(190, 18, 60, 0.3);
+  color: #BE123C;
+}
+
+.wipe-icon-wrapper.purple {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #7C3AED;
+}
+
+.wipe-icon-wrapper.danger {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #DC2626;
+}
+
+.wipe-card-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.pill-amber { background: rgba(245, 158, 11, 0.15); color: #B45309; }
+.pill-crimson { background: rgba(190, 18, 60, 0.15); color: #9F1239; }
+.pill-purple { background: rgba(139, 92, 246, 0.15); color: #6D28D9; }
+.pill-danger { background: rgba(239, 68, 68, 0.18); color: #B91C1C; }
+
+.wipe-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.wipe-card-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+  min-height: 38px;
+}
+
+.wipe-card-body {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wipe-field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.wipe-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg, var(--bg-primary));
+  color: var(--text-primary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wipe-input:focus {
+  outline: none;
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.wipe-pin-input {
+  font-size: 16px;
+  letter-spacing: 4px;
+  font-family: monospace, sans-serif;
+  text-align: center;
+  padding: 8px 14px;
+}
+
+.wipe-pin-input.danger:focus {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.wipe-checklist {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wipe-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #DC2626;
+  font-weight: 500;
+}
+
+.wipe-check-item.warning {
+  color: #D97706;
+  font-weight: 600;
+}
+
+.wipe-action-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wipe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wipe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wipe-btn-amber {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+}
+
+.wipe-btn-amber:hover:not(:disabled) {
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}
+
+.wipe-btn-crimson {
+  background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(190, 18, 60, 0.25);
+}
+
+.wipe-btn-crimson:hover:not(:disabled) {
+  background: linear-gradient(135deg, #BE123C 0%, #9F1239 100%);
+  box-shadow: 0 4px 12px rgba(190, 18, 60, 0.35);
+  transform: translateY(-1px);
+}
+
+.wipe-btn-purple {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+}
+
+.wipe-btn-purple:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+  transform: translateY(-1px);
+}
+
+.wipe-btn-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.wipe-btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+  transform: translateY(-1px);
+}
+
+.wipe-status-msg {
+  min-height: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+/* Tier border glow accents and stacking context hierarchy */
+.wipe-card-amber { 
+  border-top: 3.5px solid #F59E0B; 
+  z-index: 20;
+}
+
+.wipe-card-amber:focus-within,
+.wipe-card-amber:hover {
+  z-index: 100;
+}
+
+.wipe-card-crimson { 
+  border-top: 3.5px solid #BE123C; 
+  z-index: 15;
+}
+
+.wipe-card-purple { 
+  border-top: 3.5px solid #8B5CF6; 
+  z-index: 10;
+}
+
+.wipe-card-danger { 
+  border-top: 3.5px solid #EF4444;
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
+  z-index: 1;
+}
+
+/* Dedicated styling for Delete Drug Dropdown */
+#delete-drug-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22) !important;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 99999 !important;
+}
+
+#delete-drug-dropdown .pos-option {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  background-color: #FFFFFF !important;
+  color: #1E293B !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+#delete-drug-dropdown .pos-option:last-child {
+  border-bottom: none !important;
+}
+
+#delete-drug-dropdown .pos-option:hover,
+#delete-drug-dropdown .pos-option.selected {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+}
+
+.delete-opt-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-opt-generic {
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.delete-opt-cat {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284C7;
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+/* ==================== DARK THEME FOR SYSTEM RESET & WIPE ==================== */
+[data-theme="dark"] .wipe-header-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .wipe-security-badge {
+  background: rgba(239, 68, 68, 0.22);
+  color: #F87171;
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+[data-theme="dark"] .wipe-pin-hint code {
+  background: #0B132B;
+  color: #38BDF8;
+  border: 1px solid #1E293B;
+}
+
+[data-theme="dark"] .wipe-card {
+  background: #081B33;
+  border-color: #0F3666;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .wipe-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  border-color: #1D6EE5;
+}
+
+[data-theme="dark"] .wipe-card-amber { border-top: 3.5px solid #F59E0B; }
+[data-theme="dark"] .wipe-card-crimson { border-top: 3.5px solid #F43F5E; }
+[data-theme="dark"] .wipe-card-purple { border-top: 3.5px solid #A78BFA; }
+[data-theme="dark"] .wipe-card-danger {
+  border-top: 3.5px solid #EF4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(180deg, #091C36 0%, #061529 100%);
+}
+
+[data-theme="dark"] .wipe-icon-wrapper.amber {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #FBBF24;
+}
+
+[data-theme="dark"] .wipe-icon-wrapper.crimson {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #FB7185;
+}
+
+[data-theme="dark"] .wipe-icon-wrapper.purple {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #C4B5FD;
+}
+
+[data-theme="dark"] .wipe-icon-wrapper.danger {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #F87171;
+}
+
+[data-theme="dark"] .pill-amber { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
+[data-theme="dark"] .pill-crimson { background: rgba(244, 63, 94, 0.2); color: #FDA4AF; }
+[data-theme="dark"] .pill-purple { background: rgba(167, 139, 250, 0.2); color: #DDD6FE; }
+[data-theme="dark"] .pill-danger { background: rgba(239, 68, 68, 0.25); color: #FCA5A5; }
+
+[data-theme="dark"] .wipe-input {
+  background-color: #030B17;
+  border-color: #0F3666;
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .wipe-input:focus {
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+[data-theme="dark"] .wipe-checklist {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .wipe-check-item {
+  color: #F87171;
+}
+
+[data-theme="dark"] .wipe-check-item.warning {
+  color: #FBBF24;
+}
+
+[data-theme="dark"] #delete-drug-dropdown {
+  background-color: #061833 !important;
+  border: 1px solid #0F3666 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="dark"] #delete-drug-dropdown .pos-option {
+  background-color: #061833 !important;
+  color: #F8FAFC !important;
+  border-bottom: 1px solid #0B2447 !important;
+}
+
+[data-theme="dark"] #delete-drug-dropdown .pos-option:hover,
+[data-theme="dark"] #delete-drug-dropdown .pos-option.selected {
+  background-color: #0E3566 !important;
+  color: #FBBF24 !important;
+}
+
+[data-theme="dark"] .delete-opt-generic {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .delete-opt-cat {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+}

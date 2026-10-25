@@ -2378,7 +2378,11 @@ function showDeleteDrugList(q = '') {
   deleteDropIndex = 0;
   menu.innerHTML = deleteDropMatches.map((d, i) => `
     <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
-      <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #0284c7;">[${d.category || 'General'}]</small>
+      <div class="delete-opt-main">
+        <strong>${d.brand_name}</strong>
+        <span class="delete-opt-generic">(${d.generic_name || 'N/A'})</span>
+      </div>
+      <span class="delete-opt-cat">${d.category || 'General'}</span>
     </div>
   `).join('');
 
@@ -2406,7 +2410,43 @@ if (deleteDrugInputEl) {
     if (hiddenId) hiddenId.value = '';
     showDeleteDrugList(deleteDrugInputEl.value);
   });
+
+  deleteDrugInputEl.addEventListener('keydown', (e) => {
+    const menu = document.getElementById('delete-drug-dropdown');
+    const items = menu ? menu.querySelectorAll('.pos-option') : [];
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) {
+        deleteDropIndex = (deleteDropIndex + 1) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === deleteDropIndex));
+        items[deleteDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) {
+        deleteDropIndex = (deleteDropIndex - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('selected', i === deleteDropIndex));
+        items[deleteDropIndex].scrollIntoView({ block: 'nearest' });
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (menu && menu.style.display !== 'none' && deleteDropMatches[deleteDropIndex]) {
+        pickDeleteDrug(deleteDropMatches[deleteDropIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      if (menu) menu.style.display = 'none';
+    }
+  });
 }
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('delete-drug-dropdown');
+  const input = document.getElementById('delete_drug_input');
+  if (menu && !menu.contains(e.target) && e.target !== input) {
+    menu.style.display = 'none';
+  }
+});
 
 const deleteSelectedDrugBtn = document.getElementById('delete-selected-drug-btn');
 if (deleteSelectedDrugBtn) {
