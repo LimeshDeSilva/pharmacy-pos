@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadStoreSettings();
     await refreshAlertBadges();
     await checkActiveShiftStatus();
+    await updateTodayInwardStats();
     if (typeof displayDrugDropdown === 'function') {
       await displayDrugDropdown();
     }
@@ -82,6 +83,7 @@ function navigateToTab(targetViewId, customMessage = '') {
   if (targetViewId === 'stock-inward-view') {
     displayDrugDropdown();
     loadSuppliersManagement();
+    updateTodayInwardStats();
     forceFocusInput('inward_drug_input');
   } else if (targetViewId === 'pos-view') {
     loadPosStock();
@@ -453,6 +455,13 @@ async function displayDrugDropdown() {
   }
 }
 
+const todayInwardCard = document.getElementById('hero-today-inward-card');
+if (todayInwardCard) {
+  todayInwardCard.addEventListener('click', () => {
+    navigateToTab('inventory-view');
+  });
+}
+
 const inwardDrugInput = document.getElementById('inward_drug_input');
 const inwardSelectedDrugId = document.getElementById('inward_selected_drug_id');
 const inwardDropdown = document.getElementById('inward-dropdown');
@@ -632,6 +641,7 @@ if (stockInwardForm) {
       
       await displayDrugDropdown();
       await refreshAlertBadges();
+      await updateTodayInwardStats();
 
       setTimeout(() => { if (inwardStatusMsg) inwardStatusMsg.innerText = ''; }, 2500);
       if (inwardDrugInput) { inwardDrugInput.focus(); inwardDrugInput.select(); }
@@ -819,6 +829,7 @@ if (editItemForm) {
       statusMsg.innerText = '✓ All details updated successfully!';
       await loadInventory();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+      await updateTodayInwardStats();
       await refreshAlertBadges();
       setTimeout(() => { closeEditItemModal(); }, 700);
     } else {
@@ -1495,6 +1506,36 @@ if (closeModalBtn) {
   closeModalBtn.addEventListener('click', () => {
     document.getElementById('receipt-modal').style.display = 'none';
   });
+}
+
+// ==================== TODAY INWARD STATS HERO CARD ====================
+async function updateTodayInwardStats() {
+  try {
+    if (!window.api || !window.api.getTodayInwardStats) return;
+    const res = await window.api.getTodayInwardStats();
+    if (res && res.success && res.data) {
+      const stats = res.data;
+      const countEl = document.getElementById('hero-today-inward-count');
+      const trendEl = document.getElementById('hero-today-inward-trend');
+      if (countEl) countEl.innerText = stats.today_items ?? 0;
+      if (trendEl) {
+        trendEl.innerText = stats.trend_text || `${stats.diff >= 0 ? '+' : ''}${stats.diff} from yesterday`;
+        if (stats.diff > 0) {
+          trendEl.style.color = 'var(--accent-emerald)';
+        } else if (stats.diff < 0) {
+          trendEl.style.color = 'var(--accent-amber)';
+        } else {
+          trendEl.style.color = 'var(--text-muted)';
+        }
+      }
+      const cardEl = document.getElementById('hero-today-inward-card');
+      if (cardEl) {
+        cardEl.title = `Total: ${stats.today_items} items (${stats.today_quantity} units) entered today. Click to view Inventory.`;
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching today inward stats:', err);
+  }
 }
 
 const refreshSalesBtn = document.getElementById('refresh-sales-btn');
