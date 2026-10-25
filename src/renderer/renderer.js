@@ -1596,99 +1596,6 @@ async function updateTodayInwardStats() {
 const refreshSalesBtn = document.getElementById('refresh-sales-btn');
 if (refreshSalesBtn) refreshSalesBtn.addEventListener('click', loadSalesHistory);
 
-// ==================== 30-DAY SALES & PROFIT DATA AUGMENTATION ====================
-function pad30DaysSales(existingDaily) {
-  const existingMap = new Map();
-  if (Array.isArray(existingDaily)) {
-    existingDaily.forEach((item) => {
-      if (item && item.period) {
-        existingMap.set(item.period, Number(item.total_revenue) || 0);
-      }
-    });
-  }
-
-  const randomRevenues = [
-    840, 1120, 960, 1340, 780, 1050, 1280,
-    910, 1190, 850, 1420, 1020, 790, 1210,
-    1150, 890, 1310, 980, 1090, 1260, 940, 1180
-  ];
-
-  const result = [];
-  const today = new Date();
-  let randIdx = 0;
-
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-
-    if (existingMap.has(dateStr)) {
-      result.push({
-        period: dateStr,
-        total_revenue: existingMap.get(dateStr)
-      });
-    } else {
-      const rev = randomRevenues[randIdx % randomRevenues.length];
-      randIdx++;
-      result.push({
-        period: dateStr,
-        total_revenue: rev
-      });
-    }
-  }
-
-  return result;
-}
-
-function pad30DaysProfits(existingDaily) {
-  const existingMap = new Map();
-  if (Array.isArray(existingDaily)) {
-    existingDaily.forEach((item) => {
-      if (item && item.period) {
-        existingMap.set(item.period, Number(item.total_profit) || 0);
-      }
-    });
-  }
-
-  const randomProfits = [
-    260, 350, 290, 420, 240, 320, 390,
-    280, 370, 260, 440, 310, 245, 380,
-    360, 275, 410, 305, 340, 395, 290, 370
-  ];
-
-  const result = [];
-  const today = new Date();
-  let randIdx = 0;
-
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-
-    if (existingMap.has(dateStr)) {
-      result.push({
-        period: dateStr,
-        total_profit: existingMap.get(dateStr)
-      });
-    } else {
-      const prof = randomProfits[randIdx % randomProfits.length];
-      randIdx++;
-      result.push({
-        period: dateStr,
-        total_profit: prof
-      });
-    }
-  }
-
-  return result;
-}
-
 // ==================== REVENUES & CHARTS MODULE ====================
 async function loadAnalyticsDashboard() {
   try {
@@ -1696,9 +1603,6 @@ async function loadAnalyticsDashboard() {
     if (!res || !res.success) return;
 
     analyticsCache = res.data;
-    if (analyticsCache && Array.isArray(analyticsCache.daily)) {
-      analyticsCache.daily = pad30DaysSales(analyticsCache.daily);
-    }
 
     const todayRev = analyticsCache?.kpis?.today?.today_revenue ?? 0;
     const todayOrders = analyticsCache?.kpis?.today?.today_orders ?? 0;
@@ -1906,9 +1810,6 @@ async function loadProfitAnalyticsDashboard() {
     if (!res || !res.success) return;
 
     profitAnalyticsCache = res.data;
-    if (profitAnalyticsCache && Array.isArray(profitAnalyticsCache.daily)) {
-      profitAnalyticsCache.daily = pad30DaysProfits(profitAnalyticsCache.daily);
-    }
 
     const today = profitAnalyticsCache?.kpis?.today || { profit: 0, orders: 0 };
     const month = profitAnalyticsCache?.kpis?.month || { profit: 0, orders: 0 };
