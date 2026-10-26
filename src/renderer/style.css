@@ -922,20 +922,31 @@ header {
 }
 
 input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
 input[type="number"],
 input[type="date"],
+input[type="search"],
+input:not([type]),
 select {
   width: 100%;
   height: 42px;
   background-color: var(--bg-input);
   border: 1px solid var(--border-input);
   border-radius: var(--radius-md);
-  padding: 0 14px 0 38px;
-  font-size: 13px;
+  padding: 0 14px;
+  font-size: 13.5px;
   color: var(--text-main);
   font-family: inherit;
   transition: all var(--transition-speed);
   outline: none;
+  box-sizing: border-box;
+}
+
+.input-icon-wrap input,
+.input-icon-wrap select {
+  padding-left: 38px;
 }
 
 select {
@@ -2333,8 +2344,13 @@ tbody tr:hover {
 }
 
 [data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="tel"],
 [data-theme="dark"] input[type="number"],
 [data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] input:not([type]),
 [data-theme="dark"] select {
   background-color: #030D1E;
   border: 1px solid #0A264E;
@@ -3527,4 +3543,284 @@ tbody tr:hover {
   background: rgba(56, 189, 248, 0.12);
   border-color: rgba(56, 189, 248, 0.35);
   color: #38BDF8;
+}
+
+/* ==================== AUTH LINK & OTP MODALS ==================== */
+.auth-link-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  color: var(--accent-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.auth-link-btn:hover {
+  color: #1d4ed8;
+  opacity: 0.9;
+}
+
+.auth-shield-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.modal-dialog-prompt {
+  max-width: 440px;
+  width: 100%;
+  border-radius: 18px;
+  padding: 26px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+  position: relative;
+  overflow: hidden;
+  animation: authFadeIn 0.2s ease-out;
+}
+
+.modal-dialog-prompt .modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.modal-dialog-prompt .auth-brand-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0284c7;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+.modal-dialog-prompt #admin-prompt-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.modal-dialog-prompt #admin-prompt-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+.modal-dialog-prompt .close-icon-btn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.modal-dialog-prompt .close-icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.modal-dialog-prompt .modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.modal-dialog-prompt .modal-footer-actions .btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-dialog-prompt #cancel-admin-prompt-btn {
+  background: var(--bg-app);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+}
+
+.modal-dialog-prompt #cancel-admin-prompt-btn:hover {
+  background: var(--bg-hover);
+}
+
+.modal-dialog-prompt button[type="submit"] {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+
+.modal-dialog-prompt button[type="submit"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.input-action-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all var(--transition-speed);
+}
+
+.input-action-btn:hover {
+  color: var(--accent-primary);
+  background: var(--bg-hover);
+}
+
+.auth-badge-chip {
+  font-size: 12px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-card);
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: var(--text-muted);
+}
+
+.auth-badge-chip strong {
+  color: var(--text-main);
+}
+
+/* Dark Mode Overrides for Prompt & Offline Recovery */
+[data-theme="dark"] .auth-link-btn {
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .auth-link-btn:hover {
+  color: #7DD3FC;
+}
+
+[data-theme="dark"] .auth-shield-icon {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .modal-dialog-prompt,
+[data-theme="dark"] .modal-dialog-offline {
+  background: #0B2447;
+  border-color: #1E3A8A;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.modal-dialog-offline {
+  max-width: 500px;
+  width: 100%;
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.offline-tab-row {
+  display: flex;
+  border-bottom: 1px solid var(--border-card);
+  margin-top: 16px;
+}
+
+.offline-tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12.5px;
+  transition: all 0.2s ease;
+}
+
+.offline-tab-btn:hover {
+  color: var(--accent-primary);
+}
+
+.offline-tab-btn.active {
+  font-weight: 700;
+  color: var(--accent-primary);
+  border-bottom: 2px solid var(--accent-primary);
+}
+
+.recovery-key-code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  user-select: all;
+}
+
+[data-theme="dark"] #setup-recovery-key-display {
+  color: #38BDF8 !important;
+}
+
+[data-theme="dark"] #revealed-emergency-key {
+  background: #061833 !important;
+  border-color: #1E3A8A !important;
+  color: #38BDF8 !important;
+}
+
+[data-theme="dark"] #offline_recovery_key_input {
+  background: #061833 !important;
+  border-color: #1E3A8A !important;
+  color: #38BDF8 !important;
+}
+
+[data-theme="dark"] .auth-badge-chip {
+  background: #061833;
+  border-color: #1E3A8A;
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .auth-badge-chip strong {
+  color: #F8FAFC;
 }
