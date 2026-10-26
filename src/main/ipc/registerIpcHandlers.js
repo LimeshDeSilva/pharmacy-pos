@@ -1,5 +1,6 @@
 const { ipcMain, dialog } = require('electron');
 const { z } = require('zod');
+const crypto = require('crypto');
 const PrinterService = require('../services/printerService');
 const SystemService = require('../services/systemService');
 const ExportService = require('../services/exportService');
@@ -334,19 +335,39 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
-  ipcMain.handle('auth:setupCredentials', async (event, { username, password }) => {
+  function generateEmergencyRecoveryKey() {
+    const bytes = crypto.randomBytes(8).toString('hex').toUpperCase();
+    return `MC-${bytes.slice(0, 4)}-${bytes.slice(4, 8)}-${bytes.slice(8, 12)}-${bytes.slice(12, 16)}`;
+  }
+
+  ipcMain.handle('auth:setupCredentials', async (event, { username, password, secQ1, secA1, secQ2, secA2 }) => {
     try {
       if (!username || !username.trim()) throw new Error('Username is required');
       if (!password || !password.trim()) throw new Error('Password is required');
       const cleanUser = username.trim();
       const cleanPass = password.trim();
-      settingsRepo.updateSettings({
+
+      const recoveryKey = generateEmergencyRecoveryKey();
+
+      const updateData = {
         admin_username: cleanUser,
         admin_password: cleanPass,
         admin_pin: cleanPass,
+        master_recovery_key: recoveryKey,
         auth_setup_completed: '1'
-      });
-      return { success: true, username: cleanUser };
+      };
+
+      if (secQ1 && secA1) {
+        updateData.sec_question_1 = secQ1.trim();
+        updateData.sec_answer_1 = secA1.trim().toLowerCase();
+      }
+      if (secQ2 && secA2) {
+        updateData.sec_question_2 = secQ2.trim();
+        updateData.sec_answer_2 = secA2.trim().toLowerCase();
+      }
+
+      settingsRepo.updateSettings(updateData);
+      return { success: true, username: cleanUser, recoveryKey };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -413,6 +434,144 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
       return { success: false, error: error.message };
     }
   });
+
+  ipcMain.handle('auth:getSecurityQuestions', async () => {
+    try {
+      const settings = settingsRepo.getSettings();
+      return {
+        success: true,
+        q1: settings.sec_question_1 || 'What was the name of your primary school?',
+        q2: settings.sec_question_2 || 'What city was your store founded in?',
+        hasQuestions: !!(settings.sec_question_1 && settings.sec_answer_1)
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:resetViaQuestions', async (event, { ans1, ans2, newPassword }) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedAns1 = (settings.sec_answer_1 || '').trim().toLowerCase();
+      const storedAns2 = (settings.sec_answer_2 || '').trim().toLowerCase();
+
+      if (!storedAns1 && !storedAns2) {
+        throw new Error('No security questions configured in the system. Please use your Master Emergency Recovery Key.');
+      }
+
+      const inputAns1 = String(ans1 || '').trim().toLowerCase();
+      const inputAns2 = String(ans2 || '').trim().toLowerCase();
+
+      if (storedAns1 && inputAns1 !== storedAns1) {
+        throw new Error('Answer to Security Question 1 is incorrect.');
+      }
+      if (storedAns2 && inputAns2 !== storedAns2) {
+        throw new Error('Answer to Security Question 2 is incorrect.');
+      }
+
+      if (!newPassword || newPassword.trim().length < 3) {
+        throw new Error('New password must be at least 3 characters long.');
+      }
+
+      const cleanPass = newPassword.trim();
+      settingsRepo.updateSettings({
+        admin_password: cleanPass,
+        admin_pin: cleanPass,
+        auth_setup_completed: '1'
+      });
+
+      return { success: true, username: settings.admin_username || 'admin' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:resetViaRecoveryKey', async (event, { recoveryKey, newPassword }) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedRaw = settings.master_recovery_key || '';
+      const storedClean = storedRaw.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const inputClean = String(recoveryKey || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+      if (!storedClean) {
+        throw new Error('No Master Emergency Recovery Key found in system settings.');
+      }
+
+      if (inputClean !== storedClean) {
+        throw new Error('Invalid Emergency Recovery Key. Please check the code and try again.');
+      }
+
+      if (!newPassword || newPassword.trim().length < 3) {
+        throw new Error('New password must be at least 3 characters long.');
+      }
+
+      const cleanPass = newPassword.trim();
+      settingsRepo.updateSettings({
+        admin_password: cleanPass,
+        admin_pin: cleanPass,
+        auth_setup_completed: '1'
+      });
+
+      return { success: true, username: settings.admin_username || 'admin' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:getRecoveryDetails', async (event, password) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedPass = String(settings.admin_password || settings.admin_pin || '1234').trim();
+      if (String(password || '').trim() !== storedPass) {
+        throw new Error('Current master password is required to view recovery credentials.');
+      }
+
+      let recoveryKey = settings.master_recovery_key;
+      if (!recoveryKey) {
+        recoveryKey = generateEmergencyRecoveryKey();
+        settingsRepo.updateSettings({ master_recovery_key: recoveryKey });
+      }
+
+      return {
+        success: true,
+        recoveryKey,
+        secQ1: settings.sec_question_1 || '',
+        secQ2: settings.sec_question_2 || ''
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('auth:updateOfflineRecovery', async (event, { currentPassword, secQ1, secA1, secQ2, secA2, regenerateKey }) => {
+    try {
+      const settings = settingsRepo.getSettings();
+      const storedPass = String(settings.admin_password || settings.admin_pin || '1234').trim();
+      if (String(currentPassword || '').trim() !== storedPass) {
+        throw new Error('Current master password is incorrect.');
+      }
+
+      const updateData = {};
+      if (secQ1 && secA1) {
+        updateData.sec_question_1 = secQ1.trim();
+        updateData.sec_answer_1 = secA1.trim().toLowerCase();
+      }
+      if (secQ2 && secA2) {
+        updateData.sec_question_2 = secQ2.trim();
+        updateData.sec_answer_2 = secA2.trim().toLowerCase();
+      }
+      if (regenerateKey) {
+        updateData.master_recovery_key = generateEmergencyRecoveryKey();
+      }
+
+      settingsRepo.updateSettings(updateData);
+      const updated = settingsRepo.getSettings();
+      return { success: true, recoveryKey: updated.master_recovery_key };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
 
   ipcMain.handle('database:backup', async () => {
     try {
