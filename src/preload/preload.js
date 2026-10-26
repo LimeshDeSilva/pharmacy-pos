@@ -47,6 +47,12 @@ contextBridge.exposeInMainWorld('api', {
   verifyPassword: (password) => ipcRenderer.invoke('auth:verifyPassword', password),
   changeCredentials: (data) => ipcRenderer.invoke('auth:changeCredentials', data),
 
+  getSecurityQuestions: () => ipcRenderer.invoke('auth:getSecurityQuestions'),
+  resetViaQuestions: (data) => ipcRenderer.invoke('auth:resetViaQuestions', data),
+  resetViaRecoveryKey: (data) => ipcRenderer.invoke('auth:resetViaRecoveryKey', data),
+  getRecoveryDetails: (password) => ipcRenderer.invoke('auth:getRecoveryDetails', password),
+  updateOfflineRecovery: (data) => ipcRenderer.invoke('auth:updateOfflineRecovery', data),
+
   deleteSingleSale: (saleId) => ipcRenderer.invoke('sales:deleteSingle', saleId),
   deleteAllSales: () => ipcRenderer.invoke('sales:deleteAll'),
   updateSale: (data) => ipcRenderer.invoke('sales:update', data),
