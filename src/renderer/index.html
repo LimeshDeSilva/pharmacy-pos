@@ -1128,22 +1128,48 @@
       <div class="settings-grid">
         <!-- Card 1: Pharmacy Profile -->
         <div class="card">
-          <h3 class="card-title-spaced" style="color: var(--accent-primary);">Pharmacy Information &amp; Settings</h3>
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); display: flex; align-items: center; justify-content: center; color: #0284c7;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h3 class="card-title-spaced" style="color: var(--accent-primary); margin: 0; font-size: 16px;">Pharmacy Information &amp; Settings</h3>
+              <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-muted);">Configure pharmacy business identity and invoice header details</p>
+            </div>
+          </div>
           <form id="settings-form">
             <div class="form-group">
               <label for="setting_pharmacy_name">Pharmacy Name *</label>
-              <input type="text" id="setting_pharmacy_name" placeholder="e.g. Sahasna Pharmacy" required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <input type="text" id="setting_pharmacy_name" placeholder="e.g. Sahasna Pharmacy" required />
+              </div>
             </div>
             <div class="form-group">
               <label for="setting_pharmacy_address">Store Address *</label>
-              <input type="text" id="setting_pharmacy_address" placeholder="e.g. No. 123, Main Street, Colombo"
-                required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <input type="text" id="setting_pharmacy_address" placeholder="e.g. No. 123, Main Street, Colombo" required />
+              </div>
             </div>
             <div class="form-group">
               <label for="setting_pharmacy_phone">Phone / Contact Number *</label>
-              <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <input type="text" id="setting_pharmacy_phone" placeholder="e.g. 077-1234567" required />
+              </div>
             </div>
-            <button type="submit" class="btn" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #06141B; width: 100%; font-weight: 700;">Save Pharmacy Details</button>
+            <div class="form-group">
+              <label for="setting_pharmacy_email">Pharmacy Email Address</label>
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                <input type="email" id="setting_pharmacy_email" placeholder="e.g. info@pharmacy.com" autocomplete="off" />
+              </div>
+            </div>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #FFFFFF; width: 100%; height: 42px; font-weight: 700; border-radius: 10px; border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">Save Pharmacy Details</button>
           </form>
           <div id="settings-status-msg" class="status-msg"></div>
         </div>
@@ -1151,7 +1177,15 @@
         <!-- Card 2: Admin Security & Login Credentials -->
         <div class="card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 class="card-title-spaced" style="color: var(--accent-emerald); margin: 0;">Admin Security &amp; Credentials</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: center; color: #10b981;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <h3 class="card-title-spaced" style="color: var(--accent-emerald); margin: 0; font-size: 16px;">Admin Security &amp; Credentials</h3>
+            </div>
             <span class="auth-badge-chip">Admin User: <strong id="current-admin-username-label">admin</strong></span>
           </div>
           <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">Change your master username and login password. This password will automatically apply to till shifts and reset authorizations.</p>
@@ -1159,25 +1193,131 @@
           <form id="credentials-form">
             <div class="form-group">
               <label for="cred_current_password">Current Password *</label>
-              <input type="password" id="cred_current_password" placeholder="Enter current password..." required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <input type="password" id="cred_current_password" placeholder="Enter current password..." required />
+              </div>
             </div>
             <div class="form-group">
               <label for="cred_new_username">New Username *</label>
-              <input type="text" id="cred_new_username" placeholder="e.g. admin" required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input type="text" id="cred_new_username" placeholder="e.g. admin" required />
+              </div>
             </div>
             <div class="form-group">
               <label for="cred_new_password">New Password *</label>
-              <input type="password" id="cred_new_password" placeholder="Enter new password..." required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m-8 6a6 6 0 1 1 8.49-8.49L21.5 7.5 19 10l-2-2-2 2-2-2-1.5 1.5a6 6 0 0 1-8.5-8.5z"></path></svg>
+                <input type="password" id="cred_new_password" placeholder="Enter new password..." required />
+              </div>
             </div>
             <div class="form-group">
               <label for="cred_confirm_password">Confirm New Password *</label>
-              <input type="password" id="cred_confirm_password" placeholder="Confirm new password..." required />
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+                <input type="password" id="cred_confirm_password" placeholder="Confirm new password..." required />
+              </div>
             </div>
-            <button type="submit" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #FFFFFF; width: 100%; font-weight: 700;">
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #FFFFFF; width: 100%; height: 42px; font-weight: 700; border-radius: 10px; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
               Update Login Credentials
             </button>
+            <div style="margin-top: 12px; text-align: center; border-top: 1px dashed var(--border-card); padding-top: 10px;">
+              <button type="button" id="store-reset-offline-btn" class="auth-link-btn" style="font-size: 12.5px; color: var(--accent-primary); text-decoration: underline; background: none; border: none; cursor: pointer; padding: 4px; font-weight: 600;">
+                Forgot Current Password? Reset Offline
+              </button>
+            </div>
           </form>
           <div id="credentials-status-msg" class="status-msg"></div>
+        </div>
+
+        <!-- Card 3: Offline Security & Emergency Recovery Key -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); display: flex; align-items: center; justify-content: center; color: #0284c7;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </div>
+              <h3 class="card-title-spaced" style="color: #0284c7; margin: 0; font-size: 16px;">Offline Security &amp; Emergency Key</h3>
+            </div>
+            <span class="auth-badge-chip">100% Offline &bull; No Internet</span>
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">View or generate your Master Emergency Recovery Key and configure offline security questions for guaranteed access recovery.</p>
+
+          <!-- Master Emergency Key Reveal Section -->
+          <div style="background: var(--bg-app); border: 1px solid var(--border-card); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong style="font-size: 13px; color: var(--text-main);">Master Emergency Recovery Key</strong>
+              <button type="button" id="reveal-emergency-key-btn" class="btn btn-outline" style="padding: 5px 12px; font-size: 12px; font-weight: 600; border-radius: 8px;">
+                Reveal Key
+              </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 8px 0;">Use this 16-character key if you ever forget your password and security questions.</p>
+
+            <div id="emergency-key-display-wrapper" style="display: none; margin-top: 10px;">
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <div class="input-icon-wrap" style="flex: 1;">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m-8 6a6 6 0 1 1 8.49-8.49L21.5 7.5 19 10l-2-2-2 2-2-2-1.5 1.5a6 6 0 0 1-8.5-8.5z"></path></svg>
+                  <input type="text" id="revealed-emergency-key" readonly style="font-family: monospace; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #0284c7;" />
+                </div>
+                <button type="button" id="copy-revealed-key-btn" class="btn btn-outline" style="padding: 0 14px; height: 42px; font-size: 12.5px; border-radius: 10px;">Copy</button>
+                <button type="button" id="regen-emergency-key-btn" class="btn btn-outline" style="padding: 0 14px; height: 42px; font-size: 12.5px; color: #dc2626; border-color: #fca5a5; border-radius: 10px;">Regenerate</button>
+              </div>
+              <small style="color: #059669; font-size: 11.5px; display: block; font-weight: 600;">✓ Store this key safely on paper in your cash register or store safe.</small>
+            </div>
+          </div>
+
+          <!-- Update Security Questions Form -->
+          <form id="offline-sec-questions-form">
+            <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 10px 0; color: var(--text-main);">Configure Offline Security Questions</h4>
+            <div class="form-group">
+              <label for="setting_sec_q1">Security Question 1 *</label>
+              <select id="setting_sec_q1">
+                <option value="What was the name of your first school?">What was the name of your first school?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What city was your store founded in?">What city was your store founded in?</option>
+                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                <option value="What was the make of your first vehicle?">What was the make of your first vehicle?</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="setting_sec_a1">Answer 1 (Leave blank to keep existing)</label>
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <input type="text" id="setting_sec_a1" placeholder="Enter new secret answer 1..." autocomplete="off" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="setting_sec_q2">Security Question 2 *</label>
+              <select id="setting_sec_q2">
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What city was your store founded in?">What city was your store founded in?</option>
+                <option value="What was your favorite high school subject?">What was your favorite high school subject?</option>
+                <option value="What is your father's middle name?">What is your father's middle name?</option>
+                <option value="What was the name of your first employer?">What was the name of your first employer?</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="setting_sec_a2">Answer 2 (Leave blank to keep existing)</label>
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <input type="text" id="setting_sec_a2" placeholder="Enter new secret answer 2..." autocomplete="off" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="setting_sec_auth_password">Current Master Password *</label>
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <input type="password" id="setting_sec_auth_password" placeholder="Enter current master password to authorize changes..." required />
+              </div>
+            </div>
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #FFFFFF; font-weight: 700; width: 100%; height: 42px; border-radius: 10px; border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+              Save Offline Security Settings
+            </button>
+          </form>
+          <div id="offline-sec-status-msg" class="status-msg"></div>
         </div>
       </div>
     </section>
@@ -1586,7 +1726,7 @@
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
-          <span><strong>First Time Setup:</strong> Create an administrator username and master password to secure your pharmacy system.</span>
+          <span><strong>First Time Setup:</strong> Set administrator credentials and configure offline security questions for password recovery.</span>
         </div>
         <form id="setup-form" class="auth-form">
           <div class="form-group">
@@ -1601,11 +1741,78 @@
             <label for="setup_confirm_password">Confirm Master Password *</label>
             <input type="password" id="setup_confirm_password" placeholder="Re-type master password" required autocomplete="new-password" />
           </div>
+
+          <div style="border-top: 1px dashed var(--border-card); margin: 6px 0; padding-top: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">Offline Recovery Questions</span>
+            </div>
+            <div class="form-group">
+              <label for="setup_sec_q1">Security Question 1 *</label>
+              <select id="setup_sec_q1" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-main); font-size: 13px;">
+                <option value="What was the name of your first school?">What was the name of your first school?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What city was your store founded in?">What city was your store founded in?</option>
+                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                <option value="What was the make of your first vehicle?">What was the make of your first vehicle?</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="setup_sec_a1">Answer 1 *</label>
+              <input type="text" id="setup_sec_a1" placeholder="Secret answer to question 1" required autocomplete="off" />
+            </div>
+
+            <div class="form-group">
+              <label for="setup_sec_q2">Security Question 2 *</label>
+              <select id="setup_sec_q2" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-main); font-size: 13px;">
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What city was your store founded in?">What city was your store founded in?</option>
+                <option value="What was your favorite high school subject?">What was your favorite high school subject?</option>
+                <option value="What is your father's middle name?">What is your father's middle name?</option>
+                <option value="What was the name of your first employer?">What was the name of your first employer?</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="setup_sec_a2">Answer 2 *</label>
+              <input type="text" id="setup_sec_a2" placeholder="Secret answer to question 2" required autocomplete="off" />
+            </div>
+          </div>
+
           <button type="submit" id="setup-submit-btn" class="btn auth-submit-btn">
-            Set Password &amp; Launch System
+            Save Credentials &amp; Generate Recovery Key
           </button>
         </form>
         <div id="setup-status-msg" class="status-msg"></div>
+      </div>
+
+      <!-- Post-Setup Emergency Recovery Key Display Panel -->
+      <div id="auth-recovery-key-panel" style="display: none;">
+        <div class="auth-alert-box info-alert" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #047857;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span><strong>Administrator Credentials Created!</strong> Your Master Emergency Recovery Key has been generated 100% offline.</span>
+        </div>
+
+        <div style="background: var(--bg-app); border: 2px dashed #0284c7; border-radius: 14px; padding: 18px; margin: 16px 0; text-align: center;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">
+            Master Emergency Recovery Key
+          </div>
+          <div id="setup-recovery-key-display" class="recovery-key-code" style="font-family: monospace; font-size: 20px; font-weight: 800; color: #0284c7; letter-spacing: 3px; word-break: break-all; margin-bottom: 12px; user-select: all;">
+            MC-XXXX-XXXX-XXXX-XXXX
+          </div>
+          <button type="button" id="copy-setup-key-btn" class="btn btn-outline" style="font-size: 12px; padding: 5px 14px;">
+            Copy Recovery Key
+          </button>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px; font-size: 12px; color: #b45309; line-height: 1.5; margin-bottom: 18px;">
+          ⚠️ <strong>Store This Key Safely:</strong> Please write down or print this key and keep it in your cash register or store safe. If you ever forget your password and security questions, this key is the only offline method to regain access.
+        </div>
+
+        <button type="button" id="acknowledge-recovery-key-btn" class="btn auth-submit-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          I Have Stored This Key &bull; Launch MediCare POS
+        </button>
       </div>
 
       <!-- Normal App Login Panel -->
@@ -1622,9 +1829,168 @@
           <button type="submit" id="login-submit-btn" class="btn auth-submit-btn">
             Unlock &amp; Continue
           </button>
+          <div style="text-align: center; margin-top: 14px;">
+            <button type="button" id="login-forgot-pwd-btn" class="auth-link-btn">
+              Forgot Password? (Offline Recovery)
+            </button>
+          </div>
         </form>
         <div id="login-status-msg" class="status-msg"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ==================== ADMIN SECTION ACCESS PROMPT MODAL ==================== -->
+  <div id="admin-access-modal" class="modal-backdrop" style="display: none; z-index: 100000;">
+    <div class="card modal-dialog-prompt">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div class="auth-brand-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="no-margin" id="admin-prompt-title">Admin Access Required</h3>
+            <p class="no-margin" id="admin-prompt-subtitle">Please enter master password to proceed</p>
+          </div>
+        </div>
+        <button type="button" id="close-admin-prompt-btn" class="close-icon-btn">✕</button>
+      </div>
+
+      <form id="admin-prompt-form" style="margin-top: 18px;">
+        <div class="form-group">
+          <label for="admin_prompt_password">Master Password *</label>
+          <div class="input-icon-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input type="password" id="admin_prompt_password" placeholder="Enter master password..." required autocomplete="current-password" style="padding-right: 40px;" />
+            <button type="button" id="toggle-admin-prompt-pass-btn" class="input-action-btn" title="Show/Hide Password" tabindex="-1">
+              <svg id="eye-icon-admin-prompt" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer-actions">
+          <button type="button" id="cancel-admin-prompt-btn" class="btn">Cancel</button>
+          <button type="submit" class="btn">Verify &amp; Enter</button>
+        </div>
+        <div id="admin-prompt-status-msg" class="status-msg"></div>
+        <div style="text-align: center; margin-top: 14px; border-top: 1px dashed var(--border-card); padding-top: 10px;">
+          <button type="button" id="admin-prompt-forgot-btn" class="auth-link-btn" style="font-size: 12.5px; color: var(--accent-primary); font-weight: 600; text-decoration: underline; background: none; border: none; cursor: pointer; padding: 4px;">Forgot Password? Reset Offline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== OFFLINE MASTER PASSWORD RESET MODAL ==================== -->
+  <div id="offline-reset-modal" class="modal-backdrop" style="display: none; z-index: 1000000;">
+    <div class="card modal-dialog-offline" style="max-width: 500px; width: 100%; border-radius: 18px; position: relative; overflow: hidden;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="auth-brand-badge" style="width: 44px; height: 44px; margin: 0; border-radius: 12px; background: rgba(2, 132, 199, 0.15); border-color: rgba(2, 132, 199, 0.35); color: #0284c7;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="no-margin" style="font-size: 16px; font-weight: 800;">Offline Password Recovery</h3>
+            <p class="no-margin" style="font-size: 12px; color: var(--text-muted);">Reset master credentials without internet</p>
+          </div>
+        </div>
+        <button type="button" id="close-offline-modal-btn" class="close-icon-btn">✕</button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="offline-tab-row" style="display: flex; border-bottom: 1px solid var(--border-card); margin-top: 16px;">
+        <button type="button" id="offline-tab-btn-questions" class="offline-tab-btn active" style="flex: 1; padding: 10px 14px; background: none; border: none; border-bottom: 2px solid #0284c7; font-weight: 700; color: #0284c7; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Security Questions
+        </button>
+        <button type="button" id="offline-tab-btn-key" class="offline-tab-btn" style="flex: 1; padding: 10px 14px; background: none; border: none; border-bottom: 2px solid transparent; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Emergency Key
+        </button>
+      </div>
+
+      <!-- Panel 1: Security Questions Form -->
+      <div id="offline-panel-questions" style="margin-top: 16px;">
+        <form id="offline-questions-form">
+          <div class="form-group">
+            <label id="offline-q1-label" style="font-weight: 600; font-size: 12.5px; color: var(--text-main);">Question 1</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <input type="text" id="offline_ans_1" placeholder="Enter answer to Question 1..." required autocomplete="off" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label id="offline-q2-label" style="font-weight: 600; font-size: 12.5px; color: var(--text-main);">Question 2</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <input type="text" id="offline_ans_2" placeholder="Enter answer to Question 2..." required autocomplete="off" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="offline_q_new_pass">New Master Password *</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m-8 6a6 6 0 1 1 8.49-8.49L21.5 7.5 19 10l-2-2-2 2-2-2-1.5 1.5a6 6 0 0 1-8.5-8.5z"></path></svg>
+              <input type="password" id="offline_q_new_pass" placeholder="Enter new master password" required autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="offline_q_confirm_pass">Confirm New Master Password *</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+              <input type="password" id="offline_q_confirm_pass" placeholder="Re-type new master password" required autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="modal-footer-actions" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" id="cancel-offline-q-btn" class="btn btn-outline" style="height: 40px; padding: 0 18px; border-radius: 10px; font-size: 13px;">Cancel</button>
+            <button type="submit" class="btn" style="height: 40px; padding: 0 18px; border-radius: 10px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">Verify &amp; Reset Password</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Panel 2: Master Emergency Recovery Key Form -->
+      <div id="offline-panel-key" style="display: none; margin-top: 16px;">
+        <div class="auth-alert-box info-alert" style="margin-bottom: 14px; font-size: 12px; line-height: 1.45;">
+          <span>Enter your 16-character Emergency Recovery Key (e.g. <code>MC-XXXX-XXXX-XXXX-XXXX</code>) saved during initial setup.</span>
+        </div>
+        <form id="offline-key-form">
+          <div class="form-group">
+            <label for="offline_recovery_key_input">Master Emergency Recovery Key *</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m-8 6a6 6 0 1 1 8.49-8.49L21.5 7.5 19 10l-2-2-2 2-2-2-1.5 1.5a6 6 0 0 1-8.5-8.5z"></path></svg>
+              <input type="text" id="offline_recovery_key_input" placeholder="MC-XXXX-XXXX-XXXX-XXXX" required autocomplete="off" style="font-family: monospace; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="offline_k_new_pass">New Master Password *</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2m-8 6a6 6 0 1 1 8.49-8.49L21.5 7.5 19 10l-2-2-2 2-2-2-1.5 1.5a6 6 0 0 1-8.5-8.5z"></path></svg>
+              <input type="password" id="offline_k_new_pass" placeholder="Enter new master password" required autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="offline_k_confirm_pass">Confirm New Master Password *</label>
+            <div class="input-icon-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+              <input type="password" id="offline_k_confirm_pass" placeholder="Re-type new master password" required autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="modal-footer-actions" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" id="cancel-offline-k-btn" class="btn btn-outline" style="height: 40px; padding: 0 18px; border-radius: 10px; font-size: 13px;">Cancel</button>
+            <button type="submit" class="btn" style="height: 40px; padding: 0 18px; border-radius: 10px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">Verify Key &amp; Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="offline-reset-status-msg" class="status-msg" style="margin-top: 10px;"></div>
     </div>
   </div>
 

@@ -36,6 +36,7 @@ async function checkAppAuth() {
 
   const authOverlay = document.getElementById('auth-overlay');
   const setupPanel = document.getElementById('auth-setup-panel');
+  const recoveryPanel = document.getElementById('auth-recovery-key-panel');
   const loginPanel = document.getElementById('auth-login-panel');
   const authTitle = document.getElementById('auth-main-title');
   const authSubtitle = document.getElementById('auth-sub-title');
@@ -49,15 +50,17 @@ async function checkAppAuth() {
     authOverlay.style.display = 'flex';
     if (!isSetup) {
       if (setupPanel) setupPanel.style.display = 'block';
+      if (recoveryPanel) recoveryPanel.style.display = 'none';
       if (loginPanel) loginPanel.style.display = 'none';
       if (authTitle) authTitle.innerText = 'First-Time Security Setup';
-      if (authSubtitle) authSubtitle.innerText = 'Create your administrator username & master password';
+      if (authSubtitle) authSubtitle.innerText = 'Set administrator credentials & configure offline recovery questions';
       setTimeout(() => {
         const uInp = document.getElementById('setup_username');
         if (uInp) uInp.focus();
       }, 150);
     } else {
       if (setupPanel) setupPanel.style.display = 'none';
+      if (recoveryPanel) recoveryPanel.style.display = 'none';
       if (loginPanel) loginPanel.style.display = 'block';
       if (authTitle) authTitle.innerText = 'MediCare POS Authentication';
       if (authSubtitle) authSubtitle.innerText = 'Enter your administrator credentials to access the system';
@@ -81,6 +84,7 @@ async function checkAppAuth() {
 function lockApp() {
   const authOverlay = document.getElementById('auth-overlay');
   const setupPanel = document.getElementById('auth-setup-panel');
+  const recoveryPanel = document.getElementById('auth-recovery-key-panel');
   const loginPanel = document.getElementById('auth-login-panel');
   const authTitle = document.getElementById('auth-main-title');
   const authSubtitle = document.getElementById('auth-sub-title');
@@ -92,6 +96,7 @@ function lockApp() {
   isAppAuthenticated = false;
   authOverlay.style.display = 'flex';
   if (setupPanel) setupPanel.style.display = 'none';
+  if (recoveryPanel) recoveryPanel.style.display = 'none';
   if (loginPanel) loginPanel.style.display = 'block';
   if (authTitle) authTitle.innerText = 'System Locked';
   if (authSubtitle) authSubtitle.innerText = 'Enter master password to unlock and resume your session';
@@ -100,6 +105,177 @@ function lockApp() {
     passwordInp.value = '';
     setTimeout(() => passwordInp.focus(), 150);
   }
+}
+
+// ==================== ADMIN TAB GATE & OFFLINE PASSWORD RECOVERY ====================
+let pendingAdminViewId = null;
+let offlineResetOrigin = 'login'; // 'login' | 'settings' | 'admin-prompt'
+
+function requestAdminAccessForTab(targetViewId) {
+  const currentActiveTab = document.querySelector('.nav-item.active');
+  if (currentActiveTab && currentActiveTab.getAttribute('data-view') === targetViewId) {
+    return;
+  }
+
+  pendingAdminViewId = targetViewId;
+  const modal = document.getElementById('admin-access-modal');
+  const passInp = document.getElementById('admin_prompt_password');
+  const statusMsg = document.getElementById('admin-prompt-status-msg');
+  const titleEl = document.getElementById('admin-prompt-title');
+  const subtitleEl = document.getElementById('admin-prompt-subtitle');
+
+  if (!modal) {
+    navigateToTab(targetViewId);
+    return;
+  }
+
+  if (targetViewId === 'settings-view') {
+    if (titleEl) titleEl.innerText = 'Store Settings Protected';
+    if (subtitleEl) subtitleEl.innerText = 'Enter master password to access Pharmacy Configuration';
+  } else if (targetViewId === 'clear-inventory-view') {
+    if (titleEl) titleEl.innerText = 'System Reset & Wipe Protected';
+    if (subtitleEl) subtitleEl.innerText = 'Enter master password to access System Reset operations';
+  }
+
+  if (statusMsg) statusMsg.innerText = '';
+  if (passInp) {
+    passInp.value = '';
+    setTimeout(() => passInp.focus(), 120);
+  }
+  modal.style.display = 'flex';
+}
+
+function closeAdminAccessModal() {
+  const modal = document.getElementById('admin-access-modal');
+  if (modal) modal.style.display = 'none';
+  pendingAdminViewId = null;
+}
+
+function switchOfflineResetTab(tab) {
+  const btnQuestions = document.getElementById('offline-tab-btn-questions');
+  const btnKey = document.getElementById('offline-tab-btn-key');
+  const panelQuestions = document.getElementById('offline-panel-questions');
+  const panelKey = document.getElementById('offline-panel-key');
+  const msgEl = document.getElementById('offline-reset-status-msg');
+  if (msgEl) msgEl.innerText = '';
+
+  if (tab === 'questions') {
+    if (btnQuestions) {
+      btnQuestions.classList.add('active');
+      btnQuestions.style.color = '#0284c7';
+      btnQuestions.style.borderBottom = '2px solid #0284c7';
+    }
+    if (btnKey) {
+      btnKey.classList.remove('active');
+      btnKey.style.color = 'var(--text-muted)';
+      btnKey.style.borderBottom = '2px solid transparent';
+    }
+    if (panelQuestions) panelQuestions.style.display = 'block';
+    if (panelKey) panelKey.style.display = 'none';
+    const ans1 = document.getElementById('offline_ans_1');
+    if (ans1) setTimeout(() => ans1.focus(), 100);
+  } else {
+    if (btnKey) {
+      btnKey.classList.add('active');
+      btnKey.style.color = '#0284c7';
+      btnKey.style.borderBottom = '2px solid #0284c7';
+    }
+    if (btnQuestions) {
+      btnQuestions.classList.remove('active');
+      btnQuestions.style.color = 'var(--text-muted)';
+      btnQuestions.style.borderBottom = '2px solid transparent';
+    }
+    if (panelKey) panelKey.style.display = 'block';
+    if (panelQuestions) panelQuestions.style.display = 'none';
+    const keyInp = document.getElementById('offline_recovery_key_input');
+    if (keyInp) setTimeout(() => keyInp.focus(), 100);
+  }
+}
+
+async function openOfflineResetModal(origin = 'login') {
+  offlineResetOrigin = origin;
+  const modal = document.getElementById('offline-reset-modal');
+  const msgEl = document.getElementById('offline-reset-status-msg');
+  const q1Label = document.getElementById('offline-q1-label');
+  const q2Label = document.getElementById('offline-q2-label');
+
+  if (!modal) return;
+  if (msgEl) msgEl.innerText = '';
+
+  const ans1Inp = document.getElementById('offline_ans_1');
+  const ans2Inp = document.getElementById('offline_ans_2');
+  const qNewPass = document.getElementById('offline_q_new_pass');
+  const qConfirmPass = document.getElementById('offline_q_confirm_pass');
+  const keyInp = document.getElementById('offline_recovery_key_input');
+  const kNewPass = document.getElementById('offline_k_new_pass');
+  const kConfirmPass = document.getElementById('offline_k_confirm_pass');
+
+  if (ans1Inp) ans1Inp.value = '';
+  if (ans2Inp) ans2Inp.value = '';
+  if (qNewPass) qNewPass.value = '';
+  if (qConfirmPass) qConfirmPass.value = '';
+  if (keyInp) keyInp.value = '';
+  if (kNewPass) kNewPass.value = '';
+  if (kConfirmPass) kConfirmPass.value = '';
+
+  switchOfflineResetTab('questions');
+  modal.style.display = 'flex';
+
+  try {
+    const res = await window.api.getSecurityQuestions();
+    if (res && res.success) {
+      if (q1Label) q1Label.textContent = res.q1 || 'Security Question 1';
+      if (q2Label) q2Label.textContent = res.q2 || 'Security Question 2';
+      if (!res.hasQuestions) {
+        switchOfflineResetTab('key');
+        if (msgEl) {
+          msgEl.style.color = '#0284c7';
+          msgEl.innerText = 'ℹ️ No security questions configured. Please use your Master Emergency Recovery Key.';
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to get security questions:', err);
+  }
+}
+
+function closeOfflineResetModal() {
+  const modal = document.getElementById('offline-reset-modal');
+  if (modal) modal.style.display = 'none';
+  const msgEl = document.getElementById('offline-reset-status-msg');
+  if (msgEl) msgEl.innerText = '';
+}
+
+function handlePasswordResetSuccess(newPassword) {
+  const msg = document.getElementById('offline-reset-status-msg');
+  if (msg) {
+    msg.style.color = '#059669';
+    msg.innerText = '✓ Master password reset successfully!';
+  }
+
+  setTimeout(async () => {
+    closeOfflineResetModal();
+    await loadStoreSettings();
+
+    if (offlineResetOrigin === 'login') {
+      const loginPassInp = document.getElementById('login_password');
+      if (loginPassInp) {
+        loginPassInp.value = newPassword;
+        loginPassInp.focus();
+      }
+      const loginMsg = document.getElementById('login-status-msg');
+      if (loginMsg) {
+        loginMsg.style.color = '#059669';
+        loginMsg.innerText = '✓ Password reset! Click "Unlock & Continue" to login.';
+      }
+    } else if (offlineResetOrigin === 'admin-prompt') {
+      if (pendingAdminViewId) {
+        const target = pendingAdminViewId;
+        pendingAdminViewId = null;
+        navigateToTab(target);
+      }
+    }
+  }, 1000);
 }
 
 function initAuthListeners() {
@@ -118,6 +294,10 @@ function initAuthListeners() {
       const username = document.getElementById('setup_username').value.trim();
       const password = document.getElementById('setup_password').value;
       const confirmPassword = document.getElementById('setup_confirm_password').value;
+      const secQ1 = document.getElementById('setup_sec_q1').value;
+      const secA1 = document.getElementById('setup_sec_a1').value.trim();
+      const secQ2 = document.getElementById('setup_sec_q2').value;
+      const secA2 = document.getElementById('setup_sec_a2').value.trim();
       const msg = document.getElementById('setup-status-msg');
 
       if (!username) {
@@ -138,24 +318,60 @@ function initAuthListeners() {
         return;
       }
 
-      msg.style.color = '#64748b';
-      msg.innerText = 'Saving credentials & configuring system...';
+      if (!secA1 || !secA2) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Please provide answers to both security questions.';
+        return;
+      }
 
-      const res = await window.api.setupCredentials({ username, password });
+      msg.style.color = '#64748b';
+      msg.innerText = 'Saving credentials & generating Master Recovery Key...';
+
+      const res = await window.api.setupCredentials({ username, password, secQ1, secA1, secQ2, secA2 });
       if (res && res.success) {
-        msg.style.color = '#059669';
-        msg.innerText = '✓ Master credentials initialized! Welcome.';
-        isAppAuthenticated = true;
-        setTimeout(() => {
-          const authOverlay = document.getElementById('auth-overlay');
-          if (authOverlay) authOverlay.style.display = 'none';
-          msg.innerText = '';
-        }, 600);
-        await loadStoreSettings();
+        const setupPanel = document.getElementById('auth-setup-panel');
+        const recoveryPanel = document.getElementById('auth-recovery-key-panel');
+        const keyDisplay = document.getElementById('setup-recovery-key-display');
+        const authTitle = document.getElementById('auth-main-title');
+        const authSubtitle = document.getElementById('auth-sub-title');
+
+        if (keyDisplay && res.recoveryKey) {
+          keyDisplay.textContent = res.recoveryKey;
+        }
+
+        if (authTitle) authTitle.innerText = 'Offline Recovery Key Ready';
+        if (authSubtitle) authSubtitle.innerText = 'Store your 16-character Emergency Recovery Key safely';
+
+        if (setupPanel) setupPanel.style.display = 'none';
+        if (recoveryPanel) recoveryPanel.style.display = 'block';
+        msg.innerText = '';
       } else {
         msg.style.color = '#dc2626';
         msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to setup credentials');
       }
+    });
+  }
+
+  const copySetupKeyBtn = document.getElementById('copy-setup-key-btn');
+  if (copySetupKeyBtn) {
+    copySetupKeyBtn.addEventListener('click', () => {
+      const keyDisplay = document.getElementById('setup-recovery-key-display');
+      if (keyDisplay && keyDisplay.textContent) {
+        navigator.clipboard.writeText(keyDisplay.textContent.trim()).then(() => {
+          copySetupKeyBtn.textContent = '✓ Copied to Clipboard!';
+          setTimeout(() => { copySetupKeyBtn.textContent = 'Copy Recovery Key'; }, 2000);
+        });
+      }
+    });
+  }
+
+  const acknowledgeKeyBtn = document.getElementById('acknowledge-recovery-key-btn');
+  if (acknowledgeKeyBtn) {
+    acknowledgeKeyBtn.addEventListener('click', async () => {
+      const authOverlay = document.getElementById('auth-overlay');
+      if (authOverlay) authOverlay.style.display = 'none';
+      isAppAuthenticated = true;
+      await loadStoreSettings();
     });
   }
 
@@ -190,6 +406,214 @@ function initAuthListeners() {
           passInp.value = '';
           passInp.focus();
         }
+      }
+    });
+  }
+
+  // Trigger Offline Reset from Login
+  const loginForgotBtn = document.getElementById('login-forgot-pwd-btn');
+  if (loginForgotBtn) {
+    loginForgotBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openOfflineResetModal('login');
+    });
+  }
+
+  // Trigger Offline Reset from Store Settings
+  const storeResetOfflineBtn = document.getElementById('store-reset-offline-btn');
+  if (storeResetOfflineBtn) {
+    storeResetOfflineBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openOfflineResetModal('settings');
+    });
+  }
+
+  // Trigger Offline Reset from Admin Prompt modal
+  const adminPromptForgotBtn = document.getElementById('admin-prompt-forgot-btn');
+  if (adminPromptForgotBtn) {
+    adminPromptForgotBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const adminModal = document.getElementById('admin-access-modal');
+      if (adminModal) adminModal.style.display = 'none';
+      openOfflineResetModal('admin-prompt');
+    });
+  }
+
+  // Tab switching inside Offline Reset Modal
+  const tabBtnQuestions = document.getElementById('offline-tab-btn-questions');
+  if (tabBtnQuestions) {
+    tabBtnQuestions.addEventListener('click', () => switchOfflineResetTab('questions'));
+  }
+
+  const tabBtnKey = document.getElementById('offline-tab-btn-key');
+  if (tabBtnKey) {
+    tabBtnKey.addEventListener('click', () => switchOfflineResetTab('key'));
+  }
+
+  const closeOfflineModalBtn = document.getElementById('close-offline-modal-btn');
+  if (closeOfflineModalBtn) {
+    closeOfflineModalBtn.addEventListener('click', closeOfflineResetModal);
+  }
+
+  const cancelOfflineQBtn = document.getElementById('cancel-offline-q-btn');
+  if (cancelOfflineQBtn) {
+    cancelOfflineQBtn.addEventListener('click', closeOfflineResetModal);
+  }
+
+  const cancelOfflineKBtn = document.getElementById('cancel-offline-k-btn');
+  if (cancelOfflineKBtn) {
+    cancelOfflineKBtn.addEventListener('click', closeOfflineResetModal);
+  }
+
+  const togglePromptPassBtn = document.getElementById('toggle-admin-prompt-pass-btn');
+  if (togglePromptPassBtn) {
+    togglePromptPassBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const passInp = document.getElementById('admin_prompt_password');
+      if (!passInp) return;
+      if (passInp.type === 'password') {
+        passInp.type = 'text';
+        togglePromptPassBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+      } else {
+        passInp.type = 'password';
+        togglePromptPassBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      }
+    });
+  }
+
+  // Admin Access Prompt Form
+  const adminPromptForm = document.getElementById('admin-prompt-form');
+  if (adminPromptForm) {
+    adminPromptForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const passInp = document.getElementById('admin_prompt_password');
+      const statusMsg = document.getElementById('admin-prompt-status-msg');
+      const modal = document.getElementById('admin-access-modal');
+
+      const pwd = passInp ? passInp.value : '';
+      if (!pwd) {
+        statusMsg.style.color = '#dc2626';
+        statusMsg.innerText = '✗ Master password is required.';
+        return;
+      }
+
+      statusMsg.style.color = '#64748b';
+      statusMsg.innerText = 'Verifying password...';
+
+      const authRes = await window.api.verifyPassword(pwd);
+      if (authRes && authRes.success) {
+        statusMsg.style.color = '#059669';
+        statusMsg.innerText = '✓ Access granted!';
+        setTimeout(() => {
+          if (modal) modal.style.display = 'none';
+          if (passInp) passInp.value = '';
+          statusMsg.innerText = '';
+          if (pendingAdminViewId) {
+            const target = pendingAdminViewId;
+            pendingAdminViewId = null;
+            navigateToTab(target);
+          }
+        }, 300);
+      } else {
+        statusMsg.style.color = '#dc2626';
+        statusMsg.innerText = '✗ Invalid Master Password. Access denied.';
+        if (passInp) {
+          passInp.value = '';
+          passInp.focus();
+        }
+      }
+    });
+  }
+
+  const cancelAdminPromptBtn = document.getElementById('cancel-admin-prompt-btn');
+  if (cancelAdminPromptBtn) {
+    cancelAdminPromptBtn.addEventListener('click', closeAdminAccessModal);
+  }
+
+  const closeAdminPromptBtn = document.getElementById('close-admin-prompt-btn');
+  if (closeAdminPromptBtn) {
+    closeAdminPromptBtn.addEventListener('click', closeAdminAccessModal);
+  }
+
+  // Offline Questions Form submission
+  const offlineQuestionsForm = document.getElementById('offline-questions-form');
+  if (offlineQuestionsForm) {
+    offlineQuestionsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const ans1 = document.getElementById('offline_ans_1').value.trim();
+      const ans2 = document.getElementById('offline_ans_2').value.trim();
+      const newPassword = document.getElementById('offline_q_new_pass').value;
+      const confirmPassword = document.getElementById('offline_q_confirm_pass').value;
+      const msg = document.getElementById('offline-reset-status-msg');
+
+      if (!ans1 || !ans2) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Please answer both security questions.';
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Passwords do not match. Please verify.';
+        return;
+      }
+
+      if (!newPassword || newPassword.length < 3) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Password must be at least 3 characters long.';
+        return;
+      }
+
+      msg.style.color = '#64748b';
+      msg.innerText = 'Verifying answers and resetting master password...';
+
+      const res = await window.api.resetViaQuestions({ ans1, ans2, newPassword });
+      if (res && res.success) {
+        handlePasswordResetSuccess(newPassword);
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Failed to reset password');
+      }
+    });
+  }
+
+  // Offline Recovery Key Form submission
+  const offlineKeyForm = document.getElementById('offline-key-form');
+  if (offlineKeyForm) {
+    offlineKeyForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const recoveryKey = document.getElementById('offline_recovery_key_input').value.trim();
+      const newPassword = document.getElementById('offline_k_new_pass').value;
+      const confirmPassword = document.getElementById('offline_k_confirm_pass').value;
+      const msg = document.getElementById('offline-reset-status-msg');
+
+      if (!recoveryKey) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Please enter your 16-character Emergency Recovery Key.';
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Passwords do not match. Please verify.';
+        return;
+      }
+
+      if (!newPassword || newPassword.length < 3) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Password must be at least 3 characters long.';
+        return;
+      }
+
+      msg.style.color = '#64748b';
+      msg.innerText = 'Verifying Emergency Recovery Key and resetting password...';
+
+      const res = await window.api.resetViaRecoveryKey({ recoveryKey, newPassword });
+      if (res && res.success) {
+        handlePasswordResetSuccess(newPassword);
+      } else {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Invalid Emergency Recovery Key');
       }
     });
   }
@@ -284,6 +708,14 @@ navItems.forEach((item) => {
       await checkActiveShiftStatus();
       if (!currentActiveShift) {
         navigateToTab('till-view', '⚠️ Till is currently CLOSED. Please enter starting cash float and open till shift first.');
+        return;
+      }
+    }
+
+    if (targetViewId === 'settings-view' || targetViewId === 'clear-inventory-view') {
+      const currentActiveTab = document.querySelector('.nav-item.active');
+      if (!currentActiveTab || currentActiveTab.getAttribute('data-view') !== targetViewId) {
+        requestAdminAccessForTab(targetViewId);
         return;
       }
     }
@@ -523,6 +955,13 @@ if (refreshShiftsBtn) {
 }
 
 // ==================== STORE SETTINGS MODULE ====================
+function updateEmailFieldVisibility() {
+  const providerSelect = document.getElementById('setting_email_provider');
+  const customFields = document.getElementById('email-custom-smtp-fields');
+  if (!providerSelect || !customFields) return;
+  customFields.style.display = providerSelect.value === 'custom' ? 'block' : 'none';
+}
+
 async function loadStoreSettings() {
   if (!window.api || typeof window.api.getSettings !== 'function') return;
 
@@ -533,14 +972,21 @@ async function loadStoreSettings() {
     const nameInp = document.getElementById('setting_pharmacy_name');
     const addrInp = document.getElementById('setting_pharmacy_address');
     const phoneInp = document.getElementById('setting_pharmacy_phone');
+    const emailInp = document.getElementById('setting_pharmacy_email');
     const userLabel = document.getElementById('current-admin-username-label');
     const userInp = document.getElementById('cred_new_username');
 
     if (nameInp) nameInp.value = currentSettings.pharmacy_name || '';
     if (addrInp) addrInp.value = currentSettings.pharmacy_address || '';
     if (phoneInp) phoneInp.value = currentSettings.pharmacy_phone || '';
+    if (emailInp) emailInp.value = currentSettings.pharmacy_email || '';
     if (userLabel) userLabel.textContent = currentSettings.admin_username || 'admin';
     if (userInp && !userInp.value) userInp.value = currentSettings.admin_username || 'admin';
+
+    const secQ1Select = document.getElementById('setting_sec_q1');
+    const secQ2Select = document.getElementById('setting_sec_q2');
+    if (secQ1Select && currentSettings.sec_question_1) secQ1Select.value = currentSettings.sec_question_1;
+    if (secQ2Select && currentSettings.sec_question_2) secQ2Select.value = currentSettings.sec_question_2;
   }
 }
 
@@ -553,7 +999,8 @@ if (settingsForm) {
     const payload = {
       pharmacy_name: document.getElementById('setting_pharmacy_name').value.trim(),
       pharmacy_address: document.getElementById('setting_pharmacy_address').value.trim(),
-      pharmacy_phone: document.getElementById('setting_pharmacy_phone').value.trim()
+      pharmacy_phone: document.getElementById('setting_pharmacy_phone').value.trim(),
+      pharmacy_email: document.getElementById('setting_pharmacy_email').value.trim()
     };
 
     msg.style.color = '#64748b';
@@ -621,6 +1068,145 @@ if (credentialsForm) {
     } else {
       msg.style.color = '#dc2626';
       msg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to update credentials.');
+    }
+  });
+}
+
+// ==================== STORE SETTINGS: OFFLINE RECOVERY MANAGEMENT ====================
+const revealEmergencyKeyBtn = document.getElementById('reveal-emergency-key-btn');
+if (revealEmergencyKeyBtn) {
+  revealEmergencyKeyBtn.addEventListener('click', async () => {
+    const passInp = document.getElementById('setting_sec_auth_password');
+    const msg = document.getElementById('offline-sec-status-msg');
+    let pass = passInp ? passInp.value.trim() : '';
+
+    if (!pass) {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Please enter your Current Master Password below to reveal the emergency key.';
+      }
+      if (passInp) passInp.focus();
+      return;
+    }
+
+    if (msg) {
+      msg.style.color = '#64748b';
+      msg.innerText = 'Authorizing...';
+    }
+
+    const res = await window.api.getRecoveryDetails(pass);
+    if (res && res.success) {
+      const displayWrapper = document.getElementById('emergency-key-display-wrapper');
+      const keyInp = document.getElementById('revealed-emergency-key');
+      if (displayWrapper) displayWrapper.style.display = 'block';
+      if (keyInp) keyInp.value = res.recoveryKey;
+      if (msg) {
+        msg.style.color = '#059669';
+        msg.innerText = '✓ Master Emergency Recovery Key revealed below.';
+      }
+    } else {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Authorization failed. Incorrect password.');
+      }
+    }
+  });
+}
+
+const copyRevealedKeyBtn = document.getElementById('copy-revealed-key-btn');
+if (copyRevealedKeyBtn) {
+  copyRevealedKeyBtn.addEventListener('click', () => {
+    const keyInp = document.getElementById('revealed-emergency-key');
+    if (keyInp && keyInp.value) {
+      navigator.clipboard.writeText(keyInp.value.trim()).then(() => {
+        copyRevealedKeyBtn.textContent = '✓ Copied';
+        setTimeout(() => { copyRevealedKeyBtn.textContent = 'Copy'; }, 2000);
+      });
+    }
+  });
+}
+
+const regenEmergencyKeyBtn = document.getElementById('regen-emergency-key-btn');
+if (regenEmergencyKeyBtn) {
+  regenEmergencyKeyBtn.addEventListener('click', async () => {
+    const passInp = document.getElementById('setting_sec_auth_password');
+    const msg = document.getElementById('offline-sec-status-msg');
+    const pass = passInp ? passInp.value.trim() : '';
+
+    if (!pass) {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ Current Master Password is required to regenerate your emergency key.';
+      }
+      if (passInp) passInp.focus();
+      return;
+    }
+
+    if (!confirm('Are you sure you want to regenerate your Emergency Recovery Key? Any previous recovery key will permanently stop working.')) {
+      return;
+    }
+
+    if (msg) {
+      msg.style.color = '#64748b';
+      msg.innerText = 'Regenerating new recovery key...';
+    }
+
+    const res = await window.api.updateOfflineRecovery({ currentPassword: pass, regenerateKey: true });
+    if (res && res.success) {
+      const keyInp = document.getElementById('revealed-emergency-key');
+      const displayWrapper = document.getElementById('emergency-key-display-wrapper');
+      if (displayWrapper) displayWrapper.style.display = 'block';
+      if (keyInp) keyInp.value = res.recoveryKey;
+      if (msg) {
+        msg.style.color = '#059669';
+        msg.innerText = '✓ New Master Emergency Recovery Key generated and saved!';
+      }
+    } else {
+      if (msg) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '✗ ' + (res && res.error ? res.error : 'Failed to regenerate key');
+      }
+    }
+  });
+}
+
+const offlineSecQuestionsForm = document.getElementById('offline-sec-questions-form');
+if (offlineSecQuestionsForm) {
+  offlineSecQuestionsForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById('setting_sec_auth_password').value;
+    const secQ1 = document.getElementById('setting_sec_q1').value;
+    const secA1 = document.getElementById('setting_sec_a1').value.trim();
+    const secQ2 = document.getElementById('setting_sec_q2').value;
+    const secA2 = document.getElementById('setting_sec_a2').value.trim();
+    const msg = document.getElementById('offline-sec-status-msg');
+
+    if (!currentPassword) {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ Current master password is required.';
+      return;
+    }
+
+    msg.style.color = '#64748b';
+    msg.innerText = 'Updating offline security questions...';
+
+    const res = await window.api.updateOfflineRecovery({
+      currentPassword,
+      secQ1,
+      secA1,
+      secQ2,
+      secA2
+    });
+
+    if (res && res.success) {
+      msg.style.color = '#059669';
+      msg.innerText = '✓ Offline security settings updated successfully!';
+      document.getElementById('setting_sec_a1').value = '';
+      document.getElementById('setting_sec_a2').value = '';
+      setTimeout(() => { msg.innerText = ''; }, 3000);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.innerText = '✗ ' + (res && res.error ? res.error : 'Failed to update security questions');
     }
   });
 }
