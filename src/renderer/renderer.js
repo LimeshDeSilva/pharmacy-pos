@@ -1556,30 +1556,32 @@ function renderSalesChart(periodType = 'daily') {
   const ctx = canvas.getContext('2d');
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-  let gradient;
-  try {
-    gradient = ctx.createLinearGradient(0, 0, 0, 220);
-    gradient.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(43, 130, 254, 0.28)');
-    gradient.addColorStop(0.65, isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(43, 130, 254, 0.08)');
-    gradient.addColorStop(1, isDark ? 'rgba(56, 189, 248, 0.00)' : 'rgba(43, 130, 254, 0.00)');
-  } catch (e) {
-    gradient = 'rgba(43, 130, 254, 0.12)';
-  }
-
   const primaryColor = isDark ? '#38BDF8' : '#2B82FE';
+  const barBg = isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(43, 130, 254, 0.25)';
 
   salesChartInstance = new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: labels,
       datasets: [
         {
+          type: 'bar',
+          label: labelText,
+          data: data,
+          backgroundColor: barBg,
+          borderColor: primaryColor,
+          borderWidth: 1.5,
+          borderRadius: 6,
+          maxBarThickness: 45,
+          order: 2
+        },
+        {
+          type: 'line',
           label: labelText,
           data: data,
           borderColor: primaryColor,
-          backgroundColor: gradient,
           borderWidth: 2.5,
-          fill: true,
+          fill: false,
           tension: 0.35,
           pointBackgroundColor: '#FFFFFF',
           pointBorderColor: primaryColor,
@@ -1588,7 +1590,8 @@ function renderSalesChart(periodType = 'daily') {
           pointHoverRadius: 7,
           pointHoverBackgroundColor: primaryColor,
           pointHoverBorderColor: '#FFFFFF',
-          pointHoverBorderWidth: 2
+          pointHoverBorderWidth: 2,
+          order: 1
         }
       ]
     },
@@ -1630,7 +1633,10 @@ function renderSalesChart(periodType = 'daily') {
           cornerRadius: 8,
           displayColors: false,
           callbacks: {
-            label: (item) => ` Revenue: LKR ${Number(item.raw).toFixed(2)}`
+            label: (item) => {
+              if (item.datasetIndex !== 0) return null;
+              return ` Revenue: LKR ${Number(item.raw).toFixed(2)}`;
+            }
           }
         }
       }
@@ -1711,30 +1717,32 @@ function renderProfitChart(periodType = 'daily') {
   const ctx = canvas.getContext('2d');
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-  let gradient;
-  try {
-    gradient = ctx.createLinearGradient(0, 0, 0, 220);
-    gradient.addColorStop(0, isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(16, 185, 129, 0.28)');
-    gradient.addColorStop(0.65, isDark ? 'rgba(52, 211, 153, 0.08)' : 'rgba(16, 185, 129, 0.08)');
-    gradient.addColorStop(1, isDark ? 'rgba(52, 211, 153, 0.00)' : 'rgba(16, 185, 129, 0.00)');
-  } catch (e) {
-    gradient = 'rgba(16, 185, 129, 0.12)';
-  }
-
   const greenColor = isDark ? '#34D399' : '#10B981';
+  const barBg = isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(16, 185, 129, 0.25)';
 
   profitChartInstance = new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: labels,
       datasets: [
         {
+          type: 'bar',
+          label: labelText,
+          data: data,
+          backgroundColor: barBg,
+          borderColor: greenColor,
+          borderWidth: 1.5,
+          borderRadius: 6,
+          maxBarThickness: 45,
+          order: 2
+        },
+        {
+          type: 'line',
           label: labelText,
           data: data,
           borderColor: greenColor,
-          backgroundColor: gradient,
           borderWidth: 2.5,
-          fill: true,
+          fill: false,
           tension: 0.35,
           pointBackgroundColor: '#FFFFFF',
           pointBorderColor: greenColor,
@@ -1743,7 +1751,8 @@ function renderProfitChart(periodType = 'daily') {
           pointHoverRadius: 7,
           pointHoverBackgroundColor: greenColor,
           pointHoverBorderColor: '#FFFFFF',
-          pointHoverBorderWidth: 2
+          pointHoverBorderWidth: 2,
+          order: 1
         }
       ]
     },
@@ -1785,7 +1794,10 @@ function renderProfitChart(periodType = 'daily') {
           cornerRadius: 8,
           displayColors: false,
           callbacks: {
-            label: (item) => ` Profit: LKR ${Number(item.raw).toFixed(2)}`
+            label: (item) => {
+              if (item.datasetIndex !== 0) return null;
+              return ` Profit: LKR ${Number(item.raw).toFixed(2)}`;
+            }
           }
         }
       }
