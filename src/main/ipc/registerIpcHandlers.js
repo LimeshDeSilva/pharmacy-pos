@@ -657,6 +657,17 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
       return { success: false, error: error.message };
     }
   });
+
+  ipcMain.handle('system:seedMasterDrugs', async () => {
+    try {
+      if (typeof db.seedMedicinesIfEmpty === 'function') {
+        db.seedMedicinesIfEmpty(true);
+      }
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 module.exports = registerIpcHandlers;
