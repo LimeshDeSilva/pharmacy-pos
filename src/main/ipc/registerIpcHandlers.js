@@ -1,4 +1,4 @@
-const { ipcMain, dialog } = require('electron');
+const { ipcMain, dialog, BrowserWindow } = require('electron');
 const { z } = require('zod');
 const crypto = require('crypto');
 const PrinterService = require('../services/printerService');
@@ -151,6 +151,24 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
+  ipcMain.handle('inventory:deleteDrugStock', async (event, drugId) => {
+    try {
+      const res = batchRepo.deleteDrugFromInventory(drugId);
+      return { success: true, changes: res.changes };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('inventory:deleteBatch', async (event, batchId) => {
+    try {
+      const res = batchRepo.deleteBatch(batchId);
+      return { success: true, changes: res.changes };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle('inventory:deleteSingleDrug', async (event, drugId) => {
     try {
       return { success: drugRepo.deleteMedicineKeepSales(drugId) };
@@ -183,9 +201,15 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
-  ipcMain.handle('inventory:exportCSV', async () => {
+  ipcMain.handle('inventory:exportCSV', async (event) => {
     try {
-      return await ExportService.exportInventoryCSV(batchRepo.getInventoryOverview());
+      const win = BrowserWindow.fromWebContents(event.sender);
+      const res = await ExportService.exportInventoryCSV(win, batchRepo.getInventoryOverview());
+      if (win && !win.isDestroyed()) {
+        win.focus();
+        win.webContents.focus();
+      }
+      return res;
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -581,9 +605,15 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
   });
 
 
-  ipcMain.handle('database:backup', async () => {
+  ipcMain.handle('database:backup', async (event) => {
     try {
-      return await SystemService.backupDatabase();
+      const win = BrowserWindow.fromWebContents(event.sender);
+      const res = await SystemService.backupDatabase(win);
+      if (win && !win.isDestroyed()) {
+        win.focus();
+        win.webContents.focus();
+      }
+      return res;
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -613,9 +643,14 @@ function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, 
     }
   });
 
-  ipcMain.handle('inventory:importCSV', async () => {
+  ipcMain.handle('inventory:importCSV', async (event) => {
     try {
-      const { filePaths } = await dialog.showOpenDialog({ filters: [{ name: 'CSV', extensions: ['csv'] }] });
+      const win = BrowserWindow.fromWebContents(event.sender);
+      const { filePaths } = await dialog.showOpenDialog(win, { filters: [{ name: 'CSV', extensions: ['csv'] }] });
+      if (win && !win.isDestroyed()) {
+        win.focus();
+        win.webContents.focus();
+      }
       if (!filePaths || filePaths.length === 0) return { success: false, canceled: true };
       return await ImportService.importInventoryCSV(db, drugRepo, batchRepo, filePaths[0]);
     } catch (error) {
