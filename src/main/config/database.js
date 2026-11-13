@@ -180,9 +180,9 @@ function initDatabase() {
   } catch (e) { }
 }
 
-function seedMedicinesIfEmpty() {
+function seedMedicinesIfEmpty(force = false) {
   const row = db.prepare('SELECT COUNT(*) AS count FROM drugs').get();
-  if (row && row.count > 0) return;
+  if (!force && row && row.count >= 5000) return;
 
   const commonDrugs = [
     { brand: "Panadol 120mg/5ml Syrup 60ml", generic: "Paracetamol", category: "Analgesics & Antipyretics", barcode: "4790000000013" },
@@ -5208,4 +5208,5 @@ function seedMedicinesIfEmpty() {
 initDatabase();
 seedMedicinesIfEmpty();
 
+db.seedMedicinesIfEmpty = seedMedicinesIfEmpty;
 module.exports = db;
