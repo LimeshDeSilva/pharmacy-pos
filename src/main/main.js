@@ -18,9 +18,8 @@ const analyticsRepo = new AnalyticsRepository(db);
 const settingsRepo = new SettingsRepository(db);
 const supplierRepo = new SupplierRepository(db);
 
-registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo, supplierRepo);
-
 let mainWindow = null;
+let activationWin = null;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -41,7 +40,7 @@ function createMainWindow() {
 }
 
 function createActivationWindow() {
-  const activationWin = new BrowserWindow({
+  activationWin = new BrowserWindow({
     width: 500,
     height: 420,
     resizable: false,
@@ -58,13 +57,25 @@ function createActivationWindow() {
   activationWin.loadFile(path.join(__dirname, '../renderer/activate.html'));
 }
 
+function launchMainApp() {
+  if (activationWin && !activationWin.isDestroyed()) {
+    activationWin.close();
+    activationWin = null;
+  }
+  SystemService.setupThermalPrinterSharing();
+  createMainWindow();
+}
+
+registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo, supplierRepo, () => {
+  launchMainApp();
+});
+
 app.whenReady().then(() => {
   const licenseCheck = SystemService.verifyLicense();
   if (!licenseCheck.valid) {
     createActivationWindow();
   } else {
-    SystemService.setupThermalPrinterSharing();
-    createMainWindow();
+    launchMainApp();
   }
 });
 
