@@ -187,6 +187,7 @@
     document.getElementById('activate-btn').addEventListener('click', async () => {
       const key = document.getElementById('license_key_input').value.trim();
       const msg = document.getElementById('activation-msg');
+      const btn = document.getElementById('activate-btn');
 
       if (!key) {
         msg.style.color = '#EF4444';
@@ -194,17 +195,16 @@
         return;
       }
 
+      btn.disabled = true;
       msg.style.color = '#64748B';
       msg.innerText = 'Validating license credentials...';
 
       const res = await window.api.activateLicense(key);
       if (res && res.success) {
         msg.style.color = '#10B981';
-        msg.innerText = '✓ Terminal activated successfully! Launching...';
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
+        msg.innerText = '✓ Terminal activated successfully! Launching POS...';
       } else {
+        btn.disabled = false;
         msg.style.color = '#EF4444';
         msg.innerText = '✗ ' + (res?.error || 'License activation failed.');
       }
