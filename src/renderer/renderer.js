@@ -1348,14 +1348,16 @@ function showInwardDrugList(q = '') {
   }
 
   inwardDropIndex = 0;
-  inwardDropdown.innerHTML = inwardDropMatches.map((d, i) => `
+  const displayMatches = inwardDropMatches.slice(0, 40);
+  inwardDropdown.innerHTML = displayMatches.map((d, i) => `
     <div class="pos-option ${i === 0 ? 'selected' : ''}" data-idx="${i}">
       <strong>${d.brand_name}</strong> <span style="color: #64748b;">(${d.generic_name || 'N/A'})</span> — <small style="color: #2563eb;">[${d.category || 'General'}]</small>
     </div>
   `).join('');
 
-  inwardDropdown.querySelectorAll('.pos-option').forEach((el) => {
-    el.addEventListener('click', () => pickInwardDrug(inwardDropMatches[el.dataset.idx]));
+  displayMatches.forEach((d, i) => {
+    const el = inwardDropdown.querySelector(`.pos-option[data-idx="${i}"]`);
+    if (el) el.addEventListener('click', () => pickInwardDrug(d));
   });
 
   inwardDropdown.style.display = 'block';
@@ -1549,7 +1551,7 @@ function renderInventoryTable() {
   const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   if (!rawInventoryData || rawInventoryData.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No inventory records found.</td></tr>`;
+    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No inventory records found.</td></tr>';
     return;
   }
 
@@ -1573,30 +1575,45 @@ function renderInventoryTable() {
   });
 
   if (filteredData.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No medicines match your search / filter criteria.</td></tr>`;
+    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">No medicines match your search / filter criteria.</td></tr>';
     return;
   }
 
-  tableBody.innerHTML = '';
-  filteredData.forEach((row) => {
+  const MAX_DISPLAY = 100;
+  const itemsToRender = filteredData.slice(0, MAX_DISPLAY);
+
+  const rowsHtml = itemsToRender.map((row) => {
     const status = calculateItemStatus(row);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${row.brand_name}</strong></td>
-      <td>${row.generic_name || '-'}</td>
-      <td>${row.category || '-'}</td>
-      <td>${row.batch_number ? `<code>${row.batch_number}</code>` : '<span style="color: #94a3b8;">No Batches</span>'}</td>
-      <td>${row.expiry_date || '-'}</td>
-      <td>${row.sell_price ? Number(row.sell_price).toFixed(2) : '-'}</td>
-      <td>${row.batch_quantity !== null ? row.batch_quantity : 0}</td>
-      <td><strong>${row.total_stock}</strong></td>
-      <td>${status.badge}</td>
-      <td>
-        <button onclick="openEditItemModal(${row.drug_id}, ${row.batch_id || 'null'})" style="background: #ffffff; color: #2563eb; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Edit</button>
-      </td>
+    return `
+      <tr>
+        <td><strong>${row.brand_name}</strong></td>
+        <td>${row.generic_name || '-'}</td>
+        <td>${row.category || '-'}</td>
+        <td>${row.batch_number ? `<code>${row.batch_number}</code>` : '<span style="color: #94a3b8;">No Batches</span>'}</td>
+        <td>${row.expiry_date || '-'}</td>
+        <td>${row.sell_price ? Number(row.sell_price).toFixed(2) : '-'}</td>
+        <td>${row.batch_quantity !== null ? row.batch_quantity : 0}</td>
+        <td><strong>${row.total_stock}</strong></td>
+        <td>${status.badge}</td>
+        <td>
+          <button onclick="openEditItemModal(${row.drug_id}, ${row.batch_id || 'null'})" style="background: #ffffff; color: #2563eb; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Edit</button>
+        </td>
+      </tr>
     `;
-    tableBody.appendChild(tr);
-  });
+  }).join('');
+
+  let noticeHtml = '';
+  if (filteredData.length > MAX_DISPLAY) {
+    noticeHtml = `
+      <tr>
+        <td colspan="10" style="text-align: center; background: #f8fafc; color: #64748b; font-size: 13px; font-weight: 600; padding: 12px;">
+          Showing first ${MAX_DISPLAY} of ${filteredData.length.toLocaleString()} matching records. Use the search box above to quickly find specific medicines.
+        </td>
+      </tr>
+    `;
+  }
+
+  tableBody.innerHTML = rowsHtml + noticeHtml;
 }
 
 async function loadInventory() {
@@ -1642,6 +1659,8 @@ window.openEditItemModal = (drugId, batchId) => {
   }
 
   document.getElementById('edit-drug-status-msg').innerText = '';
+  const confirmBox = document.getElementById('delete-drug-confirm-box');
+  if (confirmBox) confirmBox.style.display = 'none';
   const modal = document.getElementById('edit-drug-modal');
   if (modal) modal.style.display = 'flex';
 };
@@ -1649,6 +1668,10 @@ window.openEditItemModal = (drugId, batchId) => {
 function closeEditItemModal() {
   const modal = document.getElementById('edit-drug-modal');
   if (modal) modal.style.display = 'none';
+  const confirmBox = document.getElementById('delete-drug-confirm-box');
+  if (confirmBox) confirmBox.style.display = 'none';
+  const statusMsg = document.getElementById('edit-drug-status-msg');
+  if (statusMsg) statusMsg.innerText = '';
 }
 
 const closeEditBtn = document.getElementById('close-edit-drug-modal');
@@ -1698,6 +1721,90 @@ if (editItemForm) {
   });
 }
 
+
+// ==================== DELETE MEDICINE FROM EDIT MODAL ====================
+const deleteEditDrugBtn = document.getElementById('delete-edit-drug-btn');
+if (deleteEditDrugBtn) {
+  deleteEditDrugBtn.addEventListener('click', () => {
+    const confirmBox = document.getElementById('delete-drug-confirm-box');
+    const brandName = document.getElementById('edit_brand_name').value.trim();
+    const nameSpan = document.getElementById('delete-drug-confirm-name');
+    if (nameSpan) nameSpan.innerText = brandName ? `"${brandName}"` : 'this medicine';
+    if (confirmBox) {
+      confirmBox.style.display = confirmBox.style.display === 'none' ? 'block' : 'none';
+      if (confirmBox.style.display === 'block') {
+        confirmBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  });
+}
+
+const cancelDeleteInlineBtn = document.getElementById('cancel-delete-drug-inline-btn');
+if (cancelDeleteInlineBtn) {
+  cancelDeleteInlineBtn.addEventListener('click', () => {
+    const confirmBox = document.getElementById('delete-drug-confirm-box');
+    if (confirmBox) confirmBox.style.display = 'none';
+  });
+}
+
+const confirmDeleteDrugBtn = document.getElementById('confirm-delete-drug-btn');
+if (confirmDeleteDrugBtn) {
+  confirmDeleteDrugBtn.addEventListener('click', async () => {
+    const drugIdVal = document.getElementById('edit_drug_id').value;
+    const batchIdVal = document.getElementById('edit_batch_id').value;
+    const drugId = parseInt(drugIdVal, 10);
+    const batchId = batchIdVal ? parseInt(batchIdVal, 10) : null;
+    const brandName = document.getElementById('edit_brand_name').value.trim();
+    const statusMsg = document.getElementById('edit-drug-status-msg');
+
+    if (!drugId || isNaN(drugId)) {
+      if (statusMsg) {
+        statusMsg.style.color = '#dc2626';
+        statusMsg.innerText = 'Invalid medicine ID.';
+      }
+      return;
+    }
+
+    confirmDeleteDrugBtn.disabled = true;
+    confirmDeleteDrugBtn.innerText = 'Deleting from inventory...';
+    if (statusMsg) {
+      statusMsg.style.color = '#64748b';
+      statusMsg.innerText = 'Removing from inventory...';
+    }
+
+    try {
+      let res;
+      if (batchId) {
+        res = await window.api.deleteBatchFromInventory(batchId);
+      } else {
+        res = await window.api.deleteDrugFromInventory(drugId);
+      }
+
+      if (res && res.success) {
+        closeEditItemModal();
+        showNotification(`"${brandName || 'Medicine'}" was removed from inventory (Master catalog retained).`, 'success');
+        await loadInventory();
+        if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
+        await updateTodayInwardStats();
+        await refreshAlertBadges();
+      } else {
+        if (statusMsg) {
+          statusMsg.style.color = '#dc2626';
+          statusMsg.innerText = '✗ Error: ' + (res && res.error ? res.error : 'Failed to delete from inventory');
+        }
+      }
+    } catch (err) {
+      if (statusMsg) {
+        statusMsg.style.color = '#dc2626';
+        statusMsg.innerText = '✗ Error: ' + err.message;
+      }
+    } finally {
+      confirmDeleteDrugBtn.disabled = false;
+      confirmDeleteDrugBtn.innerText = 'Yes, Delete from Inventory';
+    }
+  });
+}
+
 // ==================== POS / BILLING MODULE (FEFO ENABLED) ====================
 let dropIndex = 0;
 let dropMatches = [];
@@ -1734,7 +1841,8 @@ function showList(q = '') {
   }
 
   dropIndex = 0;
-  menu.innerHTML = dropMatches.map((d, i) => {
+  const displayMatches = dropMatches.slice(0, 40);
+  menu.innerHTML = displayMatches.map((d, i) => {
     const isClosestExpiry = i === 0;
     const fefoBadge = isClosestExpiry ? '<span style="background: #ecfdf5; color: #059669; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; border: 1px solid #a7f3d0;">FEFO RECOMMENDED</span>' : '';
     
@@ -1745,8 +1853,9 @@ function showList(q = '') {
     `;
   }).join('');
 
-  menu.querySelectorAll('.pos-option').forEach((el) => {
-    el.addEventListener('click', () => pickItem(dropMatches[el.dataset.idx]));
+  displayMatches.forEach((d, i) => {
+    const el = menu.querySelector(`.pos-option[data-idx="${i}"]`);
+    if (el) el.addEventListener('click', () => pickItem(d));
   });
 
   menu.style.display = 'block';
@@ -3507,6 +3616,55 @@ async function printThermalReceipt(saleId, dateStr, items, grandTotal, paidAmoun
   }
 }
 
+function showNotification(text, type = 'success') {
+  let container = document.getElementById('app-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'app-toast-container';
+    container.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? '#059669' : (type === 'error' ? '#dc2626' : '#2563eb');
+  const icon = isSuccess ? '✓' : (type === 'error' ? '✕' : 'ℹ');
+
+  toast.style.cssText = [
+    'background: ' + bgColor,
+    'color: #ffffff',
+    'padding: 12px 20px',
+    'border-radius: 8px',
+    'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)',
+    'font-size: 14px',
+    'font-weight: 600',
+    'display: flex',
+    'align-items: center',
+    'gap: 10px',
+    'pointer-events: auto',
+    'cursor: pointer',
+    'transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    'transform: translateY(-10px)',
+    'opacity: 0'
+  ].join('; ');
+  toast.innerHTML = '<span style="font-size: 16px;">' + icon + '</span> <span>' + text + '</span>';
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateY(0)';
+    toast.style.opacity = '1';
+  });
+
+  const dismiss = () => {
+    toast.style.transform = 'translateY(-10px)';
+    toast.style.opacity = '0';
+    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+  };
+
+  toast.addEventListener('click', dismiss);
+  setTimeout(dismiss, 4000);
+}
+
 // ==================== CSV IMPORT ====================
 const importCsvBtn = document.getElementById('import-csv-btn');
 if (importCsvBtn) {
@@ -3518,22 +3676,32 @@ if (importCsvBtn) {
     }
 
     const res = await window.api.importCSV();
+
+    window.focus();
+    setTimeout(() => {
+      const activeIn = document.getElementById('inward_drug_input');
+      if (activeIn) {
+        activeIn.focus();
+        activeIn.select();
+      }
+    }, 50);
+
     if (res && res.success) {
       if (msg) {
         msg.style.color = '#059669';
         msg.innerText = `✓ Successfully imported ${res.count} items/batches!`;
       }
+      showNotification(`Successfully imported ${res.count} inventory items/batches!`, 'success');
       await loadInventory();
       if (typeof displayDrugDropdown === 'function') await displayDrugDropdown();
       await refreshAlertBadges();
-      alert(`✓ Successfully imported ${res.count} inventory items/batches!`);
-      setTimeout(() => { if (msg) msg.innerText = ''; }, 3000);
+      setTimeout(() => { if (msg) msg.innerText = ''; }, 4000);
     } else if (res && !res.canceled) {
       if (msg) {
         msg.style.color = '#dc2626';
         msg.innerText = '✗ Import failed: ' + res.error;
       }
-      alert('✗ Import failed: ' + (res.error || 'Unknown error'));
+      showNotification('Import failed: ' + (res.error || 'Unknown error'), 'error');
     } else {
       if (msg) msg.innerText = '';
     }
@@ -3544,10 +3712,17 @@ const exportCsvBtn = document.getElementById('export-csv-btn');
 if (exportCsvBtn) {
   exportCsvBtn.addEventListener('click', async () => {
     const res = await window.api.exportCSV();
-    if (res.success) {
-      alert('✓ Inventory exported to CSV successfully!');
-    } else if (!res.canceled) {
-      alert('✗ Failed to export CSV: ' + res.error);
+
+    window.focus();
+    setTimeout(() => {
+      const searchIn = document.getElementById('inventory-search');
+      if (searchIn) searchIn.focus();
+    }, 50);
+
+    if (res && res.success) {
+      showNotification('Inventory exported to CSV successfully!', 'success');
+    } else if (res && !res.canceled) {
+      showNotification('Failed to export CSV: ' + res.error, 'error');
     }
   });
 }
@@ -3556,10 +3731,13 @@ const backupDbBtn = document.getElementById('backup-db-btn');
 if (backupDbBtn) {
   backupDbBtn.addEventListener('click', async () => {
     const res = await window.api.backupDatabase();
-    if (res.success) {
-      alert('✓ SQLite database backup saved successfully!');
-    } else if (!res.canceled) {
-      alert('✗ Failed to create backup: ' + res.error);
+
+    window.focus();
+
+    if (res && res.success) {
+      showNotification('SQLite database backup saved successfully!', 'success');
+    } else if (res && !res.canceled) {
+      showNotification('Failed to create backup: ' + res.error, 'error');
     }
   });
 }
