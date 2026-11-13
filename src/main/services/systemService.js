@@ -78,6 +78,10 @@ class SystemService {
 
       if (cleanKey === expectedKey) {
         const licensePath = SystemService.getLicensePath();
+        const licenseDir = path.dirname(licensePath);
+        if (!fs.existsSync(licenseDir)) {
+          fs.mkdirSync(licenseDir, { recursive: true });
+        }
         fs.writeFileSync(licensePath, cleanKey, 'utf-8');
         return { success: true };
       } else {
