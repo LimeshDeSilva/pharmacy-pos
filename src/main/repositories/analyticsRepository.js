@@ -89,9 +89,12 @@ class AnalyticsRepository {
         SELECT 
           COUNT(s.id) AS orders,
           COALESCE(SUM(s.total_amount - (
-            SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+            SELECT COALESCE(SUM(si.quantity * CASE 
+              WHEN si.buy_price > 0 THEN si.buy_price 
+              WHEN si.batch_id IS NOT NULL THEN COALESCE((SELECT b.buy_price FROM batches b WHERE b.id = si.batch_id), 0)
+              ELSE COALESCE((SELECT b.buy_price FROM batches b WHERE b.batch_number = si.batch_number LIMIT 1), 0)
+            END), 0) 
             FROM sale_items si 
-            LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
             WHERE si.sale_id = s.id
           )), 0) AS profit
         FROM sales s
@@ -116,9 +119,12 @@ class AnalyticsRepository {
       SELECT 
         date(s.created_at, 'localtime') AS period,
         COALESCE(SUM(s.total_amount - (
-          SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+          SELECT COALESCE(SUM(si.quantity * CASE 
+            WHEN si.buy_price > 0 THEN si.buy_price 
+            WHEN si.batch_id IS NOT NULL THEN COALESCE((SELECT b.buy_price FROM batches b WHERE b.id = si.batch_id), 0)
+            ELSE COALESCE((SELECT b.buy_price FROM batches b WHERE b.batch_number = si.batch_number LIMIT 1), 0)
+          END), 0) 
           FROM sale_items si 
-          LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
           WHERE si.sale_id = s.id
         )), 0) AS total_profit
       FROM sales s
@@ -133,9 +139,12 @@ class AnalyticsRepository {
       SELECT 
         strftime('%Y-W%W', s.created_at, 'localtime') AS period,
         COALESCE(SUM(s.total_amount - (
-          SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+          SELECT COALESCE(SUM(si.quantity * CASE 
+            WHEN si.buy_price > 0 THEN si.buy_price 
+            WHEN si.batch_id IS NOT NULL THEN COALESCE((SELECT b.buy_price FROM batches b WHERE b.id = si.batch_id), 0)
+            ELSE COALESCE((SELECT b.buy_price FROM batches b WHERE b.batch_number = si.batch_number LIMIT 1), 0)
+          END), 0) 
           FROM sale_items si 
-          LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
           WHERE si.sale_id = s.id
         )), 0) AS total_profit
       FROM sales s
@@ -150,9 +159,12 @@ class AnalyticsRepository {
       SELECT 
         strftime('%Y-%m', s.created_at, 'localtime') AS period,
         COALESCE(SUM(s.total_amount - (
-          SELECT COALESCE(SUM(si.quantity * CASE WHEN si.buy_price > 0 THEN si.buy_price ELSE COALESCE(b.buy_price, 0) END), 0) 
+          SELECT COALESCE(SUM(si.quantity * CASE 
+            WHEN si.buy_price > 0 THEN si.buy_price 
+            WHEN si.batch_id IS NOT NULL THEN COALESCE((SELECT b.buy_price FROM batches b WHERE b.id = si.batch_id), 0)
+            ELSE COALESCE((SELECT b.buy_price FROM batches b WHERE b.batch_number = si.batch_number LIMIT 1), 0)
+          END), 0) 
           FROM sale_items si 
-          LEFT JOIN batches b ON (si.batch_id = b.id OR (si.batch_id IS NULL AND si.batch_number = b.batch_number))
           WHERE si.sale_id = s.id
         )), 0) AS total_profit
       FROM sales s
