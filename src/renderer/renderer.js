@@ -3585,8 +3585,8 @@ async function refreshAlertBadges() {
 const functionKeyTabMap = {
   F1: 'stock-inward-view',
   F2: 'inventory-view',
-  F3: 'inventory-view',
-  F4: 'pos-view',
+  F3: 'pos-view',
+  F4: 'till-view',
   F5: 'sales-view',
   F6: 'reports-view',
   F7: 'profits-view'
