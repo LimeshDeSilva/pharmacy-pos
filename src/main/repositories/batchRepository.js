@@ -118,7 +118,7 @@ class BatchRepository {
         d.generic_name,
         d.category,
         d.min_stock_alert,
-        COALESCE(SUM(b.quantity), 0) AS total_stock,
+        (SELECT COALESCE(SUM(quantity), 0) FROM batches WHERE drug_id = d.id) AS total_stock,
         b.id AS batch_id,
         b.batch_number,
         b.expiry_date,
@@ -129,7 +129,6 @@ class BatchRepository {
       FROM drugs d
       JOIN batches b ON d.id = b.drug_id
       LEFT JOIN suppliers s ON b.supplier_id = s.id
-      GROUP BY d.id, b.id
       ORDER BY d.brand_name ASC, b.expiry_date ASC
     `);
     return query.all();
