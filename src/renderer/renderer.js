@@ -1797,13 +1797,13 @@ function calculatePosBalance() {
   if (!paidInput || !balanceDisplay || !totalDisplay) return 0;
 
   const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
-  const discountVal = (subtotal * discountPercent) / 100;
-  const netTotal = Math.max(0, subtotal - discountVal);
+  const discountVal = Math.round(((subtotal * discountPercent) / 100) * 100) / 100;
+  const netTotal = Math.max(0, Math.round((subtotal - discountVal) * 100) / 100);
 
   totalDisplay.innerText = `LKR ${netTotal.toFixed(2)}`;
 
   const paidVal = parseFloat(paidInput.value) || 0;
-  const balance = paidVal - netTotal;
+  const balance = Math.round((paidVal - netTotal) * 100) / 100;
 
   if (paidVal === 0 && netTotal === 0) {
     balanceDisplay.innerText = 'LKR 0.00';
@@ -1951,7 +1951,7 @@ function handleAddToCart() {
       return;
     }
     currentCart[existingIndex].quantity += qty;
-    currentCart[existingIndex].total_price = currentCart[existingIndex].quantity * selectedStock.sell_price;
+    currentCart[existingIndex].total_price = Math.round((currentCart[existingIndex].quantity * selectedStock.sell_price) * 100) / 100;
   } else {
     currentCart.push({
       batch_id: selectedStock.batch_id,
@@ -1961,7 +1961,7 @@ function handleAddToCart() {
       buy_price: parseFloat(selectedStock.buy_price) || 0,
       sell_price: parseFloat(selectedStock.sell_price) || 0,
       quantity: qty,
-      total_price: qty * selectedStock.sell_price
+      total_price: Math.round((qty * selectedStock.sell_price) * 100) / 100
     });
   }
 
@@ -2063,15 +2063,15 @@ async function processCheckout({ shouldPrint = true } = {}) {
     const paidInput = document.getElementById('pos-paid-amount');
 
     const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput && discountInput.value ? discountInput.value : 0) || 0));
-    const discountVal = (subtotal * discountPercent) / 100;
-    const grandTotal = Math.max(0, subtotal - discountVal);
+    const discountVal = Math.round(((subtotal * discountPercent) / 100) * 100) / 100;
+    const grandTotal = Math.max(0, Math.round((subtotal - discountVal) * 100) / 100);
 
     let paidVal = parseFloat(paidInput && paidInput.value ? paidInput.value : 0) || 0;
     if (paidVal === 0) {
       paidVal = grandTotal;
     }
 
-    const balanceVal = paidVal - grandTotal;
+    const balanceVal = Math.round((paidVal - grandTotal) * 100) / 100;
     const printedCart = [...currentCart];
     const nowStr = new Date().toLocaleString();
 
@@ -2953,8 +2953,8 @@ function renderEditSaleItems() {
   });
 
   const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
-  const discountVal = (subtotal * discountPercent) / 100;
-  const netTotal = Math.max(0, subtotal - discountVal);
+  const discountVal = Math.round(((subtotal * discountPercent) / 100) * 100) / 100;
+  const netTotal = Math.max(0, Math.round((subtotal - discountVal) * 100) / 100);
   totalDisplay.innerText = `LKR ${netTotal.toFixed(2)}`;
 }
 
@@ -2967,7 +2967,7 @@ window.updateEditItemQty = (index, val) => {
   const qty = parseInt(val, 10);
   if (!qty || qty <= 0) return;
   editingSaleItems[index].quantity = qty;
-  editingSaleItems[index].total_price = qty * editingSaleItems[index].sell_price;
+  editingSaleItems[index].total_price = Math.round((qty * editingSaleItems[index].sell_price) * 100) / 100;
   renderEditSaleItems();
 };
 
@@ -3152,8 +3152,8 @@ if (saveEditSaleBtn) {
     const subtotal = editingSaleItems.reduce((sum, i) => sum + i.total_price, 0);
     const discountInput = document.getElementById('edit-sale-discount-input');
     const discountPercent = Math.max(0, Math.min(100, parseFloat(discountInput ? discountInput.value : 0) || 0));
-    const discountVal = (subtotal * discountPercent) / 100;
-    const grandTotal = Math.max(0, subtotal - discountVal);
+    const discountVal = Math.round(((subtotal * discountPercent) / 100) * 100) / 100;
+    const grandTotal = Math.max(0, Math.round((subtotal - discountVal) * 100) / 100);
 
     saveEditSaleBtn.disabled = true;
     msg.style.color = '#64748b';
