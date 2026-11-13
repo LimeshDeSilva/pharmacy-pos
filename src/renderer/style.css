@@ -2156,7 +2156,7 @@ tbody tr:hover {
 /* 1. App Canvas & Sidebar */
 [data-theme="dark"] body {
   background-color: #030C1D;
-  color: #FFFFFF;
+  color: #000000;
 }
 
 [data-theme="dark"] #sidebar {
