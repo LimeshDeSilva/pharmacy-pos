@@ -11,13 +11,16 @@ class SystemService {
     return;
   }
 
-  static async backupDatabase() {
+  static async backupDatabase(win) {
     try {
-      const { filePath } = await dialog.showSaveDialog({
+      const options = {
         title: 'Backup SQLite Database',
-        defaultPath: `pharmacy_backup_${new Date().toISOString().slice(0, 10)}.db`,
+        defaultPath: pharmacy_backup_.db,
         filters: [{ name: 'SQLite Database', extensions: ['db', 'sqlite'] }]
-      });
+      };
+      const { filePath } = (win && typeof win.isDestroyed === 'function' && !win.isDestroyed())
+        ? await dialog.showSaveDialog(win, options)
+        : await dialog.showSaveDialog(options);
 
       if (!filePath) return { success: false, canceled: true };
 
