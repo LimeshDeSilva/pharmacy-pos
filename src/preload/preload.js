@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('api', {
   
   getInventory: () => ipcRenderer.invoke('inventory:getAll'),
   updateInventoryItem: (itemData) => ipcRenderer.invoke('inventory:updateItem', itemData),
+  deleteDrugFromInventory: (drugId) => ipcRenderer.invoke('inventory:deleteDrugStock', drugId),
+  deleteBatchFromInventory: (batchId) => ipcRenderer.invoke('inventory:deleteBatch', batchId),
   deleteMedicineKeepSales: (drugId) => ipcRenderer.invoke('inventory:deleteSingleDrug', drugId),
   deleteAllMedicinesKeepSales: () => ipcRenderer.invoke('inventory:deleteAllDrugs'),
   clearInventory: () => ipcRenderer.invoke('inventory:clearAll'),
