@@ -304,7 +304,11 @@ class SalesRepository {
       return true;
     });
 
-    return resetAll();
+    const res = resetAll();
+    if (typeof this.db.seedMedicinesIfEmpty === 'function') {
+      this.db.seedMedicinesIfEmpty(true);
+    }
+    return res;
   }
 
   deleteSaleById(saleId) {
