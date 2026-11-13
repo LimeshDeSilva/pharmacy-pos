@@ -135,6 +135,16 @@ class BatchRepository {
     return query.all();
   }
 
+  deleteDrugFromInventory(drugId) {
+    const query = this.db.prepare('DELETE FROM batches WHERE drug_id = ?');
+    return query.run(drugId);
+  }
+
+  deleteBatch(batchId) {
+    const query = this.db.prepare('DELETE FROM batches WHERE id = ?');
+    return query.run(batchId);
+  }
+
   getAvailableStock() {
     const query = this.db.prepare(`
       SELECT 
