@@ -2,17 +2,26 @@ const fs = require('fs');
 const { dialog } = require('electron');
 
 class ExportService {
-  static async exportInventoryCSV(inventory) {
+  static async exportInventoryCSV(win, inventory) {
     try {
+      if (Array.isArray(win) && inventory === undefined) {
+        inventory = win;
+        win = null;
+      }
+
       if (!inventory || inventory.length === 0) {
         return { success: false, error: 'No inventory records found to export.' };
       }
 
-      const { filePath } = await dialog.showSaveDialog({
+      const options = {
         title: 'Export Inventory to CSV',
         defaultPath: `inventory_export_${new Date().toISOString().slice(0, 10)}.csv`,
         filters: [{ name: 'CSV Files', extensions: ['csv'] }]
-      });
+      };
+
+      const { filePath } = (win && typeof win.isDestroyed === 'function' && !win.isDestroyed())
+        ? await dialog.showSaveDialog(win, options)
+        : await dialog.showSaveDialog(options);
 
       if (!filePath) return { success: false, canceled: true };
 
