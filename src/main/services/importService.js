@@ -32,7 +32,7 @@ class ImportService {
     try {
       if (!filePath) return { success: false, canceled: true };
 
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = fs.readFileSync(filePath, 'utf-8').replace(/^\uFEFF/, '');
       const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
 
       if (lines.length < 2) {
@@ -58,6 +58,7 @@ class ImportService {
       const idxExpiry = getColIdx(['expiry_date', 'expiry date', 'exp date', 'expiry']);
       const idxBatch = getColIdx(['batch_number', 'batch number', 'batch no', 'batch']);
       const idxQuantity = getColIdx(['quantity', 'qty', 'stock']);
+      const idxBarcode = getColIdx(['barcode', 'bar code', 'barcode_number', 'ean', 'gtin']);
 
       if (idxBrand === -1) {
         return { success: false, error: `CSV missing required "Brand name" column. Found headers: ${headers.join(', ')}` };
@@ -76,15 +77,22 @@ class ImportService {
           const genericName = idxGeneric !== -1 && cols[idxGeneric] && cols[idxGeneric].toLowerCase() !== 'nan' ? cols[idxGeneric] : '';
           const category = idxCategory !== -1 && cols[idxCategory] && cols[idxCategory].toLowerCase() !== 'nan' ? cols[idxCategory] : 'General';
           const minStock = idxMinStock !== -1 && !isNaN(cols[idxMinStock]) ? parseInt(cols[idxMinStock], 10) || 10 : 10;
+          const barcodeVal = idxBarcode !== -1 && cols[idxBarcode] && cols[idxBarcode].toLowerCase() !== 'nan' ? cols[idxBarcode].trim() : '';
 
-          let drug = db.prepare('SELECT id FROM drugs WHERE brand_name = ?').get(brandName);
+          let drug = db.prepare('SELECT id, barcode FROM drugs WHERE brand_name = ?').get(brandName);
           let drugId;
 
           if (drug) {
             drugId = drug.id;
+            if (barcodeVal && !drug.barcode) {
+              try { db.prepare('UPDATE drugs SET barcode = ? WHERE id = ?').run(barcodeVal, drugId); } catch (e) { }
+            }
           } else {
             const res = drugRepo.addDrug(brandName, genericName, category, minStock);
             drugId = res.lastInsertRowid;
+            if (barcodeVal) {
+              try { db.prepare('UPDATE drugs SET barcode = ? WHERE id = ?').run(barcodeVal, drugId); } catch (e) { }
+            }
           }
 
           const batchNo = idxBatch !== -1 && cols[idxBatch] && cols[idxBatch].toLowerCase() !== 'nan' ? cols[idxBatch] : '';
@@ -96,10 +104,13 @@ class ImportService {
 
           if (batchNo && expiry && qty > 0) {
             try {
-              batchRepo.addBatch(drugId, batchNo, expiry, buyPrice, sellPrice, qty);
+              const resBatch = batchRepo.addBatch(drugId, batchNo, expiry, buyPrice, sellPrice, qty);
+              if (barcodeVal && resBatch && resBatch.lastInsertRowid) {
+                try { db.prepare('UPDATE batches SET barcode = ? WHERE id = ?').run(barcodeVal, resBatch.lastInsertRowid); } catch (e) { }
+              }
             } catch (err) {
-              db.prepare('UPDATE batches SET quantity = quantity + ?, buy_price = ?, sell_price = ?, expiry_date = ? WHERE drug_id = ? AND batch_number = ?')
-                .run(qty, buyPrice, sellPrice, expiry, drugId, batchNo);
+              db.prepare('UPDATE batches SET quantity = quantity + ?, buy_price = ?, sell_price = ?, expiry_date = ?, barcode = COALESCE(?, barcode) WHERE drug_id = ? AND batch_number = ?')
+                .run(qty, buyPrice, sellPrice, expiry, barcodeVal || null, drugId, batchNo);
             }
           }
 
