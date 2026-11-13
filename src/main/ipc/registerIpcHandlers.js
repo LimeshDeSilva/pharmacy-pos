@@ -48,9 +48,17 @@ const checkoutSchema = z.object({
   prescription: z.any().optional().nullable()
 });
 
-function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo, supplierRepo) {
+function registerIpcHandlers(db, drugRepo, batchRepo, salesRepo, analyticsRepo, settingsRepo, supplierRepo, onActivationSuccess) {
   ipcMain.handle('license:getHardwareId', () => SystemService.getHardwareId());
-  ipcMain.handle('license:activate', (event, key) => SystemService.activateLicense(key));
+  ipcMain.handle('license:activate', (event, key) => {
+    const res = SystemService.activateLicense(key);
+    if (res && res.success && typeof onActivationSuccess === 'function') {
+      setTimeout(() => {
+        try { onActivationSuccess(); } catch (e) { console.error('Failed to launch main app on activation:', e); }
+      }, 700);
+    }
+    return res;
+  });
 
   // Suppliers
   ipcMain.handle('suppliers:getAll', async () => {
