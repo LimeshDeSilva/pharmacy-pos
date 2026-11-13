@@ -60,4 +60,5 @@ contextBridge.exposeInMainWorld('api', {
   updateSale: (data) => ipcRenderer.invoke('sales:update', data),
 
   importCSV: () => ipcRenderer.invoke('inventory:importCSV'),
+  seedMasterDrugs: () => ipcRenderer.invoke('system:seedMasterDrugs'),
 });
