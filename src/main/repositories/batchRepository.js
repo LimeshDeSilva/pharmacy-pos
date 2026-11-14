@@ -118,6 +118,7 @@ class BatchRepository {
         d.generic_name,
         d.category,
         d.min_stock_alert,
+        COALESCE(b.barcode, d.barcode, '') AS barcode,
         (SELECT COALESCE(SUM(quantity), 0) FROM batches WHERE drug_id = d.id) AS total_stock,
         b.id AS batch_id,
         b.batch_number,
