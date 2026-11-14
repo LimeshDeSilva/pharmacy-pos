@@ -28,6 +28,28 @@ class ImportService {
     return result.map(v => v.replace(/^"|"$/g, '').trim());
   }
 
+  static normalizeDate(dateStr) {
+    if (!dateStr) return '';
+    const str = String(dateStr).trim();
+    // Match DD/MM/YYYY or DD-MM-YYYY
+    const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dmy) {
+      const day = dmy[1].padStart(2, '0');
+      const month = dmy[2].padStart(2, '0');
+      const year = dmy[3];
+      return `${year}-${month}-${day}`;
+    }
+    // Match YYYY-MM-DD or YYYY/MM/DD
+    const ymd = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (ymd) {
+      const year = ymd[1];
+      const month = ymd[2].padStart(2, '0');
+      const day = ymd[3].padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return str.slice(0, 10);
+  }
+
   static async importInventoryCSV(db, drugRepo, batchRepo, filePath) {
     try {
       if (!filePath) return { success: false, canceled: true };
@@ -97,7 +119,7 @@ class ImportService {
 
           const batchNo = idxBatch !== -1 && cols[idxBatch] && cols[idxBatch].toLowerCase() !== 'nan' ? cols[idxBatch] : '';
           const rawExpiry = idxExpiry !== -1 && cols[idxExpiry] && cols[idxExpiry].toLowerCase() !== 'nan' ? cols[idxExpiry] : '';
-          const expiry = rawExpiry ? rawExpiry.slice(0, 10) : '';
+          const expiry = ImportService.normalizeDate(rawExpiry);
           const buyPrice = idxBuyPrice !== -1 && !isNaN(cols[idxBuyPrice]) ? parseFloat(cols[idxBuyPrice]) || 0 : 0;
           const sellPrice = idxSellPrice !== -1 && !isNaN(cols[idxSellPrice]) ? parseFloat(cols[idxSellPrice]) || 0 : 0;
           const qty = idxQuantity !== -1 && !isNaN(cols[idxQuantity]) ? parseInt(cols[idxQuantity], 10) || 0 : 0;
