@@ -2,6 +2,28 @@ const fs = require('fs');
 const { dialog } = require('electron');
 
 class ExportService {
+  static formatExpiryDate(dateStr) {
+    if (!dateStr) return '';
+    const str = String(dateStr).trim();
+    const ymd = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (ymd) {
+      const day = ymd[3].padStart(2, '0');
+      const month = ymd[2].padStart(2, '0');
+      const year = ymd[1];
+      return `${day}/${month}/${year}`;
+    }
+    return str;
+  }
+
+  static escapeCsv(val) {
+    if (val === null || val === undefined) return '';
+    const str = String(val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  }
+
   static async exportInventoryCSV(win, inventory) {
     try {
       if (Array.isArray(win) && inventory === undefined) {
@@ -25,12 +47,24 @@ class ExportService {
 
       if (!filePath) return { success: false, canceled: true };
 
-      const headers = 'Brand Name,Generic Name,Category,Batch Number,Expiry Date,Sell Price,Batch Stock,Total Stock\n';
-      const rows = inventory.map(item =>
-        `"${item.brand_name || ''}","${item.generic_name || ''}","${item.category || ''}","${item.batch_number || ''}","${item.expiry_date || ''}",${item.sell_price || 0},${item.batch_quantity !== null ? item.batch_quantity : 0},${item.total_stock || 0}`
-      ).join('\n');
+      const headers = 'Brand Name,Generic Name,Category,Min Stock Alert,Batch Number,Expiry Date,Buy Price,Sell Price,Quantity,Barcode\r\n';
+      const rows = inventory.map(item => {
+        const brand = ExportService.escapeCsv(item.brand_name || '');
+        const generic = ExportService.escapeCsv(item.generic_name || '');
+        const category = ExportService.escapeCsv(item.category || '');
+        const minStock = item.min_stock_alert !== null && item.min_stock_alert !== undefined ? Number(item.min_stock_alert) : 10;
+        const batchNo = ExportService.escapeCsv(item.batch_number || '');
+        const expiry = ExportService.formatExpiryDate(item.expiry_date);
+        const buyPrice = item.buy_price !== null && item.buy_price !== undefined ? Number(item.buy_price) : 0;
+        const sellPrice = item.sell_price !== null && item.sell_price !== undefined ? Number(item.sell_price) : 0;
+        const qty = item.batch_quantity !== null && item.batch_quantity !== undefined ? Number(item.batch_quantity) : (item.quantity !== null && item.quantity !== undefined ? Number(item.quantity) : 0);
+        const barcode = ExportService.escapeCsv(item.barcode || '');
 
-      fs.writeFileSync(filePath, headers + rows, 'utf-8');
+        return `${brand},${generic},${category},${minStock},${batchNo},${expiry},${buyPrice},${sellPrice},${qty},${barcode}`;
+      }).join('\r\n');
+
+      const bom = '\uFEFF';
+      fs.writeFileSync(filePath, bom + headers + rows, 'utf-8');
       return { success: true, filePath };
     } catch (err) {
       return { success: false, error: err.message };
